@@ -1,10 +1,11 @@
-# qunfold | Algorithms for Quantification and Unfolding
+# qunfold | Quantification & Unfolding
 
-This Python package implements our unified framework of quantification and unfolding algorithms.
+This Python package implements our unified framework of algorithms for quantification and unfolding.
+
 
 ## Development / unit testing
 
-During development, run tests locally with the `unittest` package.
+Run tests locally with the `unittest` package.
 
 ```
 python -m venv venv
