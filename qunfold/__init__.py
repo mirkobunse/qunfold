@@ -4,6 +4,12 @@ from .losses import (
     CombinedLoss,
 )
 
+from .transformers import (
+    ClassTransformer,
+)
+
 from .methods import (
     GenericMethod,
+    ACC,
+    PACC,
 )
