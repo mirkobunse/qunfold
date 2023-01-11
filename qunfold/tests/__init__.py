@@ -1,5 +1,6 @@
 import numpy as np
 import qunfold
+import time
 from sklearn.ensemble import RandomForestClassifier
 from unittest import TestCase
 
@@ -33,6 +34,7 @@ def generate_data(M, p, n_samples=1000):
 
 class TestLeastSquaresLoss(TestCase):
   def test_LeastSquaresLoss(self):
+    start = time.time()
     for _ in range(10):
       q, M, p_trn = make_problem()
       X_trn, y_trn = generate_data(M, p_trn)
@@ -42,8 +44,8 @@ class TestLeastSquaresLoss(TestCase):
         oob_score = True,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = qunfold.ACC(rf, verbose=True).fit(X_trn, y_trn).predict(X_tst)
-      p_pacc = qunfold.PACC(rf, verbose=True).fit(X_trn, y_trn).predict(X_tst)
+      p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",
@@ -54,3 +56,4 @@ class TestLeastSquaresLoss(TestCase):
         end = "\n"*2
       )
       # self.assertTrue(...)
+    print(f"Spent {time.time() - start}s")

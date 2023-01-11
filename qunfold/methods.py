@@ -4,8 +4,8 @@ from . import (losses, transformers)
 
 # helper function for our softmax "trick" with l[0]=0
 def _np_softmax(l):
-  exp_l = np.exp(np.concatenate(([0.], l)))
-  return exp_l / exp_l.sum()
+  exp_l = np.exp(l)
+  return np.concatenate((np.ones(1), exp_l)) / (1. + exp_l.sum())
 
 # helper function for proper labels from 0 to n_classes-1
 def _sanitize_labels(y):
@@ -17,6 +17,10 @@ def _sanitize_labels(y):
   if np.any(labels != np.arange(y.max()+1)):
     raise ValueError("Not all labels between y.min() and y.max() are present:")
   return y, len(labels) # = (y, C)
+
+# helper function for random starting points
+def _l_0(rng, n_classes):
+  return rng.rand(n_classes-1)
 
 class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
   """A numpy array with additional properties nit and message."""
@@ -33,12 +37,11 @@ class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
 
 class GenericMethod:
   """A generic quantification / unfolding method."""
-  def __init__(self, loss, transformer, solver="trust-exact", seed=None, verbose=False):
+  def __init__(self, loss, transformer, solver="trust-exact", seed=None):
     self.loss = loss
     self.transformer = transformer
     self.solver = solver
     self.seed = seed
-    self.verbose = verbose
   def fit(self, X, y):
     y, C = _sanitize_labels(y)
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
@@ -52,13 +55,11 @@ class GenericMethod:
     q = self.transformer.transform(X).mean(axis=0)
     return self.solve(q, self.M)
   def solve(self, q, M): # TODO add arguments p_trn and N=X.shape[0]
-    loss_dict = losses.instantiate_loss(self.loss, q, M, self.verbose)
+    loss_dict = losses.instantiate_loss(self.loss, q, M)
     rng = np.random.RandomState(self.seed)
-    if self.verbose:
-      print("DEBUG: Optimizing")
     opt = optimize.minimize(
-      loss_dict["fun"],
-      rng.rand(loss_dict["n_classes"]-1), # l_0
+      loss_dict["fun"], # JAX function l -> loss
+      _l_0(rng, M.shape[1]), # random starting point
       jac = loss_dict["jac"],
       hess = loss_dict["hess"],
       method = self.solver,

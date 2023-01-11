@@ -31,16 +31,16 @@ setup(
     license="MIT",
     packages=setuptools.find_packages(),
     install_requires=[
+        "jax",
         "numpy",
         "scipy",
-        "sympy",
     ],
     python_requires=">=3.6",
     include_package_data=True,
     zip_safe=False,
     test_suite="nose.collector",
     extras_require = {
-        "experiments" : ["pandas", "scikit-learn", "tqdm"],
-        "tests" : ["nose", "scikit-learn"]
+        "experiments" : ["jax[cpu]", "pandas", "scikit-learn", "tqdm"],
+        "tests" : ["jax[cpu]", "nose", "scikit-learn"]
     }
 )

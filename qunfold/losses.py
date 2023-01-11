@@ -1,63 +1,50 @@
-import numpy as np
-import sympy
+import jax
+import jax.numpy as jnp
 from abc import ABC, abstractmethod
 
 # helper function for our softmax "trick" with l[0]=0
-def _sympy_softmax(l):
-  exp_l = sympy.Matrix([[0]]).row_insert(1, l).applyfunc(sympy.exp)
-  sum_exp_l = 0
-  for i in range(len(exp_l)):
-    sum_exp_l += exp_l[i]
-  return exp_l / sum_exp_l
+def _jnp_softmax(l):
+  exp_l = jnp.exp(l)
+  return jnp.concatenate((jnp.ones(1), exp_l)) / (1. + exp_l.sum())
 
 # helper function for least squares
 def _lsq(q, M, p):
-  v = q - M*p
-  return v.transpose()*v
+  v = q - jnp.dot(M, p)
+  return jnp.dot(v, v)
 
-def instantiate_loss(loss, q, M, verbose=False):
-  """Create a dict of fun, jac, hess, and n_classes."""
-  n_features, n_classes = M.shape
-  q = sympy.ImmutableMatrix(q.reshape(n_features, 1))
-  M = sympy.ImmutableMatrix(M)
-  l = sympy.MatrixSymbol("l", n_classes-1, 1) # latent variables
-  L = loss._instantiate(q, M, _sympy_softmax(l)).as_explicit() # loss
-  if verbose:
-    print("DEBUG: Computing the Jacobian")
-  J = L.jacobian(l)
-  fun = sympy.lambdify(l, sympy.flatten(L.evalf()))
-  jac = sympy.lambdify(l, sympy.flatten(J.transpose())) # gradient vector
-  if verbose:
-    print("DEBUG: Computing the Hessian")
-  hess = sympy.lambdify(l, J.jacobian(l)) # Hessian matrix
-  return {
-    "fun": lambda _l: fun(_l.reshape(n_classes-1, 1))[0],
-    "jac": lambda _l: np.array(jac(_l.reshape(n_classes-1, 1))),
-    "hess": lambda _l: np.array(hess(_l.reshape(n_classes-1, 1))),
-    "n_classes": n_classes, 
-  }
+def instantiate_loss(loss, q, M):
+  """Create a dict of JAX functions "fun", "jac", and "hess" of l."""
+  q = jnp.array(q)
+  M = jnp.array(M)
+  fun = lambda l: loss._instantiate(q, M)(_jnp_softmax(l)) # loss function
+  jac = jax.grad(fun)
+  hess = jax.jacfwd(jac) # forward-mode AD
+  return {"fun": fun, "jac": jac, "hess": hess}
 
 class AbstractLoss(ABC):
   """Abstract base class for loss functions."""
   @abstractmethod
-  def _instantiate(self, q, M, p):
-    """Create a sympy representation of this loss function."""
+  def _instantiate(self, q, M):
+    """Create a JAX function p -> loss."""
     pass
 
 class LeastSquaresLoss(AbstractLoss):
   """The loss function of ACC, PACC, and ReadMe."""
-  def _instantiate(self, q, M, p):
-    return _lsq(q, M, p)
+  def _instantiate(self, q, M):
+    return lambda p: _lsq(q, M, p)
+
+def _combine_losses(losses, weights, q, M, p):
+  combined_loss = 0
+  for (loss, weight) in (losses, weights):
+    combined_loss += weight * loss._instantiate(q, M)(p)
+  return combined_loss
 
 class CombinedLoss(AbstractLoss):
   """The weighted sum of multiple losses."""
   def __init__(self, *losses, weights=None):
     self.losses = losses
     if weights is None:
-      weights = np.ones(len(losses))
+      weights = jnp.ones(len(losses))
     self.weights = weights
   def _instantiate(self, q, M):
-    combined_loss = 0
-    for (loss, weight) in (self.losses, self.weights):
-      combined_loss += weight * loss._instantiate(q, M, _sympy_softmax(self.l))
-    return combined_loss
+    return lambda p: _combine_losses(self.losses, self.weights, q, M, p)
