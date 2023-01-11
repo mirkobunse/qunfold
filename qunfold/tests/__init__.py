@@ -42,8 +42,8 @@ class TestLeastSquaresLoss(TestCase):
         oob_score = True,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
-      p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_acc = qunfold.ACC(rf, verbose=True).fit(X_trn, y_trn).predict(X_tst)
+      p_pacc = qunfold.PACC(rf, verbose=True).fit(X_trn, y_trn).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",

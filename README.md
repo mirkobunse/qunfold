@@ -17,7 +17,7 @@ from qunfold import ACC
 from sklearn.ensemble import RandomForestClassifier
 
 acc = ACC( # a scikit-learn bagging classifier with oob_score is needed
-    RandomForestClassifier(oob_score=true)
+    RandomForestClassifier(oob_score=True)
 )
 
 # X_trn, y_trn = my_training_data(...)

@@ -15,16 +15,20 @@ def _lsq(q, M, p):
   v = q - M*p
   return v.transpose()*v
 
-def instantiate_loss(loss, q, M):
+def instantiate_loss(loss, q, M, verbose=False):
   """Create a dict of fun, jac, hess, and n_classes."""
   n_features, n_classes = M.shape
   q = sympy.ImmutableMatrix(q.reshape(n_features, 1))
   M = sympy.ImmutableMatrix(M)
   l = sympy.MatrixSymbol("l", n_classes-1, 1) # latent variables
   L = loss._instantiate(q, M, _sympy_softmax(l)).as_explicit() # loss
+  if verbose:
+    print("DEBUG: Computing the Jacobian")
   J = L.jacobian(l)
   fun = sympy.lambdify(l, sympy.flatten(L.evalf()))
   jac = sympy.lambdify(l, sympy.flatten(J.transpose())) # gradient vector
+  if verbose:
+    print("DEBUG: Computing the Hessian")
   hess = sympy.lambdify(l, J.jacobian(l)) # Hessian matrix
   return {
     "fun": lambda _l: fun(_l.reshape(n_classes-1, 1))[0],

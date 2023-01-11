@@ -33,11 +33,12 @@ class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
 
 class GenericMethod:
   """A generic quantification / unfolding method."""
-  def __init__(self, loss, transformer, solver="trust-exact", seed=None):
+  def __init__(self, loss, transformer, solver="trust-exact", seed=None, verbose=False):
     self.loss = loss
     self.transformer = transformer
     self.solver = solver
     self.seed = seed
+    self.verbose = verbose
   def fit(self, X, y):
     y, C = _sanitize_labels(y)
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
@@ -51,8 +52,10 @@ class GenericMethod:
     q = self.transformer.transform(X).mean(axis=0)
     return self.solve(q, self.M)
   def solve(self, q, M): # TODO add arguments p_trn and N=X.shape[0]
-    loss_dict = losses.instantiate_loss(self.loss, q, M)
+    loss_dict = losses.instantiate_loss(self.loss, q, M, self.verbose)
     rng = np.random.RandomState(self.seed)
+    if self.verbose:
+      print("DEBUG: Optimizing")
     opt = optimize.minimize(
       loss_dict["fun"],
       rng.rand(loss_dict["n_classes"]-1), # l_0
