@@ -12,6 +12,10 @@ def _lsq(q, M, p):
   v = q - jnp.dot(M, p)
   return jnp.dot(v, v)
 
+# helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
+def _nonzero_features(M):
+  return jnp.any(M != 0, axis=1)
+
 def instantiate_loss(loss, q, M):
   """Create a dict of JAX functions "fun", "jac", and "hess" of l."""
   q = jnp.array(q)
@@ -31,6 +35,9 @@ class AbstractLoss(ABC):
 class LeastSquaresLoss(AbstractLoss):
   """The loss function of ACC, PACC, and ReadMe."""
   def _instantiate(self, q, M):
+    nonzero = _nonzero_features(M)
+    M = M[nonzero,:]
+    q = q[nonzero]
     return lambda p: _lsq(q, M, p)
 
 def _combine_losses(losses, weights, q, M, p):
