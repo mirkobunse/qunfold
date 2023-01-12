@@ -10,11 +10,11 @@ def _np_softmax(l):
 # helper function for proper labels from 0 to n_classes-1
 def _sanitize_labels(y):
   if y.min() == 1:
-    y -= 1
+    y = y - 1
   elif y.min() != 0:
     raise ValueError("y.min() ∉ [0, 1]")
   labels = np.sort(np.unique(y))
-  if np.any(labels != np.arange(y.max()+1)):
+  if np.any(labels != np.arange(len(labels))):
     raise ValueError("Not all labels between y.min() and y.max() are present:")
   return y, len(labels) # = (y, C)
 
@@ -45,6 +45,7 @@ class GenericMethod:
   def fit(self, X, y):
     y, C = _sanitize_labels(y)
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
+    # TODO any fy missing?
     M = np.zeros((fX.shape[1], C)) # (n_features, n_classes)
     for c in range(C):
       M[:,c] = fX[fy==c,:].sum(axis=0) # one histogram of f(X) per class

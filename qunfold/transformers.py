@@ -6,9 +6,11 @@ def _onehot_encoding(y, classes=None):
   if classes is None:
     classes = np.unique(y)
   if classes.min() == 1:
-    y -= 1
+    y = y - 1
   elif classes.min() != 0:
     raise ValueError("classes.min() ∉ [0, 1]")
+  if len(np.setdiff1d(np.unique(y), classes)) > 0:
+    raise ValueError("unique(y) ⊈ classes")
   return np.eye(len(classes))[y] # https://stackoverflow.com/a/42874726/20580159
 
 class AbstractTransformer(ABC):
