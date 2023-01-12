@@ -23,11 +23,11 @@ class ClassTransformer(AbstractTransformer):
     self.is_probabilistic = is_probabilistic
     self.fit_classifier = fit_classifier
   def fit_transform(self, X, y):
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
       raise ValueError("Only bagging classifiers with oob_score=True are supported")
     if self.fit_classifier:
-      if y.min() not in [0, 1]:
-        raise ValueError("y.min() ∉ [0, 1]")
       self.classifier.fit(X, y)
     self.n_classes = len(self.classifier.classes_)
     fX = self.classifier.oob_decision_function_
