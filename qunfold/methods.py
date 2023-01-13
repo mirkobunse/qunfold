@@ -8,8 +8,8 @@ def _np_softmax(l):
   return np.concatenate((np.ones(1), exp_l)) / (1. + exp_l.sum())
 
 # helper function for random starting points
-def _l_0(rng, n_classes):
-  return rng.rand(n_classes-1)
+def _rand_x0(rng, n_classes):
+  return rng.rand(n_classes-1) * 2 - 1
 
 class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
   """A numpy array with additional properties nit and message."""
@@ -47,7 +47,7 @@ class GenericMethod:
     rng = np.random.RandomState(self.seed)
     opt = optimize.minimize(
       loss_dict["fun"], # JAX function l -> loss
-      _l_0(rng, M.shape[1]), # random starting point
+      _rand_x0(rng, M.shape[1]), # random starting point
       jac = loss_dict["jac"],
       hess = loss_dict["hess"],
       method = self.solver,
