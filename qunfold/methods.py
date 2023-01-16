@@ -1,4 +1,5 @@
 import numpy as np
+import traceback
 from scipy import optimize
 from . import (losses, transformers)
 
@@ -24,6 +25,35 @@ class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
     self.nit = getattr(obj, "nit", None)
     self.message = getattr(obj, "message", None)
 
+# helpers for maintaining the last result in case of an error
+class DerivativeError(Exception):
+  def __init__(self, name, result):
+    super().__init__(f"infs and NaNs in {name}: {result}")
+def _check_derivative(jac_or_hess, name):
+  return lambda x: _check_derivative_at_x(jac_or_hess, name, x)
+def _check_derivative_at_x(jac_or_hess, name, x):
+  result = jac_or_hess(x)
+  if not np.all(np.isfinite(result)):
+    raise DerivativeError(name, result)
+  return result
+
+class _CallbackState():
+  def __init__(self, x0):
+    self._xk = x0
+    self._nit = 0
+  def get_state(self):
+    return optimize.OptimizeResult(
+      x = self._xk,
+      success = False,
+      message = "Intermediate result",
+      nit = self._nit
+    )
+  def _callback(self, xk):
+    self._xk = xk
+    self._nit += 1
+  def callback(self):
+    return lambda xk: self._callback(xk)
+
 class GenericMethod:
   """A generic quantification / unfolding method."""
   def __init__(self, loss, transformer, solver="trust-exact", seed=None):
@@ -45,13 +75,20 @@ class GenericMethod:
   def solve(self, q, M): # TODO add arguments p_trn and N=X.shape[0]
     loss_dict = losses.instantiate_loss(self.loss, q, M)
     rng = np.random.RandomState(self.seed)
-    opt = optimize.minimize(
-      loss_dict["fun"], # JAX function l -> loss
-      _rand_x0(rng, M.shape[1]), # random starting point
-      jac = loss_dict["jac"],
-      hess = loss_dict["hess"],
-      method = self.solver,
-    )
+    x0 = _rand_x0(rng, M.shape[1]) # random starting point
+    state = _CallbackState(x0)
+    try:
+      opt = optimize.minimize(
+        loss_dict["fun"], # JAX function l -> loss
+        x0,
+        jac = _check_derivative(loss_dict["jac"], "jac"),
+        hess = _check_derivative(loss_dict["hess"], "hess"),
+        method = self.solver,
+        callback = state.callback()
+      )
+    except (DerivativeError, ValueError):
+      traceback.print_exc()
+      opt = state.get_state()
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
 
 class ACC(GenericMethod):
