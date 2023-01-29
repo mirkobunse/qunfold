@@ -56,10 +56,11 @@ class _CallbackState():
 
 class GenericMethod:
   """A generic quantification / unfolding method."""
-  def __init__(self, loss, transformer, solver="trust-ncg", seed=None):
+  def __init__(self, loss, transformer, solver="trust-ncg", solver_options=None, seed=None):
     self.loss = loss
     self.transformer = transformer
     self.solver = solver
+    self.solver_options = solver_options
     self.seed = seed
   def fit(self, X, y):
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
@@ -84,6 +85,7 @@ class GenericMethod:
         jac = _check_derivative(loss_dict["jac"], "jac"),
         hess = _check_derivative(loss_dict["hess"], "hess"),
         method = self.solver,
+        options = self.solver_options,
         callback = state.callback()
       )
     except (DerivativeError, ValueError):
