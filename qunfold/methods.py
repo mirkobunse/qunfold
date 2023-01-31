@@ -56,7 +56,11 @@ class _CallbackState():
 
 class GenericMethod:
   """A generic quantification / unfolding method."""
-  def __init__(self, loss, transformer, solver="trust-ncg", solver_options=None, seed=None):
+  def __init__(self, loss, transformer,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
     self.loss = loss
     self.transformer = transformer
     self.solver = solver
