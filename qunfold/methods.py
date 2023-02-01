@@ -55,7 +55,17 @@ class _CallbackState():
     return lambda xk: self._callback(xk)
 
 class GenericMethod:
-  """A generic quantification / unfolding method."""
+  """A generic quantification / unfolding method.
+
+  This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).
+
+  Args:
+      loss: An instance from `qunfold.losses`.
+      transformer: An instance from `qunfold.transformers`.
+      solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
+      solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
+      seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
+  """
   def __init__(self, loss, transformer,
       solver = "trust-ncg",
       solver_options = {"gtol": 1e-8, "maxiter": 1000},
@@ -67,6 +77,15 @@ class GenericMethod:
     self.solver_options = solver_options
     self.seed = seed
   def fit(self, X, y):
+    """Fit this quantifier to data.
+
+    Args:
+        X: The feature matrix to which this quantifier will be fitted.
+        y: The labels to which this quantifier will be fitted.
+
+    Returns:
+        This fitted quantifier itself.
+    """
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
     M = np.zeros((fX.shape[1], self.transformer.n_classes)) # (n_features, n_classes)
     for c in range(self.transformer.n_classes):
@@ -75,9 +94,26 @@ class GenericMethod:
     self.p_trn = M.sum(axis=0) / M.sum()
     return self
   def predict(self, X):
+    """Predict the class prevalences in a data set.
+
+    Args:
+        X: The feature matrix for which this quantifier will make a prediction.
+
+    Returns:
+        A numpy array of class prevalences.
+    """
     q = self.transformer.transform(X).mean(axis=0)
     return self.solve(q, self.M)
   def solve(self, q, M): # TODO add arguments p_trn and N=X.shape[0]
+    """Solve the linear system of equations `q=M*p` for `p`.
+
+    Args:
+        q: A numpy array.
+        M: A numpy matrix.
+
+    Returns:
+        The solution `p`.
+    """
     loss_dict = losses.instantiate_loss(self.loss, q, M)
     rng = np.random.RandomState(self.seed)
     x0 = _rand_x0(rng, M.shape[1]) # random starting point
@@ -98,7 +134,15 @@ class GenericMethod:
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
 
 class ACC(GenericMethod):
-  """Adjusted Classify & Count."""
+  """Adjusted Classify & Count.
+
+  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+
+  Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
   def __init__(self, classifier, fit_classifier=True, **kwargs):
     GenericMethod.__init__(
       self,
@@ -111,7 +155,15 @@ class ACC(GenericMethod):
     )
 
 class PACC(GenericMethod):
-  """Probabilistic Adjusted Classify & Count."""
+  """Probabilistic Adjusted Classify & Count.
+
+  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+
+  Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
   def __init__(self, classifier, fit_classifier=True, **kwargs):
     GenericMethod.__init__(
       self,

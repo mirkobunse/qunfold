@@ -41,6 +41,7 @@ setup(
     test_suite="nose.collector",
     extras_require = {
         "experiments" : ["jax[cpu]", "pandas", "scikit-learn", "tqdm"],
-        "tests" : ["jax[cpu]", "nose", "scikit-learn"]
+        "tests" : ["jax[cpu]", "nose", "scikit-learn"],
+        "docs" : ["myst-parser", "sphinx-rtd-theme"],
     }
 )

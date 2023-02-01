@@ -1,8 +1,12 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://mirkobunse.github.io/ordinal_quantification)
-[![CI](https://github.com/mirkobunse/ordinal_quantification/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkobunse/ordinal_quantification/actions/workflows/ci.yml)
+```{toctree}
+:hidden:
 
+self
+api
+developer-guide
+```
 
-# qunfold | Quantification & Unfolding
+# Quickstart
 
 This Python package implements our unified framework of algorithms for quantification and unfolding.
 
@@ -14,9 +18,7 @@ pip install 'qunfold @ git+https://github.com/mirkobunse/qunfold'
 ```
 
 
-## Quick start
-
-For detailed information, visit [the documentation](https://mirkobunse.github.io/qunfold).
+## Usage
 
 Basically, you use this package as follows:
 
