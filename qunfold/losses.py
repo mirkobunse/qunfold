@@ -146,5 +146,5 @@ class TikhonovRegularized(CombinedLoss):
 
           >>> TikhonovRegularization(BlobelLoss(), tau)
   """
-  def __init__(loss, tau=0.):
+  def __init__(self, loss, tau=0.):
     super().__init__(loss, TikhonovRegularization(), weights=[1, tau])
