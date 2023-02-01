@@ -1,5 +1,5 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://mirkobunse.github.io/ordinal_quantification)
-[![CI](https://github.com/mirkobunse/ordinal_quantification/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkobunse/ordinal_quantification/actions/workflows/ci.yml)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://mirkobunse.github.io/qunfold)
+[![CI](https://github.com/mirkobunse/qunfold/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkobunse/qunfold/actions/workflows/ci.yml)
 
 
 # qunfold | Quantification & Unfolding

@@ -42,6 +42,6 @@ setup(
     extras_require = {
         "experiments" : ["jax[cpu]", "pandas", "scikit-learn", "tqdm"],
         "tests" : ["jax[cpu]", "nose", "scikit-learn"],
-        "docs" : ["myst-parser", "sphinx-rtd-theme"],
+        "docs" : ["jax[cpu]", "myst-parser", "sphinx-rtd-theme"],
     }
 )
