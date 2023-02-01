@@ -16,3 +16,9 @@ Instances of popular quantification and unfolding algorithms are created through
 
 .. autofunction:: qunfold.PACC
 ```
+
+## Unfolding
+
+```{eval-rst}
+.. autofunction:: qunfold.RUN
+```

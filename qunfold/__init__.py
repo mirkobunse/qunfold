@@ -1,7 +1,10 @@
 from .losses import (
     instantiate_loss,
     LeastSquaresLoss,
+    BlobelLoss,
     CombinedLoss,
+    TikhonovRegularization,
+    TikhonovRegularized,
 )
 
 from .transformers import (
@@ -12,4 +15,5 @@ from .methods import (
     GenericMethod,
     ACC,
     PACC,
+    RUN,
 )

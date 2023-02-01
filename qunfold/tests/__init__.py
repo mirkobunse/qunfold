@@ -32,8 +32,8 @@ def generate_data(M, p, n_samples=1000):
   X += RNG.rand(*X.shape) * .1
   return X, y
 
-class TestLeastSquaresLoss(TestCase):
-  def test_LeastSquaresLoss(self):
+class TestMethods(TestCase):
+  def test_methods(self):
     start = time.time()
     for _ in range(10):
       q, M, p_trn = make_problem()
@@ -46,11 +46,14 @@ class TestLeastSquaresLoss(TestCase):
       )
       p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",
         f"    p_pacc = {p_pacc}",
         f"             {p_pacc.nit} it.; {p_pacc.message}",
+        f"     p_run = {p_run}",
+        f"             {p_run.nit} it.; {p_run.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2

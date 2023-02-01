@@ -103,18 +103,19 @@ class GenericMethod:
         A numpy array of class prevalences.
     """
     q = self.transformer.transform(X).mean(axis=0)
-    return self.solve(q, self.M)
-  def solve(self, q, M): # TODO add arguments p_trn and N=X.shape[0]
+    return self.solve(q, self.M, N=X.shape[0])
+  def solve(self, q, M, N=None): # TODO add argument p_trn
     """Solve the linear system of equations `q=M*p` for `p`.
 
     Args:
         q: A numpy array.
         M: A numpy matrix.
+        N: The number of data items that `q` represents. For some losses, this argument is optional.
 
     Returns:
-        The solution `p`.
+        The solution vector `p`.
     """
-    loss_dict = losses.instantiate_loss(self.loss, q, M)
+    loss_dict = losses.instantiate_loss(self.loss, q, M, N)
     rng = np.random.RandomState(self.seed)
     x0 = _rand_x0(rng, M.shape[1]) # random starting point
     state = _CallbackState(x0)
@@ -173,5 +174,23 @@ class PACC(GenericMethod):
         fit_classifier = fit_classifier,
         is_probabilistic = True
       ),
+      **kwargs
+    )
+
+class RUN(GenericMethod):
+  """Regularized Unfolding by Blobel (1985).
+
+  This subclass of `GenericMethod` is instantiated with a `TikhonovRegularized(BlobelLoss)`.
+
+  Args:
+      transformer: An instance from `qunfold.transformers`.
+      tau (optional): The regularization strength. Defaults to 0.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
+  def __init__(self, transformer, *, tau=0., **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.TikhonovRegularized(losses.BlobelLoss(), tau),
+      transformer,
       **kwargs
     )
