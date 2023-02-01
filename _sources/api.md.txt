@@ -1,18 +1,67 @@
 # API
 
-The `GenericMethod` defines the interface for common quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+The `GenericMethod` defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
 
-Instances of popular quantification and unfolding algorithms are created through more specified constructors, which are detailed below.
+Instances of [](#popular-algorithms) for quantification and unfolding are created through specialized constructors. However, you can also define your own quantification algorithm as a `GenericMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
 
 ```{eval-rst}
 .. autoclass:: qunfold.GenericMethod
    :members:
 ```
 
-## Classify and count
+
+## Popular algorithms
+
+We categorize existing, well-known quantification and unfolding algorithms into [](#classify-and-count) methods, [](#distribution-matching) methods, and [](#unfolding) methods. Each of these methods consists of a fixed combination of [](#losses), [](#regularizers), and [](#feature-transformations).
+
+
+### Classify and count
 
 ```{eval-rst}
-.. autofunction:: qunfold.ACC
+.. autoclass:: qunfold.ACC
 
-.. autofunction:: qunfold.PACC
+.. autoclass:: qunfold.PACC
+```
+
+
+### Distribution matching
+
+TODO.
+
+
+### Unfolding
+
+```{eval-rst}
+.. autoclass:: qunfold.RUN
+```
+
+
+## Losses
+
+```{eval-rst}
+.. autoclass:: qunfold.LeastSquaresLoss
+
+.. autoclass:: qunfold.BlobelLoss
+
+.. autoclass:: qunfold.CombinedLoss
+```
+
+```{hint}
+You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and regularizers.
+```
+
+
+## Regularizers
+
+```{eval-rst}
+.. autoclass:: qunfold.TikhonovRegularization
+
+.. autoclass:: qunfold.TikhonovRegularized
+```
+
+
+## Feature transformations
+
+```{eval-rst}
+.. autoclass:: qunfold.ClassTransformer
 ```

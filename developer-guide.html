@@ -41,8 +41,22 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Developer guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#unit-testing">Unit testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow">Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unit-testing">Unit testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-implementations">Custom implementations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#losses">Losses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.losses.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#feature-transformations">Feature transformations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.transformers.AbstractTransformer"><code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -73,8 +87,12 @@
              
   <div class="section" id="developer-guide">
 <h1>Developer guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h1>
+<p>We provide best practices regarding the implementation <a class="reference internal" href="#workflow"><span class="std std-doc">Workflow</span></a> before going into detail about how to take out <a class="reference internal" href="#custom-implementations"><span class="std std-doc">Custom implementations</span></a>.</p>
+<div class="section" id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h2>
+<p>Before you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, please test the code and the documentation locally.</p>
 <div class="section" id="unit-testing">
-<h2>Unit testing<a class="headerlink" href="#unit-testing" title="Permalink to this heading"></a></h2>
+<h3>Unit testing<a class="headerlink" href="#unit-testing" title="Permalink to this heading"></a></h3>
 <p>Run tests locally with the <code class="docutils literal notranslate"><span class="pre">unittest</span></code> package.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
 venv/bin/pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>tests<span class="o">]</span>
@@ -84,8 +102,8 @@ venv/bin/python<span class="w"> </span>-m<span class="w"> </span>unittest
 <p>As soon as you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, GitHub Actions will take out these unit tests, too.</p>
 </div>
 <div class="section" id="documentation">
-<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h2>
-<p>Inspect your changes before pushing them to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch. After building the documentation, open <code class="docutils literal notranslate"><span class="pre">docs/build/index.html</span></code> in your browser.</p>
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h3>
+<p>After locally building the documentation, open <code class="docutils literal notranslate"><span class="pre">docs/build/index.html</span></code> in your browser.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.<span class="w"> </span>venv/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
 <span class="nb">cd</span><span class="w"> </span>docs/
@@ -94,6 +112,102 @@ make<span class="w"> </span>html
 </pre></div>
 </div>
 <p>As soon as you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, GitHub Actions will build the documentation, push it to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch, and publish the result on GitHub Pages: <a class="reference external" href="https://mirkobunse.github.io/qunfold">https://mirkobunse.github.io/qunfold</a></p>
+</div>
+</div>
+<div class="section" id="custom-implementations">
+<h2>Custom implementations<a class="headerlink" href="#custom-implementations" title="Permalink to this heading"></a></h2>
+<p>Custom <a class="reference internal" href="#losses"><span class="std std-doc">Losses</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-doc">Feature transformations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>. Use the already existing implementations as examples.</p>
+<div class="section" id="losses">
+<h3>Losses<a class="headerlink" href="#losses" title="Permalink to this heading"></a></h3>
+<p>To implement a custom loss, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.losses.AbstractLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Abstract base class for loss functions and for regularization terms.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.losses.AbstractLoss._instantiate">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.AbstractLoss._instantiate" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to create a lambda expression <cite>p -&gt; loss</cite> with JAX.</p>
+<p>In particular, your implementation of this abstract method should return a lambda expression</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">loss_value</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <cite>loss_value</cite> has to return the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+</pre></div>
+</div>
+<p>and use <cite>jnp</cite> just as if you would use numpy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – A numpy array.</p></li>
+<li><p><strong>M</strong> – A numpy matrix.</p></li>
+<li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A lambda expression <cite>p -&gt; loss</cite>, implemented in JAX.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="feature-transformations">
+<h3>Feature transformations<a class="headerlink" href="#feature-transformations" title="Permalink to this heading"></a></h3>
+<p>To implement a custom feature transformation, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">AbstractTransformer</span></span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Abstract base class for transformers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 </div>
 

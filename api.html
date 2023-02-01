@@ -47,9 +47,32 @@
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.solve"><code class="docutils literal notranslate"><span class="pre">GenericMethod.solve()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#classify-and-count">Classify and count</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.ACC"><code class="docutils literal notranslate"><span class="pre">ACC()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.PACC"><code class="docutils literal notranslate"><span class="pre">PACC()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#popular-algorithms">Popular algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#classify-and-count">Classify and count</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.ACC"><code class="docutils literal notranslate"><span class="pre">ACC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.PACC"><code class="docutils literal notranslate"><span class="pre">PACC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#distribution-matching">Distribution matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unfolding">Unfolding</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.RUN"><code class="docutils literal notranslate"><span class="pre">RUN</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#losses">Losses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LeastSquaresLoss"><code class="docutils literal notranslate"><span class="pre">LeastSquaresLoss</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.BlobelLoss"><code class="docutils literal notranslate"><span class="pre">BlobelLoss</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.CombinedLoss"><code class="docutils literal notranslate"><span class="pre">CombinedLoss</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#regularizers">Regularizers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.TikhonovRegularization"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularization</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.TikhonovRegularized"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularized</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#feature-transformations">Feature transformations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.ClassTransformer"><code class="docutils literal notranslate"><span class="pre">ClassTransformer</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -83,8 +106,8 @@
              
   <div class="section" id="api">
 <h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> defines the interface for common quantification and unfolding algorithms. Most importantly, this interface consists of their <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> methods.</p>
-<p>Instances of popular quantification and unfolding algorithms are created through more specified constructors, which are detailed below.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> methods.</p>
+<p>Instances of <a class="reference internal" href="#popular-algorithms"><span class="std std-doc">Popular algorithms</span></a> for quantification and unfolding are created through specialized constructors. However, you can also define your own quantification algorithm as a <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> that combines an arbitrary choice of <a class="reference internal" href="#losses"><span class="std std-doc">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-doc">Regularizers</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-doc">Feature transformations</span></a>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.GenericMethod">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GenericMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod" title="Permalink to this definition"></a></dt>
@@ -134,28 +157,32 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.GenericMethod.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.solve" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.solve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>q</strong> – A numpy array.</p></li>
 <li><p><strong>M</strong> – A numpy matrix.</p></li>
+<li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents. For some losses, this argument is optional.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The solution <cite>p</cite>.</p>
+<dd class="field-even"><p>The solution vector <cite>p</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
+<div class="section" id="popular-algorithms">
+<h2>Popular algorithms<a class="headerlink" href="#popular-algorithms" title="Permalink to this heading"></a></h2>
+<p>We categorize existing, well-known quantification and unfolding algorithms into <a class="reference internal" href="#classify-and-count"><span class="std std-doc">Classify and count</span></a> methods, <a class="reference internal" href="#distribution-matching"><span class="std std-doc">Distribution matching</span></a> methods, and <a class="reference internal" href="#unfolding"><span class="std std-doc">Unfolding</span></a> methods. Each of these methods consists of a fixed combination of <a class="reference internal" href="#losses"><span class="std std-doc">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-doc">Regularizers</span></a>, and <a class="reference internal" href="#feature-transformations"><span class="std std-doc">Feature transformations</span></a>.</p>
 <div class="section" id="classify-and-count">
-<h2>Classify and count<a class="headerlink" href="#classify-and-count" title="Permalink to this heading"></a></h2>
-<dl class="py function">
+<h3>Classify and count<a class="headerlink" href="#classify-and-count" title="Permalink to this heading"></a></h3>
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.ACC">
-<span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ACC" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ACC" title="Permalink to this definition"></a></dt>
 <dd><p>Adjusted Classify &amp; Count.</p>
 <p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
 <dl class="field-list simple">
@@ -169,9 +196,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.PACC">
-<span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.PACC" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.PACC" title="Permalink to this definition"></a></dt>
 <dd><p>Probabilistic Adjusted Classify &amp; Count.</p>
 <p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
 <dl class="field-list simple">
@@ -180,6 +207,117 @@
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="distribution-matching">
+<h3>Distribution matching<a class="headerlink" href="#distribution-matching" title="Permalink to this heading"></a></h3>
+<p>TODO.</p>
+</div>
+<div class="section" id="unfolding">
+<h3>Unfolding<a class="headerlink" href="#unfolding" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.RUN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">RUN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.RUN" title="Permalink to this definition"></a></dt>
+<dd><p>Regularized Unfolding by Blobel (1985).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>TikhonovRegularized(BlobelLoss)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
+<li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="losses">
+<h2>Losses<a class="headerlink" href="#losses" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.LeastSquaresLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LeastSquaresLoss</span></span><a class="headerlink" href="#qunfold.LeastSquaresLoss" title="Permalink to this definition"></a></dt>
+<dd><p>The loss function of ACC, PACC, and ReadMe.</p>
+<p>This loss function computes the sum of squares of element-wise errors between <cite>q</cite> and <cite>M*p</cite>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.BlobelLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">BlobelLoss</span></span><a class="headerlink" href="#qunfold.BlobelLoss" title="Permalink to this definition"></a></dt>
+<dd><p>The loss function of RUN (Blobel, 1985).</p>
+<p>This loss function models a likelihood function under the assumption of independent Poisson-distributed elements of <cite>q</cite> with Poisson rates <cite>M*p</cite>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.CombinedLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">CombinedLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.CombinedLoss" title="Permalink to this definition"></a></dt>
+<dd><p>The weighted sum of multiple losses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*losses</strong> – An arbitrary number of losses to be added together.</p></li>
+<li><p><strong>weights</strong> (<em>optional</em>) – An array of weights which the losses are scaled.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">CombinedLoss</span></code> to create arbitrary, weighted sums of losses and regularizers.</p>
+</div>
+</div>
+<div class="section" id="regularizers">
+<h2>Regularizers<a class="headerlink" href="#regularizers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.TikhonovRegularization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularization</span></span><a class="headerlink" href="#qunfold.TikhonovRegularization" title="Permalink to this definition"></a></dt>
+<dd><p>Tikhonov regularization, as proposed by Blobel (1985).</p>
+<p>This regularization promotes smooth solutions. This behavior is often required in ordinal quantification and in unfolding problems.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.TikhonovRegularized">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.TikhonovRegularized" title="Permalink to this definition"></a></dt>
+<dd><p>Add TikhonovRegularization to any loss.</p>
+<p>Instances of this class are equivalent to</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CombinedLoss</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">TikhonovRegularization</span><span class="p">(),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">tau</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
+<li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The regularized loss of RUN (Blobel, 1985) is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TikhonovRegularization</span><span class="p">(</span><span class="n">BlobelLoss</span><span class="p">(),</span> <span class="n">tau</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="feature-transformations">
+<h2>Feature transformations<a class="headerlink" href="#feature-transformations" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.ClassTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ClassTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ClassTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>A classification-based feature transformation.</p>
+<p>This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>is_probabilistic</strong> (<em>optional</em>) – Whether probabilistic or crisp predictions of the <cite>classifier</cite> are used to transform the data. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
 </dl>

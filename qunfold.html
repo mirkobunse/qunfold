@@ -88,7 +88,15 @@
 <dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.losses.AbstractLoss" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
-<p>Abstract base class for loss functions.</p>
+<p>Abstract base class for loss functions and for regularization terms.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.BlobelLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">BlobelLoss</span></span><a class="headerlink" href="#qunfold.losses.BlobelLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<p>The loss function of RUN (Blobel, 1985).</p>
+<p>This loss function models a likelihood function under the assumption of independent Poisson-distributed elements of <cite>q</cite> with Poisson rates <cite>M*p</cite>.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -96,6 +104,14 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">CombinedLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.CombinedLoss" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
 <p>The weighted sum of multiple losses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*losses</strong> – An arbitrary number of losses to be added together.</p></li>
+<li><p><strong>weights</strong> (<em>optional</em>) – An array of weights which the losses are scaled.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -103,12 +119,45 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">LeastSquaresLoss</span></span><a class="headerlink" href="#qunfold.losses.LeastSquaresLoss" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
 <p>The loss function of ACC, PACC, and ReadMe.</p>
+<p>This loss function computes the sum of squares of element-wise errors between <cite>q</cite> and <cite>M*p</cite>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.TikhonovRegularization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularization</span></span><a class="headerlink" href="#qunfold.losses.TikhonovRegularization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<p>Tikhonov regularization, as proposed by Blobel (1985).</p>
+<p>This regularization promotes smooth solutions. This behavior is often required in ordinal quantification and in unfolding problems.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.TikhonovRegularized">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.TikhonovRegularized" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.CombinedLoss" title="qunfold.losses.CombinedLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">CombinedLoss</span></code></a></p>
+<p>Add TikhonovRegularization to any loss.</p>
+<p>Instances of this class are equivalent to</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CombinedLoss</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">TikhonovRegularization</span><span class="p">(),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">tau</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
+<li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The regularized loss of RUN (Blobel, 1985) is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TikhonovRegularization</span><span class="p">(</span><span class="n">BlobelLoss</span><span class="p">(),</span> <span class="n">tau</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qunfold.losses.instantiate_loss">
-<span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">instantiate_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.instantiate_loss" title="Permalink to this definition"></a></dt>
-<dd><p>Create a dict of JAX functions “fun”, “jac”, and “hess” of l.</p>
+<span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">instantiate_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.instantiate_loss" title="Permalink to this definition"></a></dt>
+<dd><p>Create a dict of JAX functions “fun”, “jac”, and “hess” of the loss.</p>
 </dd></dl>
 
 </div>
@@ -187,17 +236,18 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.methods.GenericMethod.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.solve" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.solve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>q</strong> – A numpy array.</p></li>
 <li><p><strong>M</strong> – A numpy matrix.</p></li>
+<li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents. For some losses, this argument is optional.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The solution <cite>p</cite>.</p>
+<dd class="field-even"><p>The solution vector <cite>p</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -222,6 +272,23 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.RUN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">RUN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.RUN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>Regularized Unfolding by Blobel (1985).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>TikhonovRegularized(BlobelLoss)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
+<li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.Result">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">Result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.Result" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></p>
@@ -239,13 +306,36 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
-<dd><p>Fit this transformer, set self.n_classes, and return a transformation (f(X), y).</p>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
-<dd><p>Transform X into f(X).</p>
+<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -254,17 +344,50 @@
 <dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">ClassTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
-<p>This transformer yields the classification-based feature transformation used in ACC, PACC, CC, PCC, and SLD.</p>
+<p>A classification-based feature transformation.</p>
+<p>This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>is_probabilistic</strong> (<em>optional</em>) – Whether probabilistic or crisp predictions of the <cite>classifier</cite> are used to transform the data. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer.fit_transform">
 <span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.fit_transform" title="Permalink to this definition"></a></dt>
-<dd><p>Fit this transformer, set self.n_classes, and return a transformation (f(X), y).</p>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.transform" title="Permalink to this definition"></a></dt>
-<dd><p>Transform X into f(X).</p>
+<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
