@@ -1,6 +1,12 @@
 # Developer guide
 
-## Unit testing
+We provide best practices regarding the implementation [](#workflow) before going into detail about how to take out [](#custom-implementations).
+
+## Workflow
+
+Before you push to the `main` branch, please test the code and the documentation locally.
+
+### Unit testing
 
 Run tests locally with the `unittest` package.
 
@@ -12,9 +18,10 @@ venv/bin/python -m unittest
 
 As soon as you push to the `main` branch, GitHub Actions will take out these unit tests, too.
 
-## Documentation
 
-Inspect your changes before pushing them to the `main` branch. After building the documentation, open `docs/build/index.html` in your browser.
+### Documentation
+
+After locally building the documentation, open `docs/build/index.html` in your browser.
 
 ```bash
 . venv/bin/activate
@@ -25,3 +32,28 @@ make html
 ```
 
 As soon as you push to the `main` branch, GitHub Actions will build the documentation, push it to the `gh-pages` branch, and publish the result on GitHub Pages: [https://mirkobunse.github.io/qunfold](https://mirkobunse.github.io/qunfold)
+
+
+## Custom implementations
+
+Custom [](#losses) and [](#feature-transformations) can be used in any instance of `GenericMethod`. Use the already existing implementations as examples.
+
+
+### Losses
+
+To implement a custom loss, you have to create a sub-class of `AbstractLoss`.
+
+```{eval-rst}
+.. autoclass:: qunfold.losses.AbstractLoss
+   :members: _instantiate
+```
+
+
+### Feature transformations
+
+To implement a custom feature transformation, you have to create a sub-class of `AbstractTransformer`.
+
+```{eval-rst}
+.. autoclass:: qunfold.transformers.AbstractTransformer
+   :members:
+```

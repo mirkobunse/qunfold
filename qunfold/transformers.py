@@ -9,15 +9,41 @@ class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
   @abstractmethod
   def fit_transform(self, X, y):
-    """Fit this transformer, set self.n_classes, and return a transformation (f(X), y)."""
+    """This abstract method has to the transformer to data and return a transformation `(f(X), y)`.
+
+    Note:
+        Implementations of this abstract method must set the property `self.n_classes`.
+
+    Args:
+        X: The feature matrix to which this transformer will be fitted.
+        y: The labels to which this transformer will be fitted.
+
+    Returns:
+        A transformation `(f(X), y)`.
+    """
     pass
   @abstractmethod
   def transform(self, X):
-    """Transform X into f(X)."""
+    """This abstract method has to transform `X` into `f(X)`.
+
+    Args:
+        X: The feature matrix that will be transformed.
+
+    Returns:
+        A transformation `f(X)` of this feature matrix.
+    """
     pass
 
 class ClassTransformer(AbstractTransformer):
-  """This transformer yields the classification-based feature transformation used in ACC, PACC, CC, PCC, and SLD."""
+  """A classification-based feature transformation.
+
+  This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.
+
+  Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to transform the data. Defaults to `False`.
+      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+  """
   def __init__(self, classifier, is_probabilistic=False, fit_classifier=True):
     self.classifier = classifier
     self.is_probabilistic = is_probabilistic

@@ -22,7 +22,7 @@ def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
 
 def instantiate_loss(loss, q, M, N):
-  """Create a dict of JAX functions "fun", "jac", and "hess" of l."""
+  """Create a dict of JAX functions "fun", "jac", and "hess" of the loss."""
   q = jnp.array(q)
   M = jnp.array(M)
   fun = lambda l: loss._instantiate(q, M, N)(_jnp_softmax(l)) # loss function
@@ -31,14 +31,44 @@ def instantiate_loss(loss, q, M, N):
   return {"fun": fun, "jac": jac, "hess": hess}
 
 class AbstractLoss(ABC):
-  """Abstract base class for loss functions."""
+  """Abstract base class for loss functions and for regularization terms."""
   @abstractmethod
   def _instantiate(self, q, M, N):
-    """Create a JAX function p -> loss."""
+    """This abstract method has to create a lambda expression `p -> loss` with JAX.
+
+    In particular, your implementation of this abstract method should return a lambda expression
+
+        >>> return lambda p: loss_value(q, M, p, N)
+
+    where `loss_value` has to return the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper
+
+        >>> import jax.numpy as jnp
+
+    and use `jnp` just as if you would use numpy.
+
+    Note:
+        `p` is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don't have to worry about constraints or latent parameters.
+
+    Args:
+        q: A numpy array.
+        M: A numpy matrix.
+        N: The number of data items that `q` represents.
+
+    Returns:
+        A lambda expression `p -> loss`, implemented in JAX.
+
+    Examples:
+        The least squares loss, `(q - M*p)' * (q - M*p)`, is simply
+
+            >>> jnp.dot(q - jnp.dot(M, p), q - jnp.dot(M, p))
+    """
     pass
 
 class LeastSquaresLoss(AbstractLoss):
-  """The loss function of ACC, PACC, and ReadMe."""
+  """The loss function of ACC, PACC, and ReadMe.
+
+  This loss function computes the sum of squares of element-wise errors between `q` and `M*p`.
+  """
   def _instantiate(self, q, M, N):
     nonzero = _nonzero_features(M)
     M = M[nonzero,:]
@@ -46,7 +76,10 @@ class LeastSquaresLoss(AbstractLoss):
     return lambda p: _lsq(q, M, p)
 
 class BlobelLoss(AbstractLoss):
-  """The loss function of RUN by Blobel (1985)."""
+  """The loss function of RUN (Blobel, 1985).
+
+  This loss function models a likelihood function under the assumption of independent Poisson-distributed elements of `q` with Poisson rates `M*p`.
+  """
   def _instantiate(self, q, M, N):
     if N is None:
       raise ValueError("BlobelLoss does not allow N=None")
@@ -63,7 +96,12 @@ def _combine_losses(losses, weights, q, M, p, N):
   return combined_loss
 
 class CombinedLoss(AbstractLoss):
-  """The weighted sum of multiple losses."""
+  """The weighted sum of multiple losses.
+
+  Args:
+      *losses: An arbitrary number of losses to be added together.
+      weights (optional): An array of weights which the losses are scaled.
+  """
   def __init__(self, *losses, weights=None):
     self.losses = losses
     if weights is None:
@@ -81,14 +119,32 @@ def _tikhonov_matrix(C):
   )[1:C-1, :]
 def _tikhonov(p, T):
   Tp = jnp.dot(T, p)
-  return jnp.dot(Tp, Tp)
+  return jnp.dot(Tp, Tp) / 2
 
 class TikhonovRegularization(AbstractLoss):
-  """Tikhonov regularization, as proposed by Blobel (1985)."""
+  """Tikhonov regularization, as proposed by Blobel (1985).
+
+  This regularization promotes smooth solutions. This behavior is often required in ordinal quantification and in unfolding problems.
+  """
   def _instantiate(self, q, M, N):
     T = _tikhonov_matrix(M.shape[1])
     return lambda p: _tikhonov(p, T)
 
-def TikhonovRegularized(loss, tau=0.):
-  """Convenience function to add TikhonovRegularization to a loss."""
-  return CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
+class TikhonovRegularized(CombinedLoss):
+  """Add TikhonovRegularization to any loss.
+
+  Instances of this class are equivalent to
+
+      >>> CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
+
+  Args:
+      loss: An instance from `qunfold.losses`.
+      tau (optional): The regularization strength. Defaults to 0.
+
+  Examples:
+      The regularized loss of RUN (Blobel, 1985) is:
+
+          >>> TikhonovRegularization(BlobelLoss(), tau)
+  """
+  def __init__(loss, tau=0.):
+    super().__init__(loss, TikhonovRegularization(), weights=[1, tau])
