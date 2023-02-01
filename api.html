@@ -41,7 +41,17 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#classify-and-count">Classify and count</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#qunfold.GenericMethod"><code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.fit"><code class="docutils literal notranslate"><span class="pre">GenericMethod.fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.predict"><code class="docutils literal notranslate"><span class="pre">GenericMethod.predict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.solve"><code class="docutils literal notranslate"><span class="pre">GenericMethod.solve()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#classify-and-count">Classify and count</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.ACC"><code class="docutils literal notranslate"><span class="pre">ACC()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.PACC"><code class="docutils literal notranslate"><span class="pre">PACC()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer guide</a></li>
@@ -75,8 +85,106 @@
 <h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> defines the interface for common quantification and unfolding algorithms. Most importantly, this interface consists of their <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> methods.</p>
 <p>Instances of popular quantification and unfolding algorithms are created through more specified constructors, which are detailed below.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.GenericMethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GenericMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod" title="Permalink to this definition"></a></dt>
+<dd><p>A generic quantification / unfolding method.</p>
+<p>This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
+<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
+<li><p><strong>solver</strong> (<em>optional</em>) – The <cite>method</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>“trust-ncg”</cite>.</p></li>
+<li><p><strong>solver_options</strong> (<em>optional</em>) – The <cite>options</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>{“gtol”: 1e-8, “maxiter”: 1000}</cite>.</p></li>
+<li><p><strong>seed</strong> (<em>optional</em>) – A random number generator seed from which a numpy RandomState is created. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.GenericMethod.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fit this quantifier to data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this quantifier will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this quantifier will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This fitted quantifier itself.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.GenericMethod.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predict the class prevalences in a data set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix for which this quantifier will make a prediction.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array of class prevalences.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.GenericMethod.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.solve" title="Permalink to this definition"></a></dt>
+<dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – A numpy array.</p></li>
+<li><p><strong>M</strong> – A numpy matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The solution <cite>p</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <div class="section" id="classify-and-count">
 <h2>Classify and count<a class="headerlink" href="#classify-and-count" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qunfold.ACC">
+<span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ACC" title="Permalink to this definition"></a></dt>
+<dd><p>Adjusted Classify &amp; Count.</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qunfold.PACC">
+<span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.PACC" title="Permalink to this definition"></a></dt>
+<dd><p>Probabilistic Adjusted Classify &amp; Count.</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 

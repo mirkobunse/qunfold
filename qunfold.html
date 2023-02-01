@@ -82,17 +82,196 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </div>
-<div class="section" id="qunfold-losses-module">
-<h2>qunfold.losses module<a class="headerlink" href="#qunfold-losses-module" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-qunfold.losses">
+<span id="qunfold-losses-module"></span><h2>qunfold.losses module<a class="headerlink" href="#module-qunfold.losses" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.losses.AbstractLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for loss functions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.CombinedLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">CombinedLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.CombinedLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<p>The weighted sum of multiple losses.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.LeastSquaresLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">LeastSquaresLoss</span></span><a class="headerlink" href="#qunfold.losses.LeastSquaresLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<p>The loss function of ACC, PACC, and ReadMe.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qunfold.losses.instantiate_loss">
+<span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">instantiate_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.instantiate_loss" title="Permalink to this definition"></a></dt>
+<dd><p>Create a dict of JAX functions “fun”, “jac”, and “hess” of l.</p>
+</dd></dl>
+
 </div>
-<div class="section" id="qunfold-methods-module">
-<h2>qunfold.methods module<a class="headerlink" href="#qunfold-methods-module" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-qunfold.methods">
+<span id="qunfold-methods-module"></span><h2>qunfold.methods module<a class="headerlink" href="#module-qunfold.methods" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.ACC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">ACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.ACC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>Adjusted Classify &amp; Count.</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="qunfold.methods.DerivativeError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">DerivativeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.DerivativeError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.GenericMethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">GenericMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A generic quantification / unfolding method.</p>
+<p>This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
+<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
+<li><p><strong>solver</strong> (<em>optional</em>) – The <cite>method</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>“trust-ncg”</cite>.</p></li>
+<li><p><strong>solver_options</strong> (<em>optional</em>) – The <cite>options</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>{“gtol”: 1e-8, “maxiter”: 1000}</cite>.</p></li>
+<li><p><strong>seed</strong> (<em>optional</em>) – A random number generator seed from which a numpy RandomState is created. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.methods.GenericMethod.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fit this quantifier to data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this quantifier will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this quantifier will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This fitted quantifier itself.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.methods.GenericMethod.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predict the class prevalences in a data set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix for which this quantifier will make a prediction.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array of class prevalences.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.methods.GenericMethod.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.solve" title="Permalink to this definition"></a></dt>
+<dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – A numpy array.</p></li>
+<li><p><strong>M</strong> – A numpy matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The solution <cite>p</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.PACC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.PACC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>Probabilistic Adjusted Classify &amp; Count.</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.Result">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">Result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.Result" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></p>
+<p>A numpy array with additional properties nit and message.</p>
+</dd></dl>
+
 </div>
-<div class="section" id="qunfold-transformers-module">
-<h2>qunfold.transformers module<a class="headerlink" href="#qunfold-transformers-module" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-qunfold.transformers">
+<span id="qunfold-transformers-module"></span><h2>qunfold.transformers module<a class="headerlink" href="#module-qunfold.transformers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">AbstractTransformer</span></span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for transformers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>Fit this transformer, set self.n_classes, and return a transformation (f(X), y).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>Transform X into f(X).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">ClassTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
+<p>This transformer yields the classification-based feature transformation used in ACC, PACC, CC, PCC, and SLD.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>Fit this transformer, set self.n_classes, and return a transformation (f(X), y).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>Transform X into f(X).</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-qunfold">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qunfold" title="Permalink to this heading"></a></h2>
 </div>
 </div>
 
