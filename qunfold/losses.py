@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import functools
 from abc import ABC, abstractmethod
 
 # helper function for our softmax "trick" with l[0]=0
@@ -8,12 +9,12 @@ def _jnp_softmax(l):
   return jnp.concatenate((jnp.ones(1), exp_l)) / (1. + exp_l.sum())
 
 # helper function for least squares
-def _lsq(q, M, p):
+def _lsq(p, q, M, N=None):
   v = q - jnp.dot(M, p)
   return jnp.dot(v, v)
 
 # helper function for RUN's maximum likelihood loss
-def _blobel(q, M, p, N):
+def _blobel(p, q, M, N):
   Mp = jnp.dot(M, N * p)
   return jnp.sum(Mp - N * q * jnp.log(Mp))
 
@@ -64,29 +65,54 @@ class AbstractLoss(ABC):
     """
     pass
 
-class LeastSquaresLoss(AbstractLoss):
+class FunctionLoss(AbstractLoss):
+  """Create a loss object from a JAX function `(p, q, M, N) -> loss_value`.
+
+  Using this class is likely more convenient than subtyping *AbstractLoss*. In both cases, the `loss_value` has to be the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper
+
+      >>> import jax.numpy as jnp
+
+  and use `jnp` just as if you would use numpy.
+
+  Note:
+      `p` is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don't have to worry about constraints or latent parameters.
+
+  Args:
+      loss_function: A JAX function `(p, q, M, N) -> loss_value`.
+
+  Examples:
+      The least squares loss, `(q - M*p)' * (q - M*p)`, is simply
+
+          >>> def least_squares(p, q, M, N):
+          >>>     jnp.dot(q - jnp.dot(M, p), q - jnp.dot(M, p))
+
+      and thereby ready to be used in a *FunctionLoss* object:
+
+          >>> least_squares_loss = FunctionLoss(least_squares)
+  """
+  def __init__(self, loss_function):
+    self.loss_function = loss_function
+  def _instantiate(self, q, M, N=None):
+    nonzero = _nonzero_features(M)
+    M = M[nonzero,:]
+    q = q[nonzero]
+    return lambda p: self.loss_function(p, q, M, N)
+
+class LeastSquaresLoss(FunctionLoss):
   """The loss function of ACC, PACC, and ReadMe.
 
   This loss function computes the sum of squares of element-wise errors between `q` and `M*p`.
   """
-  def _instantiate(self, q, M, N):
-    nonzero = _nonzero_features(M)
-    M = M[nonzero,:]
-    q = q[nonzero]
-    return lambda p: _lsq(q, M, p)
+  def __init__(self):
+    super().__init__(_lsq)
 
-class BlobelLoss(AbstractLoss):
+class BlobelLoss(FunctionLoss):
   """The loss function of RUN (Blobel, 1985).
 
   This loss function models a likelihood function under the assumption of independent Poisson-distributed elements of `q` with Poisson rates `M*p`.
   """
-  def _instantiate(self, q, M, N):
-    if N is None:
-      raise ValueError("BlobelLoss does not allow N=None")
-    nonzero = _nonzero_features(M)
-    M = M[nonzero,:]
-    q = q[nonzero]
-    return lambda p: _blobel(q, M, p, N)
+  def __init__(self):
+    super().__init__(_blobel)
 
 # helper function for CombinedLoss
 def _combine_losses(losses, weights, q, M, p, N):

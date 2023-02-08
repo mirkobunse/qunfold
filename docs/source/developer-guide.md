@@ -41,7 +41,13 @@ Custom [](#losses) and [](#feature-transformations) can be used in any instance 
 
 ### Losses
 
-To implement a custom loss, you have to create a sub-class of `AbstractLoss`.
+The most convenient way of implementing a custom loss is to create a [JAX](https://jax.readthedocs.io/)-powered function `(p, q, M, N) -> loss_value`. From this function, you can create a *FunctionLoss* object to be used in any instance of `GenericMethod`.
+
+```{eval-rst}
+.. autoclass:: qunfold.losses.FunctionLoss
+```
+
+If you require more freedom in implementing a custom loss, you can also create a sub-class of `AbstractLoss`.
 
 ```{eval-rst}
 .. autoclass:: qunfold.losses.AbstractLoss
