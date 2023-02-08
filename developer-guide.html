@@ -27,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> qunfold
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            qunfold
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -48,6 +52,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#custom-implementations">Custom implementations</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#losses">Losses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.losses.FunctionLoss"><code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.losses.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></li>
 </ul>
 </li>
@@ -74,7 +79,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Developer guide</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/developer-guide.md.txt" rel="nofollow"> View page source</a>
@@ -119,7 +124,38 @@ make<span class="w"> </span>html
 <p>Custom <a class="reference internal" href="#losses"><span class="std std-doc">Losses</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-doc">Feature transformations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>. Use the already existing implementations as examples.</p>
 <div class="section" id="losses">
 <h3>Losses<a class="headerlink" href="#losses" title="Permalink to this heading"></a></h3>
-<p>To implement a custom loss, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code>.</p>
+<p>The most convenient way of implementing a custom loss is to create a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a>-powered function <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">q,</span> <span class="pre">M,</span> <span class="pre">N)</span> <span class="pre">-&gt;</span> <span class="pre">loss_value</span></code>. From this function, you can create a <em>FunctionLoss</em> object to be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.FunctionLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.FunctionLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Create a loss object from a JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
+<p>Using this class is likely more convenient than subtyping <em>AbstractLoss</em>. In both cases, the <cite>loss_value</cite> has to be the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+</pre></div>
+</div>
+<p>and use <cite>jnp</cite> just as if you would use numpy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>loss_function</strong> – A JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">least_squares</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>and thereby ready to be used in a <em>FunctionLoss</em> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">least_squares_loss</span> <span class="o">=</span> <span class="n">FunctionLoss</span><span class="p">(</span><span class="n">least_squares</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p>If you require more freedom in implementing a custom loss, you can also create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.losses.AbstractLoss" title="Permalink to this definition"></a></dt>

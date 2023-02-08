@@ -27,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="#" class="icon icon-home"> qunfold
+
+          
+          
+          <a href="#" class="icon icon-home">
+            qunfold
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -56,7 +60,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home"></a></li>
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Quickstart</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.md.txt" rel="nofollow"> View page source</a>
@@ -75,6 +79,10 @@
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s1">&#39;qunfold @ git+https://github.com/mirkobunse/qunfold&#39;</span>
+</pre></div>
+</div>
+<p>Moreover, you will need a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a> backend. Typically, the CPU backend will be ideal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;jax[cpu]&quot;</span>
 </pre></div>
 </div>
 </div>

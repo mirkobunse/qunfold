@@ -17,6 +17,12 @@ This Python package implements our unified framework of algorithms for quantific
 pip install 'qunfold @ git+https://github.com/mirkobunse/qunfold'
 ```
 
+Moreover, you will need a [JAX](https://jax.readthedocs.io/) backend. Typically, the CPU backend will be ideal:
+
+```
+pip install "jax[cpu]"
+```
+
 
 ## Usage
 
