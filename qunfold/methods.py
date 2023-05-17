@@ -194,3 +194,46 @@ class RUN(GenericMethod):
       transformer,
       **kwargs
     )
+
+class HDx(GenericMethod):
+  """The Hellinger distance-based HDx method by González-Castro et al (2013).
+
+  This subclass of `GenericMethod` is instantiated with a `HellingerLoss` and a `HistogramTransformer`.
+
+  Args:
+      n_bins: The number of bins in each feature.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
+  def __init__(self, n_bins, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.HellingerLoss(n_bins),
+      transformers.HistogramTransformer(n_bins),
+      **kwargs
+    )
+
+class HDy(GenericMethod):
+  """The Hellinger distance-based HDy method by González-Castro et al (2013).
+
+  This subclass of `GenericMethod` is instantiated with a `HellingerLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+
+  Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      n_bins: The number of bins in each class.
+      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
+  def __init__(self, classifier, n_bins, *, fit_classifier=True, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.HellingerLoss(n_bins),
+      transformers.HistogramTransformer(
+        n_bins,
+        preprocessor = transformers.ClassTransformer(
+          classifier,
+          fit_classifier = fit_classifier,
+          is_probabilistic = True,
+        )
+      ),
+      **kwargs
+    )

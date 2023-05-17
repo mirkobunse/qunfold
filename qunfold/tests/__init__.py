@@ -47,6 +47,8 @@ class TestMethods(TestCase):
       p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
+      p_hdx = qunfold.HDx(3).fit(X_trn, y_trn).predict(X_tst)
+      p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",
@@ -54,9 +56,22 @@ class TestMethods(TestCase):
         f"             {p_pacc.nit} it.; {p_pacc.message}",
         f"     p_run = {p_run}",
         f"             {p_run.nit} it.; {p_run.message}",
+        f"     p_hdx = {p_hdx}",
+        f"             {p_hdx.nit} it.; {p_hdx.message}",
+        f"     p_hdy = {p_hdy}",
+        f"             {p_hdy.nit} it.; {p_hdy.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
       )
       # self.assertTrue(...)
     print(f"Spent {time.time() - start}s")
+
+class TestHistogramTransformer(TestCase):
+  def test_transformer(self):
+    X = np.load("qunfold/tests/HDx_X.npy")
+    y = np.random.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
+    fX = np.load("qunfold/tests/HDx_fX.npy") # ground-truth by QUnfold.jl
+    f = qunfold.HistogramTransformer(10)
+    self.assertTrue(np.all(f.fit_transform(X, y)[0] == fX))
+    self.assertTrue(np.all(f.transform(X) == fX))

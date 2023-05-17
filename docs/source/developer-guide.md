@@ -21,7 +21,7 @@ As soon as you push to the `main` branch, GitHub Actions will take out these uni
 
 ### Documentation
 
-After locally building the documentation, open `docs/build/index.html` in your browser.
+After locally building the documentation, open `docs/build/html/index.html` in your browser.
 
 ```bash
 . venv/bin/activate

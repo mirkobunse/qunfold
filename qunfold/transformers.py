@@ -69,3 +69,41 @@ class ClassTransformer(AbstractTransformer):
       return fX
     else:
       return _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+
+class HistogramTransformer(AbstractTransformer):
+  """A histogram-based feature transformation, as it is used in `HDx` and `HDy`.
+
+  Args:
+      n_bins: The number of bins in each feature.
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+  """
+  def __init__(self, n_bins, preprocessor=None):
+    self.n_bins = n_bins
+    self.preprocessor = preprocessor
+  def fit_transform(self, X, y):
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y)
+      self.n_classes = self.preprocessor.n_classes
+    else:
+      y -= y.min() # map to zero-based labels
+      self.n_classes = len(np.unique(y))
+    self.edges = []
+    for x in X.T: # iterate over columns = features
+      e = np.histogram_bin_edges(x, bins=self.n_bins)[1:]
+      e[-1] = np.inf
+      self.edges.append(e)
+    return self._transform_after_preprocessor(X), y
+  def transform(self, X):
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X)
+    return self._transform_after_preprocessor(X)
+  def _transform_after_preprocessor(self, X):
+    fX = np.zeros((X.shape[0], self.n_bins * X.shape[1]), dtype=int)
+    for j in range(X.shape[1]): # feature index
+      e = self.edges[j]
+      offset = j * self.n_bins
+      for i in range(X.shape[0]): # sample index
+        fX[i, offset + np.argmax(e >= X[i,j])] = 1 # argmax returns the index of the 1st True
+    return fX

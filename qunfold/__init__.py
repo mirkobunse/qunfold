@@ -2,6 +2,7 @@ from .losses import (
     instantiate_loss,
     LeastSquaresLoss,
     BlobelLoss,
+    HellingerLoss,
     CombinedLoss,
     TikhonovRegularization,
     TikhonovRegularized,
@@ -9,6 +10,7 @@ from .losses import (
 
 from .transformers import (
     ClassTransformer,
+    HistogramTransformer,
 )
 
 from .methods import (
@@ -16,4 +18,6 @@ from .methods import (
     ACC,
     PACC,
     RUN,
+    HDx,
+    HDy
 )

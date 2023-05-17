@@ -114,6 +114,38 @@ class BlobelLoss(FunctionLoss):
   def __init__(self):
     super().__init__(_blobel)
 
+# helper function for the HellingerLoss
+def _hellinger(p, q, M, indices):
+  v = (jnp.sqrt(q) - jnp.sqrt(jnp.dot(M, p)))**2
+  return jnp.sum(jnp.array([ jnp.sqrt(jnp.sum(v[i])) for i in indices ]))
+
+class HellingerLoss(AbstractLoss):
+  """The loss function of HDx and HDy.
+
+  This loss function computes the average of the Hellinger distances between feature-wise (or class-wise) histograms.
+
+  Args:
+      n_bins: The number of bins that is used in the feature transformation.
+  """
+  def __init__(self, n_bins):
+    self.n_bins = n_bins
+  def _instantiate(self, q, M, N=None):
+    n_features = int(M.shape[0] / self.n_bins) # derive the number from M's shape
+    indices = [ jnp.arange(i * self.n_bins, (i+1) * self.n_bins) for i in range(n_features) ]
+    nonzero = _nonzero_features(M)
+    M = M[nonzero,:]
+    q = q[nonzero]
+    if not jnp.all(nonzero):
+      i = 0
+      for j in range(len(indices)):
+        indices_j = []
+        for k in indices[j]:
+          if nonzero[k]:
+            indices_j.append(i)
+            i += 1
+        indices[j] = jnp.array(indices_j)
+    return lambda p: _hellinger(p, q, M, indices)
+
 # helper function for CombinedLoss
 def _combine_losses(losses, weights, q, M, p, N):
   combined_loss = 0
