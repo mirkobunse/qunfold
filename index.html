@@ -83,6 +83,10 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;jax[cpu]&quot;</span>
 </pre></div>
 </div>
+<p><strong>Troubleshooting:</strong> Starting from <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">23.1.2</span></code>, you have to install <code class="docutils literal notranslate"><span class="pre">setuptools</span></code> and <code class="docutils literal notranslate"><span class="pre">wheel</span></code> explicitly. If you receive a “NameError: name ‘setuptools’ is not defined”, you need to execute the following command before installing <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+</pre></div>
+</div>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
