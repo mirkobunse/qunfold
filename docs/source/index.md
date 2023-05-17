@@ -23,6 +23,12 @@ Moreover, you will need a [JAX](https://jax.readthedocs.io/) backend. Typically,
 pip install "jax[cpu]"
 ```
 
+**Updating:** To update an existing installation of `qunfold`, run
+
+```
+pip install --force-reinstall --no-deps 'qunfold @ git+https://github.com/mirkobunse/qunfold@main'
+```
+
 **Troubleshooting:** Starting from `pip 23.1.2`, you have to install `setuptools` and `wheel` explicitly. If you receive a "NameError: name 'setuptools' is not defined", you need to execute the following command before installing `qunfold`.
 
 ```
