@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Developer guide &mdash; qunfold 0.0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -90,13 +88,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="developer-guide">
+  <section id="developer-guide">
 <h1>Developer guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h1>
-<p>We provide best practices regarding the implementation <a class="reference internal" href="#workflow"><span class="std std-doc">Workflow</span></a> before going into detail about how to take out <a class="reference internal" href="#custom-implementations"><span class="std std-doc">Custom implementations</span></a>.</p>
-<div class="section" id="workflow">
+<p>We provide best practices regarding the implementation <a class="reference internal" href="#workflow"><span class="std std-ref">Workflow</span></a> before going into detail about how to take out <a class="reference internal" href="#custom-implementations"><span class="std std-ref">Custom implementations</span></a>.</p>
+<section id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h2>
 <p>Before you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, please test the code and the documentation locally.</p>
-<div class="section" id="unit-testing">
+<section id="unit-testing">
 <h3>Unit testing<a class="headerlink" href="#unit-testing" title="Permalink to this heading"></a></h3>
 <p>Run tests locally with the <code class="docutils literal notranslate"><span class="pre">unittest</span></code> package.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
@@ -105,10 +103,10 @@ venv/bin/python<span class="w"> </span>-m<span class="w"> </span>unittest
 </pre></div>
 </div>
 <p>As soon as you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, GitHub Actions will take out these unit tests, too.</p>
-</div>
-<div class="section" id="documentation">
+</section>
+<section id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h3>
-<p>After locally building the documentation, open <code class="docutils literal notranslate"><span class="pre">docs/build/index.html</span></code> in your browser.</p>
+<p>After locally building the documentation, open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code> in your browser.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.<span class="w"> </span>venv/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
 <span class="nb">cd</span><span class="w"> </span>docs/
@@ -117,12 +115,12 @@ make<span class="w"> </span>html
 </pre></div>
 </div>
 <p>As soon as you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, GitHub Actions will build the documentation, push it to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch, and publish the result on GitHub Pages: <a class="reference external" href="https://mirkobunse.github.io/qunfold">https://mirkobunse.github.io/qunfold</a></p>
-</div>
-</div>
-<div class="section" id="custom-implementations">
+</section>
+</section>
+<section id="custom-implementations">
 <h2>Custom implementations<a class="headerlink" href="#custom-implementations" title="Permalink to this heading"></a></h2>
-<p>Custom <a class="reference internal" href="#losses"><span class="std std-doc">Losses</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-doc">Feature transformations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>. Use the already existing implementations as examples.</p>
-<div class="section" id="losses">
+<p>Custom <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-ref">Feature transformations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>. Use the already existing implementations as examples.</p>
+<section id="losses">
 <h3>Losses<a class="headerlink" href="#losses" title="Permalink to this heading"></a></h3>
 <p>The most convenient way of implementing a custom loss is to create a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a>-powered function <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">q,</span> <span class="pre">M,</span> <span class="pre">N)</span> <span class="pre">-&gt;</span> <span class="pre">loss_value</span></code>. From this function, you can create a <em>FunctionLoss</em> object to be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>.</p>
 <dl class="py class">
@@ -139,7 +137,7 @@ make<span class="w"> </span>html
 <p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>loss_function</strong> – A JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
 </dd>
 </dl>
@@ -178,14 +176,14 @@ make<span class="w"> </span>html
 <p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>q</strong> – A numpy array.</p></li>
 <li><p><strong>M</strong> – A numpy matrix.</p></li>
 <li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A lambda expression <cite>p -&gt; loss</cite>, implemented in JAX.</p>
 </dd>
 </dl>
@@ -198,8 +196,8 @@ make<span class="w"> </span>html
 
 </dd></dl>
 
-</div>
-<div class="section" id="feature-transformations">
+</section>
+<section id="feature-transformations">
 <h3>Feature transformations<a class="headerlink" href="#feature-transformations" title="Permalink to this heading"></a></h3>
 <p>To implement a custom feature transformation, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code>.</p>
 <dl class="py class">
@@ -215,13 +213,13 @@ make<span class="w"> </span>html
 <p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
 </dd>
 </dl>
@@ -232,10 +230,10 @@ make<span class="w"> </span>html
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
 </dd>
 </dl>
@@ -243,9 +241,9 @@ make<span class="w"> </span>html
 
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

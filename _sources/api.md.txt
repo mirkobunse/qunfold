@@ -26,7 +26,11 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 
 ### Distribution matching
 
-TODO.
+```{eval-rst}
+.. autoclass:: qunfold.HDx
+
+.. autoclass:: qunfold.HDy
+```
 
 
 ### Unfolding
@@ -42,6 +46,8 @@ TODO.
 .. autoclass:: qunfold.LeastSquaresLoss
 
 .. autoclass:: qunfold.BlobelLoss
+
+.. autoclass:: qunfold.HellingerLoss
 
 .. autoclass:: qunfold.CombinedLoss
 ```
@@ -64,4 +70,6 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 ```{eval-rst}
 .. autoclass:: qunfold.ClassTransformer
+
+.. autoclass:: qunfold.HistogramTransformer
 ```

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>qunfold package &mdash; qunfold 0.0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -70,9 +68,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="qunfold-package">
+  <section id="qunfold-package">
 <h1>qunfold package<a class="headerlink" href="#qunfold-package" title="Permalink to this heading"></a></h1>
-<div class="section" id="subpackages">
+<section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
@@ -82,11 +80,11 @@
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="submodules">
+</section>
+<section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
-</div>
-<div class="section" id="module-qunfold.losses">
+</section>
+<section id="module-qunfold.losses">
 <span id="qunfold-losses-module"></span><h2>qunfold.losses module<a class="headerlink" href="#module-qunfold.losses" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
@@ -109,7 +107,7 @@
 <dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
 <p>The weighted sum of multiple losses.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>*losses</strong> – An arbitrary number of losses to be added together.</p></li>
 <li><p><strong>weights</strong> (<em>optional</em>) – An array of weights which the losses are scaled.</p></li>
@@ -133,7 +131,7 @@
 <p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>loss_function</strong> – A JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
 </dd>
 </dl>
@@ -147,6 +145,19 @@
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">least_squares_loss</span> <span class="o">=</span> <span class="n">FunctionLoss</span><span class="p">(</span><span class="n">least_squares</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.HellingerLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">HellingerLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.HellingerLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<p>The loss function of HDx and HDy.</p>
+<p>This loss function computes the average of the Hellinger distances between feature-wise (or class-wise) histograms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n_bins</strong> – The number of bins that is used in the feature transformation.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -175,7 +186,7 @@
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
 <li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
@@ -195,8 +206,8 @@
 <dd><p>Create a dict of JAX functions “fun”, “jac”, and “hess” of the loss.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-qunfold.methods">
+</section>
+<section id="module-qunfold.methods">
 <span id="qunfold-methods-module"></span><h2>qunfold.methods module<a class="headerlink" href="#module-qunfold.methods" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.ACC">
@@ -205,7 +216,7 @@
 <p>Adjusted Classify &amp; Count.</p>
 <p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
@@ -228,7 +239,7 @@
 <p>A generic quantification / unfolding method.</p>
 <p>This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
 <li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
@@ -243,13 +254,13 @@
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.fit" title="Permalink to this definition"></a></dt>
 <dd><p>Fit this quantifier to data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this quantifier will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this quantifier will be fitted.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>This fitted quantifier itself.</p>
 </dd>
 </dl>
@@ -260,10 +271,10 @@
 <span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.predict" title="Permalink to this definition"></a></dt>
 <dd><p>Predict the class prevalences in a data set.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>X</strong> – The feature matrix for which this quantifier will make a prediction.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A numpy array of class prevalences.</p>
 </dd>
 </dl>
@@ -274,19 +285,53 @@
 <span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.solve" title="Permalink to this definition"></a></dt>
 <dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>q</strong> – A numpy array.</p></li>
 <li><p><strong>M</strong> – A numpy matrix.</p></li>
 <li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents. For some losses, this argument is optional.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The solution vector <cite>p</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.HDx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">HDx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.HDx" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>The Hellinger distance-based HDx method by González-Castro et al (2013).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerLoss</cite> and a <cite>HistogramTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bins</strong> – The number of bins in each feature.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.HDy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">HDy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.HDy" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>The Hellinger distance-based HDy method by González-Castro et al (2013).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerLoss</cite> and a <cite>HistogramTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>n_bins</strong> – The number of bins in each class.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -296,7 +341,7 @@
 <p>Probabilistic Adjusted Classify &amp; Count.</p>
 <p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
@@ -313,7 +358,7 @@
 <p>Regularized Unfolding by Blobel (1985).</p>
 <p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>TikhonovRegularized(BlobelLoss)</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
 <li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
@@ -330,8 +375,8 @@
 <p>A numpy array with additional properties nit and message.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-qunfold.transformers">
+</section>
+<section id="module-qunfold.transformers">
 <span id="qunfold-transformers-module"></span><h2>qunfold.transformers module<a class="headerlink" href="#module-qunfold.transformers" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer">
@@ -347,13 +392,13 @@
 <p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
 </dd>
 </dl>
@@ -364,10 +409,10 @@
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
 </dd>
 </dl>
@@ -382,7 +427,7 @@
 <p>A classification-based feature transformation.</p>
 <p>This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>is_probabilistic</strong> (<em>optional</em>) – Whether probabilistic or crisp predictions of the <cite>classifier</cite> are used to transform the data. Defaults to <cite>False</cite>.</p></li>
@@ -399,13 +444,13 @@
 <p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
 </dd>
 </dl>
@@ -416,10 +461,10 @@
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
 </dd>
 </dl>
@@ -427,11 +472,61 @@
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">HistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
+<p>A histogram-based feature transformation, as it is used in <cite>HDx</cite> and <cite>HDy</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bins</strong> – The number of bins in each feature.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
 </div>
-<div class="section" id="module-qunfold">
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qunfold">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qunfold" title="Permalink to this heading"></a></h2>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
