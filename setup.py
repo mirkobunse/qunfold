@@ -31,7 +31,6 @@ setup(
     license="MIT",
     packages=setuptools.find_packages(),
     install_requires=[
-        "setuptools",
         "jax",
         "numpy",
         "scipy",
