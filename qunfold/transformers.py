@@ -76,10 +76,12 @@ class HistogramTransformer(AbstractTransformer):
   Args:
       n_bins: The number of bins in each feature.
       preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. Defaults to `False`, indicating that the sum of each output is the number of features.
   """
-  def __init__(self, n_bins, preprocessor=None):
+  def __init__(self, n_bins, preprocessor=None, unit_scale=False):
     self.n_bins = n_bins
     self.preprocessor = preprocessor
+    self.unit_scale = unit_scale
   def fit_transform(self, X, y):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
@@ -106,4 +108,6 @@ class HistogramTransformer(AbstractTransformer):
       offset = j * self.n_bins
       for i in range(X.shape[0]): # sample index
         fX[i, offset + np.argmax(e >= X[i,j])] = 1 # argmax returns the index of the 1st True
+    if self.unit_scale:
+      fX = fX / fX.sum(axis=1, keepdims=True)
     return fX
