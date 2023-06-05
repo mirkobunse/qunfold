@@ -78,12 +78,38 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="qunfold.experiments.html">qunfold.experiments package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#qunfold-experiments-lequa-module">qunfold.experiments.lequa module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments.lequa">qunfold.experiments.lequa module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.lequa.MyGridSearchQ"><code class="docutils literal notranslate"><span class="pre">MyGridSearchQ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.lequa.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.lequa.trial"><code class="docutils literal notranslate"><span class="pre">trial()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="qunfold.tests.html">qunfold.tests package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="qunfold.tests.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qunfold.tests.html#module-qunfold.tests">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.SingleSampleProtocol"><code class="docutils literal notranslate"><span class="pre">SingleSampleProtocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestCVClassifier"><code class="docutils literal notranslate"><span class="pre">TestCVClassifier</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestCVClassifier.test_methods"><code class="docutils literal notranslate"><span class="pre">TestCVClassifier.test_methods()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer"><code class="docutils literal notranslate"><span class="pre">TestHistogramTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer.test_transformer"><code class="docutils literal notranslate"><span class="pre">TestHistogramTransformer.test_transformer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestMethods"><code class="docutils literal notranslate"><span class="pre">TestMethods</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestMethods.test_methods"><code class="docutils literal notranslate"><span class="pre">TestMethods.test_methods()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestQuaPyWrapper"><code class="docutils literal notranslate"><span class="pre">TestQuaPyWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestQuaPyWrapper.test_methods"><code class="docutils literal notranslate"><span class="pre">TestQuaPyWrapper.test_methods()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.generate_data"><code class="docutils literal notranslate"><span class="pre">generate_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.make_problem"><code class="docutils literal notranslate"><span class="pre">make_problem()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -384,11 +410,116 @@
 </dd></dl>
 
 </section>
-<section id="qunfold-quapy-module">
-<h2>qunfold.quapy module<a class="headerlink" href="#qunfold-quapy-module" title="Permalink to this heading"></a></h2>
+<section id="module-qunfold.quapy">
+<span id="qunfold-quapy-module"></span><h2>qunfold.quapy module<a class="headerlink" href="#module-qunfold.quapy" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.quapy.QuaPyWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.quapy.</span></span><span class="sig-name descname"><span class="pre">QuaPyWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generic_method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.quapy.QuaPyWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseQuantifier</span></code></p>
+<p>A thin wrapper for using qunfold methods in QuaPy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>generic_method</strong> – A GenericMethod method to wrap.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.quapy.QuaPyWrapper.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.quapy.QuaPyWrapper.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Trains a quantifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">quapy.data.base.LabelledCollection</span></code> consisting of the training data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.quapy.QuaPyWrapper.get_params">
+<span class="sig-name descname"><span class="pre">get_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.quapy.QuaPyWrapper.get_params" title="Permalink to this definition"></a></dt>
+<dd><p>Get parameters for this estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>deep</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, will return the parameters for this estimator and
+contained subobjects that are estimators.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>params</strong> – Parameter names mapped to their values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.quapy.QuaPyWrapper.quantify">
+<span class="sig-name descname"><span class="pre">quantify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.quapy.QuaPyWrapper.quantify" title="Permalink to this definition"></a></dt>
+<dd><p>Generate class prevalence estimates for the sample’s instances</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>instances</strong> – array-like</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>np.ndarray</cite> of shape <cite>(n_classes,)</cite> with class prevalence estimates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.quapy.QuaPyWrapper.set_params">
+<span class="sig-name descname"><span class="pre">set_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.quapy.QuaPyWrapper.set_params" title="Permalink to this definition"></a></dt>
+<dd><p>Set the parameters of this estimator.</p>
+<p>The method works on simple estimators as well as on nested objects
+(such as <code class="xref py py-class docutils literal notranslate"><span class="pre">Pipeline</span></code>). The latter have
+parameters of the form <code class="docutils literal notranslate"><span class="pre">&lt;component&gt;__&lt;parameter&gt;</span></code> so that it’s
+possible to update each component of a nested object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**params</strong> (<em>dict</em>) – Estimator parameters.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – Estimator instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>estimator instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="qunfold-sklearn-module">
-<h2>qunfold.sklearn module<a class="headerlink" href="#qunfold-sklearn-module" title="Permalink to this heading"></a></h2>
+<section id="module-qunfold.sklearn">
+<span id="qunfold-sklearn-module"></span><h2>qunfold.sklearn module<a class="headerlink" href="#module-qunfold.sklearn" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.sklearn.</span></span><span class="sig-name descname"><span class="pre">CVClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_estimators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ClassifierMixin</span></code></p>
+<p>An ensemble of classifiers that are trained from cross-validation folds.</p>
+<p>All objects of this type have a fixed attribute <cite>oob_score = True</cite> and, when trained, a fitted attribute <cite>self.oob_decision_function</cite>, just like scikit-learn bagging classifiers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>estimator</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>n_estimators</strong> – The number of stratified cross-validation folds.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier.fit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier.predict_proba" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-qunfold.transformers">
 <span id="qunfold-transformers-module"></span><h2>qunfold.transformers module<a class="headerlink" href="#module-qunfold.transformers" title="Permalink to this heading"></a></h2>

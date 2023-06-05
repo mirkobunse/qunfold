@@ -97,18 +97,14 @@
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
 <p>Basically, you use this package as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qunfold</span> <span class="kn">import</span> <span class="n">ACC</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qunfold</span> <span class="kn">import</span> <span class="n">ACC</span> <span class="c1"># Adjusted Classify and Count</span>
 <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
 
-<span class="n">acc</span> <span class="o">=</span> <span class="n">ACC</span><span class="p">(</span> <span class="c1"># a scikit-learn bagging classifier with oob_score is needed</span>
+<span class="n">acc</span> <span class="o">=</span> <span class="n">ACC</span><span class="p">(</span> <span class="c1"># use OOB predictions for training the quantifier</span>
     <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">oob_score</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="p">)</span>
-
-<span class="c1"># X_trn, y_trn = my_training_data(...)</span>
-<span class="n">acc</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_trn</span><span class="p">,</span> <span class="n">y_trn</span><span class="p">)</span>
-
-<span class="c1"># X_tst = my_testing_data(...)</span>
-<span class="n">p_est</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_tst</span><span class="p">)</span> <span class="c1"># return a prevalence vector</span>
+<span class="n">acc</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_trn</span><span class="p">,</span> <span class="n">y_trn</span><span class="p">)</span> <span class="c1"># fit to training data</span>
+<span class="n">p_hat</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_tst</span><span class="p">)</span> <span class="c1"># estimate a prevalence vector</span>
 </pre></div>
 </div>
 </section>
