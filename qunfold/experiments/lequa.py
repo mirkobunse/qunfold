@@ -146,6 +146,10 @@ def main(
     # load the data
     trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
 
+    # for now, only a subset of the samples is used; TODO use all samples
+    val_gen.true_prevs.df = val_gen.true_prevs.df[:200]
+    tst_gen.true_prevs.df = tst_gen.true_prevs.df[:1000]
+
     if is_test_run: # use a minimal testing configuration
         clf.set_params(n_estimators = 3, estimator__max_iter = 3)
         clf_grid = {
