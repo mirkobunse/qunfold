@@ -40,7 +40,7 @@ setup(
     zip_safe=False,
     test_suite="nose.collector",
     extras_require = {
-        "experiments" : ["jax[cpu]", "pandas", "scikit-learn", "tqdm"],
+        "experiments" : ["jax[cpu]", "pandas", "quapy", "scikit-learn", "tqdm"],
         "tests" : ["jax[cpu]", "nose", "scikit-learn"],
         "docs" : ["jax[cpu]", "myst-parser", "sphinx-rtd-theme"],
     }
