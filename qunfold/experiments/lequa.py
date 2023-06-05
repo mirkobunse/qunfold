@@ -7,9 +7,40 @@ from functools import partial
 from multiprocessing import Pool
 from qunfold import ACC, PACC
 from qunfold.quapy import QuaPyWrapper
+from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from tqdm.auto import tqdm
+
+# for debugging; this variant raises exceptions instead of hiding them
+import signal
+from copy import deepcopy
+from time import time
+class MyGridSearchQ(qp.model_selection.GridSearchQ):
+    def _delayed_eval(self, args):
+        params, training = args
+        protocol = self.protocol
+        error = self.error
+        if self.timeout > 0:
+            def handler(signum, frame):
+                raise TimeoutError()
+            signal.signal(signal.SIGALRM, handler)
+        tinit = time()
+        if self.timeout > 0:
+            signal.alarm(self.timeout)
+        try:
+            model = deepcopy(self.model)
+            model.set_params(**params)
+            model.fit(training)
+            score = qp.evaluation.evaluate(model, protocol=protocol, error_metric=error)
+            ttime = time()-tinit
+            self._sout(f'hyperparams={params}\t got {error.__name__} score {score:.5f} [took {ttime:.4f}s]')
+            if self.timeout > 0:
+                signal.alarm(0)
+        except TimeoutError:
+            self._sout(f'timeout ({self.timeout}s) reached for config {params}')
+            score = None
+        return params, score, model
 
 def trial(trial_config, trn_data, val_gen, tst_gen, seed, error_metric, n_methods):
     """A single trial of lequa.main()"""
@@ -21,7 +52,8 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, error_metric, n_method
     )
 
     # configure and train the method; select the best hyper-parameters
-    quapy_method = qp.model_selection.GridSearchQ(
+    # quapy_method = qp.model_selection.GridSearchQ(
+    quapy_method = MyGridSearchQ(
         model = method,
         param_grid = param_grid,
         protocol = val_gen,
@@ -69,13 +101,18 @@ def main(
     qp.environ["N_JOBS"] = 1
 
     # configure the quantification methods
-    clf = BaggingClassifier(
-        LogisticRegression(n_jobs=1),
-        n_estimators = 100,
-        n_jobs = 1,
+    clf = CVClassifier(
+        LogisticRegression(),
+        n_estimators = 10,
         random_state = seed,
-        oob_score = True,
     )
+    # clf = BaggingClassifier(
+    #     LogisticRegression(),
+    #     n_estimators = 100,
+    #     random_state = seed,
+    #     n_jobs = 1,
+    #     oob_score = True,
+    # )
     clf_grid = {
         "transformer__classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
     }
@@ -93,13 +130,7 @@ def main(
     trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
 
     if is_test_run: # use a minimal testing configuration
-        clf = BaggingClassifier(
-            LogisticRegression(n_jobs=1, max_iter=3),
-            n_estimators = 100,
-            n_jobs = 1,
-            random_state = seed,
-            oob_score = True,
-        )
+        clf.set_params(estimator__max_iter = 3)
         clf_grid = {
             "transformer__classifier__estimator__C": [1e1],
         }

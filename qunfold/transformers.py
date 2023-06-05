@@ -52,7 +52,10 @@ class ClassTransformer(AbstractTransformer):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
-      raise ValueError("Only bagging classifiers with oob_score=True are supported")
+      raise ValueError(
+        "The ClassTransformer either requires a bagging classifier with oob_score=True",
+        "or an instance of qunfold.sklearn.CVClassifier"
+      )
     if self.fit_classifier:
       self.classifier.fit(X, y)
     self.n_classes = len(self.classifier.classes_)
