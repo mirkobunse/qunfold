@@ -6,8 +6,8 @@ def readme():
 
 setup(
     name="qunfold",
-    version="0.0.1",
-    description="A unified implementation of quantification and unfolding algorithms",
+    version="0.1.0",
+    description="Composable quantification and unfolding methods",
     long_description=readme(),
     classifiers=[
         "Operating System :: POSIX :: Linux",
@@ -41,7 +41,7 @@ setup(
     test_suite="nose.collector",
     extras_require = {
         "experiments" : ["jax[cpu]", "pandas", "quapy", "scikit-learn", "tqdm"],
-        "tests" : ["jax[cpu]", "nose", "scikit-learn"],
-        "docs" : ["jax[cpu]", "myst-parser", "sphinx-rtd-theme"],
+        "tests" : ["jax[cpu]", "nose", "quapy", "scikit-learn"],
+        "docs" : ["jax[cpu]", "myst-parser", "quapy", "scikit-learn", "sphinx-rtd-theme"],
     }
 )

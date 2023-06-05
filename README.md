@@ -4,7 +4,7 @@
 
 # qunfold | Quantification & Unfolding
 
-This Python package implements our unified framework of algorithms for quantification and unfolding.
+This Python package implements composable methods for quantification and unfolding.
 
 
 ## Installation
@@ -27,16 +27,12 @@ For detailed information, visit [the documentation](https://mirkobunse.github.io
 Basically, you use this package as follows:
 
 ```python
-from qunfold import ACC
+from qunfold import ACC # Adjusted Classify and Count
 from sklearn.ensemble import RandomForestClassifier
 
-acc = ACC( # a scikit-learn bagging classifier with oob_score is needed
+acc = ACC( # use OOB predictions for training the quantifier
     RandomForestClassifier(oob_score=True)
 )
-
-# X_trn, y_trn = my_training_data(...)
-acc.fit(X_trn, y_trn)
-
-# X_tst = my_testing_data(...)
-p_est = acc.predict(X_tst) # return a prevalence vector
+acc.fit(X_trn, y_trn) # fit to training data
+p_hat = acc.predict(X_tst) # estimate a prevalence vector
 ```
