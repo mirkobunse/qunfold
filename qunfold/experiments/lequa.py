@@ -118,7 +118,7 @@ def main(
     }
     qp_clf = clf.estimator
     qp_clf_grid = {
-        "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
+        "classifier__C": clf_grid["transformer__classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
         ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
