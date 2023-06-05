@@ -1,7 +1,9 @@
 import numpy as np
 import qunfold
 import time
+from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
 
 RNG = np.random.RandomState(876) # make tests reproducible
@@ -66,6 +68,36 @@ class TestMethods(TestCase):
         f"             {p_hdy.nit} it.; {p_hdy.message}",
         f"     p_custom = {p_custom}",
         f"             {p_custom.nit} it.; {p_custom.message}",
+        f"     p_tst = {p_tst}",
+        sep = "\n",
+        end = "\n"*2
+      )
+      # self.assertTrue(...)
+    print(f"Spent {time.time() - start}s")
+
+class TestCVClassifier(TestCase):
+  def test_methods(self):
+    start = time.time()
+    for _ in range(10):
+      q, M, p_trn = make_problem()
+      X_trn, y_trn = generate_data(M, p_trn)
+      p_tst = RNG.permutation(p_trn)
+      X_tst, y_tst = generate_data(M, p_tst)
+      lr = CVClassifier(
+        LogisticRegression(),
+        n_estimators = 10,
+        random_state = RNG.randint(np.iinfo("uint16").max),
+      )
+      p_acc = qunfold.ACC(lr).fit(X_trn, y_trn).predict(X_tst)
+      p_pacc = qunfold.PACC(lr).fit(X_trn, y_trn).predict(X_tst)
+      p_hdy = qunfold.HDy(lr, 3).fit(X_trn, y_trn).predict(X_tst)
+      print(
+        f"CVC: p_acc = {p_acc}",
+        f"             {p_acc.nit} it.; {p_acc.message}",
+        f"    p_pacc = {p_pacc}",
+        f"             {p_pacc.nit} it.; {p_pacc.message}",
+        f"     p_hdy = {p_hdy}",
+        f"             {p_hdy.nit} it.; {p_hdy.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
