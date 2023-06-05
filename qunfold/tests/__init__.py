@@ -1,6 +1,10 @@
 import numpy as np
 import qunfold
 import time
+from quapy.data import LabelledCollection
+from quapy.model_selection import GridSearchQ
+from quapy.protocol import AbstractProtocol
+from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -104,6 +108,45 @@ class TestCVClassifier(TestCase):
       )
       # self.assertTrue(...)
     print(f"Spent {time.time() - start}s")
+
+class SingleSampleProtocol(AbstractProtocol):
+    def __init__(self, X, p):
+      self.X = X
+      self.p = p
+    def __call__(self):
+      yield self.X, self.p
+
+class TestQuaPyWrapper(TestCase):
+  def test_methods(self):
+    for _ in range(10):
+      q, M, p_trn = make_problem()
+      X_trn, y_trn = generate_data(M, p_trn)
+      p_tst = RNG.permutation(p_trn)
+      X_tst, y_tst = generate_data(M, p_tst)
+      lr = CVClassifier(
+        LogisticRegression(C = 1e-2), # some value outside of the param_grid
+        n_estimators = 10,
+        random_state = RNG.randint(np.iinfo("uint16").max),
+      )
+      p_acc = QuaPyWrapper(qunfold.ACC(lr))
+      self.assertEquals( # check that get_params returns the correct settings
+        p_acc.get_params(deep=True)["transformer__classifier__estimator__C"],
+        1e-2
+      )
+      quapy_method = GridSearchQ(
+        model = p_acc,
+        param_grid = {
+          "transformer__classifier__estimator__C": [1e-1, 1e0, 1e1, 1e2],
+        },
+        protocol = SingleSampleProtocol(X_tst, p_tst),
+        error = "mae",
+        refit = False,
+        verbose = True,
+      ).fit(LabelledCollection(X_trn, y_trn))
+      self.assertEquals( # check that best parameters are actually used
+        quapy_method.best_params_["transformer__classifier__estimator__C"],
+        quapy_method.best_model_.generic_method.transformer.classifier.estimator.C
+      )
 
 class TestHistogramTransformer(TestCase):
   def test_transformer(self):
