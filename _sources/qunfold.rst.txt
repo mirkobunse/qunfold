@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   qunfold.experiments
    qunfold.tests
 
 Submodules
@@ -24,6 +25,22 @@ qunfold.methods module
 ----------------------
 
 .. automodule:: qunfold.methods
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qunfold.quapy module
+--------------------
+
+.. automodule:: qunfold.quapy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qunfold.sklearn module
+----------------------
+
+.. automodule:: qunfold.sklearn
    :members:
    :undoc-members:
    :show-inheritance:
