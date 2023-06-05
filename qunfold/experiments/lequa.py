@@ -1,11 +1,12 @@
 import argparse
+import itertools
 import numpy as np
 import os
 import pandas as pd
 import quapy as qp
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC
+from qunfold import ACC, PACC, HDy
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -42,13 +43,13 @@ class MyGridSearchQ(qp.model_selection.GridSearchQ):
             score = None
         return params, score, model
 
-def trial(trial_config, trn_data, val_gen, tst_gen, seed, error_metric, n_methods):
+def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     """A single trial of lequa.main()"""
-    i_method, (method_name, package, method, param_grid) = trial_config # unpack the tuple
+    i_method, method_name, package, method, param_grid, error_metric = trial_config
     np.random.seed(seed)
     print(
-        f"INI {error_metric} [{i_method+1:02d}/{n_methods:02d}]:",
-        f"{package} {method_name} starting"
+        f"INI [{i_method+1:02d}/{n_trials:02d}]:",
+        f"{package} {method_name} / {error_metric} starting"
     )
 
     # configure and train the method; select the best hyper-parameters
@@ -57,32 +58,37 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, error_metric, n_method
         model = method,
         param_grid = param_grid,
         protocol = val_gen,
-        error = error_metric,
+        error = "m" + error_metric, # ae -> mae, rae -> mrae
         refit = False,
         # verbose = True,
     ).fit(trn_data)
     parameters = quapy_method.best_params_
+    val_error = quapy_method.best_score_
     quapy_method = quapy_method.best_model_
     print(
-        f"VAL {error_metric} [{i_method+1:02d}/{n_methods:02d}]:",
-        f"{package} {method_name} selects {parameters}"
+        f"VAL [{i_method+1:02d}/{n_trials:02d}]:",
+        f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
     )
 
     # evaluate the method on the test samples and return the result
-    error = qp.evaluation.evaluate(
+    errors = qp.evaluation.evaluate( # errors of all predictions
         quapy_method,
         protocol = tst_gen,
         error_metric = error_metric
     )
+    error = errors.mean()
+    error_std = errors.std()
     print(
-        f"TST {error_metric} [{i_method+1:02d}/{n_methods:02d}]:",
-        f"{package} {method_name} yields {error_metric}={error}"
+        f"TST [{i_method+1:02d}/{n_trials:02d}]:",
+        f"{package} {method_name} tested {error_metric}={error:.4f}+-{error_std:.4f}"
     )
     return {
         "method": method_name,
         "package": package,
         "error_metric": error_metric,
         "error": error,
+        "error_std": error_std,
+        "val_error": val_error,
         "parameters": str(parameters),
     }
 
@@ -97,6 +103,7 @@ def main(
     if len(os.path.dirname(output_path)) > 0: # ensure that the directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
     np.random.seed(seed)
+    qp.environ["_R_SEED"] = seed
     qp.environ["SAMPLE_SIZE"] = 1000
     qp.environ["N_JOBS"] = 1
 
@@ -106,13 +113,6 @@ def main(
         n_estimators = 10,
         random_state = seed,
     )
-    # clf = BaggingClassifier(
-    #     LogisticRegression(),
-    #     n_estimators = 100,
-    #     random_state = seed,
-    #     n_jobs = 1,
-    #     oob_score = True,
-    # )
     clf_grid = {
         "transformer__classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
     }
@@ -121,16 +121,33 @@ def main(
         "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
-        ("ACC", "qunfold", QuaPyWrapper(ACC(clf)), clf_grid),
-        ("PACC", "qunfold", QuaPyWrapper(PACC(clf)), clf_grid),
-        ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=100), qp_clf_grid),
+        ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+        ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=10), qp_clf_grid),
+        ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+        ("ACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=10), qp_clf_grid),
+        ("HDy", "qunfold",
+            QuaPyWrapper(HDy(clf, 2, seed=seed)),
+            {
+                "transformer__preprocessor__classifier__estimator__C":
+                    clf_grid["transformer__classifier__estimator__C"],
+                "transformer__n_bins": [2, 4, 8, 16],
+            }
+        ),
+        ("HDy", "QuaPy",
+            qp.method.aggregative.DistributionMatching(
+                classifier = qp_clf,
+                divergence = 'HD',
+                cdf = False
+            ),
+            dict(qp_clf_grid, nbins = [2, 4, 8, 16]) # extend the qp_clf_grid
+        )
     ]
 
     # load the data
     trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
 
     if is_test_run: # use a minimal testing configuration
-        clf.set_params(estimator__max_iter = 3)
+        clf.set_params(n_estimators = 3, estimator__max_iter = 3)
         clf_grid = {
             "transformer__classifier__estimator__C": [1e1],
         }
@@ -139,28 +156,49 @@ def main(
             "classifier__C": clf_grid["transformer__classifier__estimator__C"],
         }
         methods = [ # (method_name, package, method, param_grid)
-            ("ACC", "qunfold", QuaPyWrapper(ACC(clf)), clf_grid),
-            ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=10), qp_clf_grid),
+            ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+            ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
+            ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+            ("ACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
+            ("HDy", "qunfold",
+                QuaPyWrapper(HDy(clf, 2, seed=seed)),
+                {
+                    "transformer__preprocessor__classifier__estimator__C":
+                        clf_grid["transformer__classifier__estimator__C"],
+                    "transformer__n_bins": [2, 4],
+                }
+            ),
+            ("HDy", "QuaPy",
+                qp.method.aggregative.DistributionMatching(
+                    classifier = qp_clf,
+                    divergence = 'HD',
+                    cdf = False
+                ),
+                dict(qp_clf_grid, nbins = [2, 4]) # extend the qp_clf_grid
+            )
         ]
-        trn_data = trn_data.split_random(2000)[0] # use only 2k training items
-        val_gen.true_prevs.df = val_gen.true_prevs.df[:5] # use only 5 validation samples
-        tst_gen.true_prevs.df = tst_gen.true_prevs.df[:5] # use only 5 testing samples
+        trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
+        val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
+        tst_gen.true_prevs.df = tst_gen.true_prevs.df[:3] # use only 3 testing samples
 
     # parallelize over all methods
+    error_metrics = ['ae', 'rae']
+    configured_trial = partial(
+        trial,
+        trn_data = trn_data,
+        val_gen = val_gen,
+        tst_gen = tst_gen,
+        seed = seed,
+        n_trials = len(methods) * len(error_metrics),
+    )
+    trials = [ # (i_method, method_name, package, method, param_grid, error_metric)
+        (x[0], x[1][0][0], x[1][0][1], x[1][0][2], x[1][0][3], x[1][1])
+        for x in enumerate(itertools.product(methods, error_metrics))
+    ]
+    print(f"Starting {len(trials)} trials")
     results = []
-    for error_metric in ['mae', 'mrae']:
-        with Pool() as pool:
-            trial_metric = partial(
-                trial,
-                trn_data = trn_data,
-                val_gen = val_gen,
-                tst_gen = tst_gen,
-                seed = seed,
-                error_metric = error_metric,
-                n_methods = len(methods),
-            )
-            trial_results = pool.imap(trial_metric, enumerate(methods))
-            results.extend(trial_results)
+    with Pool() as pool:
+        results.extend(pool.imap(configured_trial, trials))
     df = pd.DataFrame(results)
     df.to_csv(output_path) # store the results
     print(f"{df.shape[0]} results succesfully stored at {output_path}")
