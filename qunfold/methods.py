@@ -252,7 +252,7 @@ class HDx(GenericMethod):
     GenericMethod.__init__(
       self,
       losses.HellingerLoss(n_bins),
-      transformers.HistogramTransformer(n_bins),
+      transformers.HistogramTransformer(n_bins, unit_scale=False),
       **kwargs
     )
 
@@ -277,7 +277,8 @@ class HDy(GenericMethod):
           classifier,
           fit_classifier = fit_classifier,
           is_probabilistic = True,
-        )
+        ),
+        unit_scale = False,
       ),
       **kwargs
     )

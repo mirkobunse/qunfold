@@ -60,7 +60,7 @@ class TestMethods(TestCase):
       p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
-        qunfold.HistogramTransformer(3, unit_scale=True) # this loss requires unit_scale
+        qunfold.HistogramTransformer(3)
       ).fit(X_trn, y_trn).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
@@ -176,11 +176,11 @@ class TestHistogramTransformer(TestCase):
     X = np.load("qunfold/tests/HDx_X.npy")
     y = np.random.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
     fX = np.load("qunfold/tests/HDx_fX.npy") # ground-truth by QUnfold.jl
-    f = qunfold.HistogramTransformer(10)
+    f = qunfold.HistogramTransformer(10, unit_scale=False)
     self.assertTrue(np.all(f.fit_transform(X, y)[0] == fX))
     self.assertTrue(np.all(f.transform(X) == fX))
 
-    # test the unit_scale argument
+    # test unit_scale=True, the new default
     self.assertTrue(np.all(f.transform(X).sum(axis=1) == X.shape[1]))
-    f2 = qunfold.HistogramTransformer(10, unit_scale=True)
+    f2 = qunfold.HistogramTransformer(10)
     self.assertTrue(np.allclose(f2.fit_transform(X, y)[0].sum(axis=1), 1))
