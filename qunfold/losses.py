@@ -143,7 +143,7 @@ class HellingerLoss(AbstractLoss):
           if nonzero[k]:
             indices_j.append(i)
             i += 1
-        indices[j] = jnp.array(indices_j)
+        indices[j] = jnp.array(indices_j, dtype=int)
     return lambda p: _hellinger(p, q, M, indices)
 
 # helper function for CombinedLoss
