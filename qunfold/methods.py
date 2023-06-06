@@ -87,11 +87,12 @@ class GenericMethod:
         This fitted quantifier itself.
     """
     fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
-    M = np.zeros((fX.shape[1], self.transformer.n_classes)) # (n_features, n_classes)
+    self.M = np.zeros((fX.shape[1], self.transformer.n_classes)) # (n_features, n_classes)
     for c in range(self.transformer.n_classes):
-      M[:,c] = fX[fy==c,:].sum(axis=0) # one histogram of f(X) per class
-    self.M = M / M.sum(axis=0, keepdims=True)
-    self.p_trn = M.sum(axis=0) / M.sum()
+      self.M[:,c] = fX[fy==c,:].mean(axis=0) # one histogram of f(X) per class
+    self.p_trn = np.zeros(self.transformer.n_classes)
+    _classes, _counts = np.unique(fy, return_counts=True)
+    self.p_trn[_classes] = _counts / _counts.sum()
     return self
   def predict(self, X):
     """Predict the class prevalences in a data set.
