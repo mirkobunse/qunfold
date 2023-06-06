@@ -19,7 +19,6 @@ def main(
         .apply(lambda sdf: sdf["package"].to_numpy()[sdf["error"].argmin()]) \
         .rename("package") \
         .reset_index()
-    print(best_package)
 
     # create a pivot table from the results
     pivot_rows = []
@@ -47,6 +46,7 @@ def main(
         print("  " + " & ".join(df.columns) + " \\\\", file=f)
         print("  \\midrule", file=f)
         for _, r in df.iterrows():
+            r[r.isna()] = "$\\ast$"
             print("  " + " & ".join(r) + " \\\\", file=f)
         print("  \\bottomrule", file=f)
         print("\\end{tabular}", file=f)
