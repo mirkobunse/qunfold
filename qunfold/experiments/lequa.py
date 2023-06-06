@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import quapy as qp
+from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
 from qunfold import ACC, PACC, HDy
@@ -49,6 +50,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     np.random.seed(seed)
     print(
         f"INI [{i_method+1:02d}/{n_trials:02d}]:",
+        datetime.now().strftime('%H:%M:%S'),
         f"{package} {method_name} / {error_metric} starting"
     )
 
@@ -67,6 +69,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     quapy_method = quapy_method.best_model_
     print(
         f"VAL [{i_method+1:02d}/{n_trials:02d}]:",
+        datetime.now().strftime('%H:%M:%S'),
         f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
     )
 
@@ -80,6 +83,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     error_std = errors.std()
     print(
         f"TST [{i_method+1:02d}/{n_trials:02d}]:",
+        datetime.now().strftime('%H:%M:%S'),
         f"{package} {method_name} tested {error_metric}={error:.4f}+-{error_std:.4f}"
     )
     return {
