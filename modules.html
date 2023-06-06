@@ -78,6 +78,7 @@
 <li class="toctree-l2"><a class="reference internal" href="qunfold.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html">qunfold.experiments package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.experiments.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments.create_table">qunfold.experiments.create_table module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments.lequa">qunfold.experiments.lequa module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments">Module contents</a></li>
 </ul>
@@ -93,17 +94,20 @@
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.BlobelLoss"><code class="docutils literal notranslate"><span class="pre">BlobelLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.CombinedLoss"><code class="docutils literal notranslate"><span class="pre">CombinedLoss</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.EnergyLoss"><code class="docutils literal notranslate"><span class="pre">EnergyLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.FunctionLoss"><code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.HellingerLoss"><code class="docutils literal notranslate"><span class="pre">HellingerLoss</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.HellingerSurrogateLoss"><code class="docutils literal notranslate"><span class="pre">HellingerSurrogateLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.LeastSquaresLoss"><code class="docutils literal notranslate"><span class="pre">LeastSquaresLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.TikhonovRegularization"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularization</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.TikhonovRegularized"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularized</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.TikhonovRegularized"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularized()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.losses.instantiate_loss"><code class="docutils literal notranslate"><span class="pre">instantiate_loss()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="qunfold.html#module-qunfold.methods">qunfold.methods module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.methods.ACC"><code class="docutils literal notranslate"><span class="pre">ACC</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.methods.DerivativeError"><code class="docutils literal notranslate"><span class="pre">DerivativeError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.methods.EDx"><code class="docutils literal notranslate"><span class="pre">EDx</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.methods.EDy"><code class="docutils literal notranslate"><span class="pre">EDy</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.methods.GenericMethod"><code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.methods.GenericMethod.fit"><code class="docutils literal notranslate"><span class="pre">GenericMethod.fit()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.methods.GenericMethod.predict"><code class="docutils literal notranslate"><span class="pre">GenericMethod.predict()</span></code></a></li>
@@ -144,6 +148,11 @@
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.transformers.ClassTransformer"><code class="docutils literal notranslate"><span class="pre">ClassTransformer</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.transformers.ClassTransformer.fit_transform"><code class="docutils literal notranslate"><span class="pre">ClassTransformer.fit_transform()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.transformers.ClassTransformer.transform"><code class="docutils literal notranslate"><span class="pre">ClassTransformer.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.transformers.DistanceTransformer"><code class="docutils literal notranslate"><span class="pre">DistanceTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.transformers.DistanceTransformer.fit_transform"><code class="docutils literal notranslate"><span class="pre">DistanceTransformer.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.html#qunfold.transformers.DistanceTransformer.transform"><code class="docutils literal notranslate"><span class="pre">DistanceTransformer.transform()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.html#qunfold.transformers.HistogramTransformer"><code class="docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a><ul>

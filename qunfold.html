@@ -78,6 +78,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="qunfold.experiments.html">qunfold.experiments package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments.create_table">qunfold.experiments.create_table module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.create_table.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="qunfold.experiments.html#module-qunfold.experiments.lequa">qunfold.experiments.lequa module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.lequa.MyGridSearchQ"><code class="docutils literal notranslate"><span class="pre">MyGridSearchQ</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.experiments.html#qunfold.experiments.lequa.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
@@ -92,6 +96,10 @@
 <li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.SingleSampleProtocol"><code class="docutils literal notranslate"><span class="pre">SingleSampleProtocol</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestCVClassifier"><code class="docutils literal notranslate"><span class="pre">TestCVClassifier</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestCVClassifier.test_methods"><code class="docutils literal notranslate"><span class="pre">TestCVClassifier.test_methods()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestDistanceTransformer"><code class="docutils literal notranslate"><span class="pre">TestDistanceTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestDistanceTransformer.test_transformer"><code class="docutils literal notranslate"><span class="pre">TestDistanceTransformer.test_transformer()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer"><code class="docutils literal notranslate"><span class="pre">TestHistogramTransformer</span></code></a><ul>
@@ -151,6 +159,14 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="qunfold.losses.EnergyLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">EnergyLoss</span></span><a class="headerlink" href="#qunfold.losses.EnergyLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.FunctionLoss" title="qunfold.losses.FunctionLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></p>
+<p>The loss function of EDx (Kawakubo et al., 2016) and EDy (Castaño et al., 2022).</p>
+<p>This loss function represents the Energy Distance between two samples.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.losses.FunctionLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.FunctionLoss" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
@@ -182,11 +198,11 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.losses.HellingerLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">HellingerLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.HellingerLoss" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.losses.HellingerSurrogateLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">HellingerSurrogateLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.HellingerSurrogateLoss" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
 <p>The loss function of HDx and HDy.</p>
-<p>This loss function computes the average of the Hellinger distances between feature-wise (or class-wise) histograms.</p>
+<p>This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>n_bins</strong> – The number of bins that is used in the feature transformation.</p>
@@ -210,12 +226,11 @@
 <p>This regularization promotes smooth solutions. This behavior is often required in ordinal quantification and in unfolding problems.</p>
 </dd></dl>
 
-<dl class="py class">
+<dl class="py function">
 <dt class="sig sig-object py" id="qunfold.losses.TikhonovRegularized">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.TikhonovRegularized" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.CombinedLoss" title="qunfold.losses.CombinedLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">CombinedLoss</span></code></a></p>
-<p>Add TikhonovRegularization to any loss.</p>
-<p>Instances of this class are equivalent to</p>
+<span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">TikhonovRegularized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.TikhonovRegularized" title="Permalink to this definition"></a></dt>
+<dd><p>Add TikhonovRegularization to any loss.</p>
+<p>Calling this function is equivalent to calling</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CombinedLoss</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">TikhonovRegularization</span><span class="p">(),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">tau</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -225,6 +240,9 @@
 <li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
 <li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of <cite>CombinedLoss</cite>.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -264,6 +282,40 @@
 <dt class="sig sig-object py" id="qunfold.methods.DerivativeError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">DerivativeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.DerivativeError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.EDx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">EDx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.EDx" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>The energy distance-based EDx method by Kawakubo et al. (2016).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>EnergyLoss</cite> and a <cite>DistanceTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Defaults to <cite>“euclidean”</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.EDy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">EDy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.EDy" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>The energy distance-based EDy method by Castaño et al. (2022).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>EnergyLoss</cite> and a <cite>DistanceTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Defaults to <cite>“euclidean”</cite>.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -338,8 +390,8 @@
 <dt class="sig sig-object py" id="qunfold.methods.HDx">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">HDx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.HDx" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
-<p>The Hellinger distance-based HDx method by González-Castro et al (2013).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerLoss</cite> and a <cite>HistogramTransformer</cite>.</p>
+<p>The Hellinger distance-based HDx method by González-Castro et al. (2013).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramTransformer</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -354,8 +406,8 @@
 <dt class="sig sig-object py" id="qunfold.methods.HDy">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">HDy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.HDy" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
-<p>The Hellinger distance-based HDy method by González-Castro et al (2013).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerLoss</cite> and a <cite>HistogramTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
+<p>The Hellinger distance-based HDy method by González-Castro et al. (2013).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -618,8 +670,58 @@ possible to update each component of a nested object.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.DistanceTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">DistanceTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.DistanceTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
+<p>A distance-based feature transformation, as it is used in <cite>EDx</cite> and <cite>EDy</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Defaults to <cite>“euclidean”</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.DistanceTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.DistanceTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.DistanceTransformer.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.DistanceTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">HistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">HistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
 <p>A histogram-based feature transformation, as it is used in <cite>HDx</cite> and <cite>HDy</cite>.</p>
 <dl class="field-list simple">
@@ -627,7 +729,7 @@ possible to update each component of a nested object.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_bins</strong> – The number of bins in each feature.</p></li>
 <li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
-<li><p><strong>unit_scale</strong> (<em>optional</em>) – Whether or not to scale each output to a sum of one. Defaults to <cite>False</cite>, indicating that the sum of each output is the number of features.</p></li>
+<li><p><strong>unit_scale</strong> (<em>optional</em>) – Whether or not to scale each output to a sum of one. Defaults to <cite>True</cite>, indicating that the sum of each output is the number of features.</p></li>
 </ul>
 </dd>
 </dl>

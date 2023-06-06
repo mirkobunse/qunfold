@@ -77,6 +77,7 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
@@ -156,6 +157,24 @@
       <li><a href="qunfold.html#qunfold.methods.DerivativeError">DerivativeError</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="qunfold.html#qunfold.transformers.DistanceTransformer">DistanceTransformer (class in qunfold.transformers)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="qunfold.html#qunfold.methods.EDx">EDx (class in qunfold.methods)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="qunfold.html#qunfold.methods.EDy">EDy (class in qunfold.methods)</a>
+</li>
+      <li><a href="qunfold.html#qunfold.losses.EnergyLoss">EnergyLoss (class in qunfold.losses)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
@@ -177,6 +196,8 @@
 
       <ul>
         <li><a href="qunfold.html#qunfold.transformers.ClassTransformer.fit_transform">(qunfold.transformers.ClassTransformer method)</a>
+</li>
+        <li><a href="qunfold.html#qunfold.transformers.DistanceTransformer.fit_transform">(qunfold.transformers.DistanceTransformer method)</a>
 </li>
         <li><a href="qunfold.html#qunfold.transformers.HistogramTransformer.fit_transform">(qunfold.transformers.HistogramTransformer method)</a>
 </li>
@@ -221,10 +242,10 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.HellingerLoss">HellingerLoss (class in qunfold)</a>
+      <li><a href="api.html#qunfold.HellingerSurrogateLoss">HellingerSurrogateLoss (class in qunfold)</a>
 
       <ul>
-        <li><a href="qunfold.html#qunfold.losses.HellingerLoss">(class in qunfold.losses)</a>
+        <li><a href="qunfold.html#qunfold.losses.HellingerSurrogateLoss">(class in qunfold.losses)</a>
 </li>
       </ul></li>
       <li><a href="api.html#qunfold.HistogramTransformer">HistogramTransformer (class in qunfold)</a>
@@ -259,8 +280,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="qunfold.experiments.html#qunfold.experiments.lequa.main">main() (in module qunfold.experiments.lequa)</a>
+      <li><a href="qunfold.experiments.html#qunfold.experiments.create_table.main">main() (in module qunfold.experiments.create_table)</a>
+
+      <ul>
+        <li><a href="qunfold.experiments.html#qunfold.experiments.lequa.main">(in module qunfold.experiments.lequa)</a>
 </li>
+      </ul></li>
       <li><a href="qunfold.tests.html#qunfold.tests.make_problem">make_problem() (in module qunfold.tests)</a>
 </li>
       <li>
@@ -270,6 +295,8 @@
         <li><a href="qunfold.html#module-qunfold">qunfold</a>
 </li>
         <li><a href="qunfold.experiments.html#module-qunfold.experiments">qunfold.experiments</a>
+</li>
+        <li><a href="qunfold.experiments.html#module-qunfold.experiments.create_table">qunfold.experiments.create_table</a>
 </li>
         <li><a href="qunfold.experiments.html#module-qunfold.experiments.lequa">qunfold.experiments.lequa</a>
 </li>
@@ -334,6 +361,13 @@
 
       <ul>
         <li><a href="qunfold.experiments.html#module-qunfold.experiments">module</a>
+</li>
+      </ul></li>
+      <li>
+    qunfold.experiments.create_table
+
+      <ul>
+        <li><a href="qunfold.experiments.html#module-qunfold.experiments.create_table">module</a>
 </li>
       </ul></li>
       <li>
@@ -435,34 +469,42 @@
         <li><a href="qunfold.tests.html#qunfold.tests.TestQuaPyWrapper.test_methods">(qunfold.tests.TestQuaPyWrapper method)</a>
 </li>
       </ul></li>
-      <li><a href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer.test_transformer">test_transformer() (qunfold.tests.TestHistogramTransformer method)</a>
+      <li><a href="qunfold.tests.html#qunfold.tests.TestDistanceTransformer.test_transformer">test_transformer() (qunfold.tests.TestDistanceTransformer method)</a>
+
+      <ul>
+        <li><a href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer.test_transformer">(qunfold.tests.TestHistogramTransformer method)</a>
 </li>
+      </ul></li>
       <li><a href="qunfold.tests.html#qunfold.tests.TestCVClassifier">TestCVClassifier (class in qunfold.tests)</a>
+</li>
+      <li><a href="qunfold.tests.html#qunfold.tests.TestDistanceTransformer">TestDistanceTransformer (class in qunfold.tests)</a>
 </li>
       <li><a href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer">TestHistogramTransformer (class in qunfold.tests)</a>
 </li>
       <li><a href="qunfold.tests.html#qunfold.tests.TestMethods">TestMethods (class in qunfold.tests)</a>
 </li>
-      <li><a href="qunfold.tests.html#qunfold.tests.TestQuaPyWrapper">TestQuaPyWrapper (class in qunfold.tests)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="qunfold.tests.html#qunfold.tests.TestQuaPyWrapper">TestQuaPyWrapper (class in qunfold.tests)</a>
+</li>
       <li><a href="api.html#qunfold.TikhonovRegularization">TikhonovRegularization (class in qunfold)</a>
 
       <ul>
         <li><a href="qunfold.html#qunfold.losses.TikhonovRegularization">(class in qunfold.losses)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#qunfold.TikhonovRegularized">TikhonovRegularized (class in qunfold)</a>
+      <li><a href="api.html#qunfold.TikhonovRegularized">TikhonovRegularized() (in module qunfold)</a>
 
       <ul>
-        <li><a href="qunfold.html#qunfold.losses.TikhonovRegularized">(class in qunfold.losses)</a>
+        <li><a href="qunfold.html#qunfold.losses.TikhonovRegularized">(in module qunfold.losses)</a>
 </li>
       </ul></li>
       <li><a href="developer-guide.html#qunfold.transformers.AbstractTransformer.transform">transform() (qunfold.transformers.AbstractTransformer method)</a>, <a href="qunfold.html#qunfold.transformers.AbstractTransformer.transform">[1]</a>
 
       <ul>
         <li><a href="qunfold.html#qunfold.transformers.ClassTransformer.transform">(qunfold.transformers.ClassTransformer method)</a>
+</li>
+        <li><a href="qunfold.html#qunfold.transformers.DistanceTransformer.transform">(qunfold.transformers.DistanceTransformer method)</a>
 </li>
         <li><a href="qunfold.html#qunfold.transformers.HistogramTransformer.transform">(qunfold.transformers.HistogramTransformer method)</a>
 </li>
