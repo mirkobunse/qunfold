@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy
+from qunfold import ACC, PACC, HDy, EDy, RUN, ClassTransformer
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -114,7 +114,7 @@ def main(
     # configure the quantification methods
     clf = CVClassifier(
         LogisticRegression(),
-        n_estimators = 10,
+        n_estimators = 5,
         random_state = seed,
     )
     clf_grid = {
@@ -126,15 +126,15 @@ def main(
     }
     methods = [ # (method_name, package, method, param_grid)
         ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
-        ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=10), qp_clf_grid),
+        ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=5), qp_clf_grid),
         ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
-        ("ACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=10), qp_clf_grid),
+        ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=5), qp_clf_grid),
         ("HDy", "qunfold",
             QuaPyWrapper(HDy(clf, 2, seed=seed)),
             {
                 "transformer__preprocessor__classifier__estimator__C":
                     clf_grid["transformer__classifier__estimator__C"],
-                "transformer__n_bins": [2, 4, 8, 16],
+                "transformer__n_bins": [2, 4, 6],
             }
         ),
         ("HDy", "QuaPy",
@@ -143,16 +143,24 @@ def main(
                 divergence = 'HD',
                 cdf = False
             ),
-            dict(qp_clf_grid, nbins = [2, 4, 8, 16]) # extend the qp_clf_grid
-        )
+            dict(qp_clf_grid, nbins = [2, 4, 6]) # extend the qp_clf_grid
+        ),
+        ("EDy", "qunfold",
+            QuaPyWrapper(EDy(clf, seed=seed)),
+            {
+                "transformer__preprocessor__classifier__estimator__C":
+                    clf_grid["transformer__classifier__estimator__C"],
+            }
+        ),
+        ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
     ]
 
     # load the data
     trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
 
     # for now, only a subset of the samples is used; TODO use all samples
-    val_gen.true_prevs.df = val_gen.true_prevs.df[:200]
-    tst_gen.true_prevs.df = tst_gen.true_prevs.df[:1000]
+    val_gen.true_prevs.df = val_gen.true_prevs.df[:100]
+    tst_gen.true_prevs.df = tst_gen.true_prevs.df[:500]
 
     if is_test_run: # use a minimal testing configuration
         clf.set_params(n_estimators = 3, estimator__max_iter = 3)
@@ -167,7 +175,7 @@ def main(
             ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
             ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
             ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
-            ("ACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
+            ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
             ("HDy", "qunfold",
                 QuaPyWrapper(HDy(clf, 2, seed=seed)),
                 {
@@ -183,7 +191,15 @@ def main(
                     cdf = False
                 ),
                 dict(qp_clf_grid, nbins = [2, 4]) # extend the qp_clf_grid
-            )
+            ),
+            ("EDy", "qunfold",
+                QuaPyWrapper(EDy(clf, seed=seed)),
+                {
+                    "transformer__preprocessor__classifier__estimator__C":
+                        clf_grid["transformer__classifier__estimator__C"],
+                }
+            ),
+            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
