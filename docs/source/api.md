@@ -60,9 +60,9 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 ## Regularizers
 
 ```{eval-rst}
-.. autoclass:: qunfold.TikhonovRegularization
+.. autofunction:: qunfold.TikhonovRegularized
 
-.. autoclass:: qunfold.TikhonovRegularized
+.. autoclass:: qunfold.TikhonovRegularization
 ```
 
 

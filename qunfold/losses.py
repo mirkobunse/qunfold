@@ -200,10 +200,13 @@ class TikhonovRegularization(AbstractLoss):
     T = _tikhonov_matrix(M.shape[1])
     return lambda p: _tikhonov(p, T)
 
-class TikhonovRegularized(CombinedLoss):
+# TikhonovRegularized is implemented as a function instead of a class to facilitate
+# the inspection that the QuaPyWrapper takes out.
+
+def TikhonovRegularized(loss, tau=0.):
   """Add TikhonovRegularization to any loss.
 
-  Instances of this class are equivalent to
+  Calling this function is equivalent to calling
 
       >>> CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
 
@@ -211,10 +214,12 @@ class TikhonovRegularized(CombinedLoss):
       loss: An instance from `qunfold.losses`.
       tau (optional): The regularization strength. Defaults to 0.
 
+  Returns:
+      An instance of `CombinedLoss`.
+
   Examples:
       The regularized loss of RUN (Blobel, 1985) is:
 
           >>> TikhonovRegularization(BlobelLoss(), tau)
   """
-  def __init__(self, loss, tau=0.):
-    super().__init__(loss, TikhonovRegularization(), weights=[1, tau])
+  return CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
