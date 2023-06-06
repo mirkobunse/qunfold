@@ -18,6 +18,10 @@ def _blobel(p, q, M, N):
   Mp = jnp.dot(M, N * p)
   return jnp.sum(Mp - N * q * jnp.log(Mp))
 
+# helper function for the energy distance-based loss
+def _energy(p, q, M, N=None):
+  return jnp.dot(p, 2 * q - jnp.dot(M, p))
+
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
@@ -113,6 +117,14 @@ class BlobelLoss(FunctionLoss):
   """
   def __init__(self):
     super().__init__(_blobel)
+
+class EnergyLoss(FunctionLoss):
+  """The loss function of EDx (Kawakubo et al., 2016) and EDy (Castaño et al., 2022).
+
+  This loss function represents the Energy Distance between two samples.
+  """
+  def __init__(self):
+    super().__init__(_energy)
 
 # helper function for the HellingerLoss
 def _hellinger(p, q, M, indices):

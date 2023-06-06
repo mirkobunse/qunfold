@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from scipy.spatial.distance import cdist
 
 # helper function for crisp transformations
 def _onehot_encoding(y, n_classes):
@@ -72,6 +73,38 @@ class ClassTransformer(AbstractTransformer):
       return fX
     else:
       return _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+
+class DistanceTransformer(AbstractTransformer):
+  """A distance-based feature transformation, as it is used in `EDx` and `EDy`.
+
+  Args:
+      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+  """
+  def __init__(self, metric="euclidean", preprocessor=None):
+    self.metric = metric
+    self.preprocessor = preprocessor
+  def fit_transform(self, X, y):
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y)
+      self.n_classes = self.preprocessor.n_classes
+    else:
+      y -= y.min() # map to zero-based labels
+      self.n_classes = len(np.unique(y))
+    self.X_trn = X
+    self.y_trn = y
+    return self._transform_after_preprocessor(X), y
+  def transform(self, X):
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X)
+    return self._transform_after_preprocessor(X)
+  def _transform_after_preprocessor(self, X):
+    fX = np.zeros((X.shape[0], self.n_classes))
+    for i in range(self.n_classes): # class index
+      fX[:, i] = cdist(X, self.X_trn[self.y_trn == i], metric=self.metric).mean(axis=1)
+    return fX
 
 class HistogramTransformer(AbstractTransformer):
   """A histogram-based feature transformation, as it is used in `HDx` and `HDy`.

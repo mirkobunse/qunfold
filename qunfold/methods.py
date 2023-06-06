@@ -195,6 +195,49 @@ class RUN(GenericMethod):
       **kwargs
     )
 
+class EDx(GenericMethod):
+  """The energy distance-based EDx method by Kawakubo et al. (2016).
+
+  This subclass of `GenericMethod` is instantiated with a `EnergyLoss` and a `DistanceTransformer`.
+
+  Args:
+      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
+  def __init__(self, metric="euclidean", **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.EnergyLoss(),
+      transformers.DistanceTransformer(metric),
+      **kwargs
+    )
+
+class EDy(GenericMethod):
+  """The energy distance-based EDy method by Castaño et al. (2022).
+
+  This subclass of `GenericMethod` is instantiated with a `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+
+  Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
+  """
+  def __init__(self, classifier, metric="euclidean", fit_classifier=True, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.EnergyLoss(),
+      transformers.DistanceTransformer(
+        metric,
+        preprocessor = transformers.ClassTransformer(
+          classifier,
+          fit_classifier = fit_classifier,
+          is_probabilistic = True,
+        )
+      ),
+      **kwargs
+    )
+
 class HDx(GenericMethod):
   """The Hellinger distance-based HDx method by González-Castro et al (2013).
 

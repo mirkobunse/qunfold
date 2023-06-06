@@ -6,6 +6,7 @@ from quapy.model_selection import GridSearchQ
 from quapy.protocol import AbstractProtocol
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
+from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
@@ -55,6 +56,8 @@ class TestMethods(TestCase):
       p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
       p_hdx = qunfold.HDx(3).fit(X_trn, y_trn).predict(X_tst)
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
+      p_edx = qunfold.EDx().fit(X_trn, y_trn).predict(X_tst)
+      p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3, unit_scale=True) # this loss requires unit_scale
@@ -70,6 +73,10 @@ class TestMethods(TestCase):
         f"             {p_hdx.nit} it.; {p_hdx.message}",
         f"     p_hdy = {p_hdy}",
         f"             {p_hdy.nit} it.; {p_hdy.message}",
+        f"     p_edx = {p_edx}",
+        f"             {p_edx.nit} it.; {p_edx.message}",
+        f"     p_edy = {p_edy}",
+        f"             {p_edy.nit} it.; {p_edy.message}",
         f"     p_custom = {p_custom}",
         f"             {p_custom.nit} it.; {p_custom.message}",
         f"     p_tst = {p_tst}",
@@ -147,6 +154,22 @@ class TestQuaPyWrapper(TestCase):
         quapy_method.best_params_["transformer__classifier__estimator__C"],
         quapy_method.best_model_.generic_method.transformer.classifier.estimator.C
       )
+
+class TestDistanceTransformer(TestCase):
+  def test_transformer(self):
+    for _ in range(10):
+      q, M, p_trn = make_problem()
+      X_trn, y_trn = generate_data(M, p_trn)
+      # p_tst = RNG.permutation(p_trn)
+      # X_tst, y_tst = generate_data(M, p_tst)
+      m = qunfold.GenericMethod(None, qunfold.DistanceTransformer())
+      m.fit(X_trn, y_trn)
+      M_est = m.M
+      M_true = np.zeros_like(M_est)
+      for i in range(len(p_trn)):
+        for j in range(len(p_trn)):
+          M_true[i, j] = cdist(X_trn[y_trn==j], X_trn[y_trn==i]).mean()
+      np.testing.assert_allclose(M_est, M_true)
 
 class TestHistogramTransformer(TestCase):
   def test_transformer(self):
