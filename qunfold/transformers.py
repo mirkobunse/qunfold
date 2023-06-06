@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
 
 # helper function for crisp transformations
@@ -138,12 +139,17 @@ class HistogramTransformer(AbstractTransformer):
       X = self.preprocessor.transform(X)
     return self._transform_after_preprocessor(X)
   def _transform_after_preprocessor(self, X):
-    fX = np.zeros((X.shape[0], self.n_bins * X.shape[1]), dtype=int)
+    fX = []
     for j in range(X.shape[1]): # feature index
       e = self.edges[j]
-      offset = j * self.n_bins
-      for i in range(X.shape[0]): # sample index
-        fX[i, offset + np.argmax(e >= X[i,j])] = 1 # argmax returns the index of the 1st True
+      i_row = np.arange(X.shape[0])
+      i_col = np.clip(np.ceil((X[:,j] - e[0]) / (e[1]-e[0])).astype(int), 0, self.n_bins-1)
+      fX_j = csr_matrix(
+        (np.ones(X.shape[0], dtype=int), (i_row, i_col)),
+        shape = (X.shape[0], self.n_bins),
+      )
+      fX.append(fX_j.toarray())
+    fX = np.stack(fX).swapaxes(0, 1).reshape((X.shape[0], -1))
     if self.unit_scale:
       fX = fX / fX.sum(axis=1, keepdims=True)
     return fX
