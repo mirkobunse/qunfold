@@ -3,7 +3,7 @@ from .losses import (
     LeastSquaresLoss,
     BlobelLoss,
     EnergyLoss,
-    HellingerLoss,
+    HellingerSurrogateLoss,
     CombinedLoss,
     TikhonovRegularization,
     TikhonovRegularized,

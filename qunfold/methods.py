@@ -240,9 +240,9 @@ class EDy(GenericMethod):
     )
 
 class HDx(GenericMethod):
-  """The Hellinger distance-based HDx method by González-Castro et al (2013).
+  """The Hellinger distance-based HDx method by González-Castro et al. (2013).
 
-  This subclass of `GenericMethod` is instantiated with a `HellingerLoss` and a `HistogramTransformer`.
+  This subclass of `GenericMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`.
 
   Args:
       n_bins: The number of bins in each feature.
@@ -251,15 +251,15 @@ class HDx(GenericMethod):
   def __init__(self, n_bins, **kwargs):
     GenericMethod.__init__(
       self,
-      losses.HellingerLoss(n_bins),
+      losses.HellingerSurrogateLoss(n_bins),
       transformers.HistogramTransformer(n_bins, unit_scale=False),
       **kwargs
     )
 
 class HDy(GenericMethod):
-  """The Hellinger distance-based HDy method by González-Castro et al (2013).
+  """The Hellinger distance-based HDy method by González-Castro et al. (2013).
 
-  This subclass of `GenericMethod` is instantiated with a `HellingerLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `GenericMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
@@ -270,7 +270,7 @@ class HDy(GenericMethod):
   def __init__(self, classifier, n_bins, *, fit_classifier=True, **kwargs):
     GenericMethod.__init__(
       self,
-      losses.HellingerLoss(n_bins),
+      losses.HellingerSurrogateLoss(n_bins),
       transformers.HistogramTransformer(
         n_bins,
         preprocessor = transformers.ClassTransformer(

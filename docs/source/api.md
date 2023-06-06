@@ -47,7 +47,7 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 
 .. autoclass:: qunfold.BlobelLoss
 
-.. autoclass:: qunfold.HellingerLoss
+.. autoclass:: qunfold.HellingerSurrogateLoss
 
 .. autoclass:: qunfold.CombinedLoss
 ```
