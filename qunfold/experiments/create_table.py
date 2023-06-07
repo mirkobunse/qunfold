@@ -26,7 +26,7 @@ def main(
         pivot_row = {
             "index": r["method"],
             "column": f"{r['error_metric'].upper()} / {r['package']}",
-            "value": f"{{{r['error']:.3f} \\pm {r['error_std']:.3f}}}",
+            "value": f"{{{r['error']:.4f} \\pm {r['error_std']:.4f}}}",
         }
         if np.all(r["package"] == best_package[
                 (best_package["error_metric"] == r["error_metric"]) &
