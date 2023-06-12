@@ -45,6 +45,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiments.html">Experiments</a></li>
 </ul>
 
         </div>
@@ -75,7 +76,7 @@
 </div>
 <section id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this heading"></a></h1>
-<p>This Python package implements our unified framework of algorithms for quantification and unfolding.</p>
+<p>The Python package <a class="reference external" href="https://github.com/mirkobunse/qunfold">qunfold</a> implements our unified framework of algorithms for quantification and unfolding. It is designed for enabling the composition of novel methods from existing and easily customized loss functions and data representations. Moreover, this package leverages a powerful optimization back-end to yield state-of-the-art performances for all compositions.</p>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s1">&#39;qunfold @ git+https://github.com/mirkobunse/qunfold&#39;</span>
@@ -85,14 +86,20 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;jax[cpu]&quot;</span>
 </pre></div>
 </div>
-<p><strong>Updating:</strong> To update an existing installation of <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>, run</p>
+<section id="upgrading">
+<h3>Upgrading<a class="headerlink" href="#upgrading" title="Permalink to this heading"></a></h3>
+<p>To upgrade an existing installation of <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>, run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">force</span><span class="o">-</span><span class="n">reinstall</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">deps</span> <span class="s1">&#39;qunfold @ git+https://github.com/mirkobunse/qunfold@main&#39;</span>
 </pre></div>
 </div>
-<p><strong>Troubleshooting:</strong> Starting from <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">23.1.2</span></code>, you have to install <code class="docutils literal notranslate"><span class="pre">setuptools</span></code> and <code class="docutils literal notranslate"><span class="pre">wheel</span></code> explicitly. If you receive a “NameError: name ‘setuptools’ is not defined”, you need to execute the following command before installing <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>.</p>
+</section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading"></a></h3>
+<p>Starting from <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">23.1.2</span></code>, you have to install <code class="docutils literal notranslate"><span class="pre">setuptools</span></code> and <code class="docutils literal notranslate"><span class="pre">wheel</span></code> explicitly. If you receive a “NameError: name ‘setuptools’ is not defined”, you need to execute the following command before installing <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
@@ -105,6 +112,17 @@
 <span class="p">)</span>
 <span class="n">acc</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_trn</span><span class="p">,</span> <span class="n">y_trn</span><span class="p">)</span> <span class="c1"># fit to training data</span>
 <span class="n">p_hat</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_tst</span><span class="p">)</span> <span class="c1"># estimate a prevalence vector</span>
+</pre></div>
+</div>
+<p>You can easily compose new quantification methods from existing loss functions and feature transformations. In the following example, we compose the ordinal variant of ACC and prepare it for being used in <a class="reference external" href="https://github.com/HLT-ISTI/QuaPy">QuaPy</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the ACC loss, regularized with strength 0.01 for ordinal quantification</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">TikhonovRegularized</span><span class="p">(</span><span class="n">LeastSquaresLoss</span><span class="p">(),</span> <span class="mf">0.01</span><span class="p">)</span>
+
+<span class="c1"># the original data representation of ACC with 10-fold cross-validation</span>
+<span class="n">transformer</span> <span class="o">=</span> <span class="n">ClassTransformer</span><span class="p">(</span><span class="n">CVClassifier</span><span class="p">(</span><span class="n">LogisticRegression</span><span class="p">(),</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="c1"># the ordinal variant of ACC, ready for being used in QuaPy</span>
+<span class="n">ordinal_acc</span> <span class="o">=</span> <span class="n">QuaPyWrapper</span><span class="p">(</span><span class="n">GenericMethod</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">transformer</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>

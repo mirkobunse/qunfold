@@ -1,6 +1,6 @@
 # Developer guide
 
-We provide best practices regarding the implementation [](#workflow) before going into detail about how to take out [](#custom-implementations).
+In the following, we introduce best practices regarding the implementation [workflow](#workflow) before going into detail about how to take out [custom implementations](#custom-implementations).
 
 ## Workflow
 
