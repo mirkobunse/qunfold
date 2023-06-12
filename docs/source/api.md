@@ -2,7 +2,7 @@
 
 The `GenericMethod` defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
 
-Instances of [](#popular-algorithms) for quantification and unfolding are created through specialized constructors. However, you can also define your own quantification algorithm as a `GenericMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
+Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `GenericMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
 
 ```{eval-rst}
 .. autoclass:: qunfold.GenericMethod
@@ -27,6 +27,10 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 ### Distribution matching
 
 ```{eval-rst}
+.. autoclass:: qunfold.EDx
+
+.. autoclass:: qunfold.EDy
+
 .. autoclass:: qunfold.HDx
 
 .. autoclass:: qunfold.HDy
@@ -45,9 +49,11 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 ```{eval-rst}
 .. autoclass:: qunfold.LeastSquaresLoss
 
-.. autoclass:: qunfold.BlobelLoss
+.. autoclass:: qunfold.EnergyLoss
 
 .. autoclass:: qunfold.HellingerSurrogateLoss
+
+.. autoclass:: qunfold.BlobelLoss
 
 .. autoclass:: qunfold.CombinedLoss
 ```
@@ -71,5 +77,32 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 ```{eval-rst}
 .. autoclass:: qunfold.ClassTransformer
 
+.. autoclass:: qunfold.DistanceTransformer
+
 .. autoclass:: qunfold.HistogramTransformer
+```
+
+
+## Utilities
+
+The following classes provide functionalities that go beyond the composition of quantification methods.
+
+### QuaPy
+
+The `qunfold.quapy` module allows you to wrap any quantification method for being used in [QuaPy](https://github.com/HLT-ISTI/QuaPy).
+
+```{eval-rst}
+.. autoclass:: qunfold.quapy.QuaPyWrapper
+```
+
+### Cross-validated training
+
+The `qunfold.sklearn` module allows you to train classification-based quantification methods through cross-validation. Importing this module requires [scikit-learn](https://scikit-learn.org/stable/) to be installed.
+
+```{eval-rst}
+.. autoclass:: qunfold.sklearn.CVClassifier
+```
+
+```{hint}
+If you use a bagging classifier (like random forests) with `oob_score=True`, you do not need to use cross-validation. Instead, the quantification method is then trained on the out-of-bag predictions of the bagging classifier.
 ```

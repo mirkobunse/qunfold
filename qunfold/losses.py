@@ -103,7 +103,7 @@ class FunctionLoss(AbstractLoss):
     return lambda p: self.loss_function(p, q, M, N)
 
 class LeastSquaresLoss(FunctionLoss):
-  """The loss function of ACC, PACC, and ReadMe.
+  """The loss function of ACC (Forman, 2008), PACC (Bella et al., 2019), and ReadMe (Hopkins & King, 2010).
 
   This loss function computes the sum of squares of element-wise errors between `q` and `M*p`.
   """
@@ -132,7 +132,7 @@ def _hellinger_surrogate(p, q, M, indices):
   return jnp.sum(jnp.array([ jnp.sum(v[i]) for i in indices ]))
 
 class HellingerSurrogateLoss(AbstractLoss):
-  """The loss function of HDx and HDy.
+  """The loss function of HDx and HDy (González-Castro et al., 2013).
 
   This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
 
@@ -204,7 +204,7 @@ class TikhonovRegularization(AbstractLoss):
 # the inspection that the QuaPyWrapper takes out.
 
 def TikhonovRegularized(loss, tau=0.):
-  """Add TikhonovRegularization to any loss.
+  """Add TikhonovRegularization (Blobel, 1985) to any loss.
 
   Calling this function is equivalent to calling
 

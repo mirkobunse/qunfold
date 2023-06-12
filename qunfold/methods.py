@@ -65,6 +65,14 @@ class GenericMethod:
       solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
       solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
       seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
+
+  Examples:
+      Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original feature transformation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.
+
+          >>> GenericMethod(
+          >>>     TikhonovRegularized(LeastSquaresLoss(), 0.01),
+          >>>     ClassTransformer(RandomForestClassifier(oob_score=True))
+          >>> )
   """
   def __init__(self, loss, transformer,
       solver = "trust-ncg",
@@ -136,7 +144,7 @@ class GenericMethod:
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
 
 class ACC(GenericMethod):
-  """Adjusted Classify & Count.
+  """Adjusted Classify & Count by Forman (2008).
 
   This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
 
@@ -157,7 +165,7 @@ class ACC(GenericMethod):
     )
 
 class PACC(GenericMethod):
-  """Probabilistic Adjusted Classify & Count.
+  """Probabilistic Adjusted Classify & Count by Bella et al. (2010).
 
   This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
 
@@ -199,10 +207,10 @@ class RUN(GenericMethod):
 class EDx(GenericMethod):
   """The energy distance-based EDx method by Kawakubo et al. (2016).
 
-  This subclass of `GenericMethod` is instantiated with a `EnergyLoss` and a `DistanceTransformer`.
+  This subclass of `GenericMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`.
 
   Args:
-      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       **kwargs: Keyword arguments accepted by `GenericMethod`.
   """
   def __init__(self, metric="euclidean", **kwargs):
@@ -216,11 +224,11 @@ class EDx(GenericMethod):
 class EDy(GenericMethod):
   """The energy distance-based EDy method by Castaño et al. (2022).
 
-  This subclass of `GenericMethod` is instantiated with a `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `GenericMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
-      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       **kwargs: Keyword arguments accepted by `GenericMethod`.
   """

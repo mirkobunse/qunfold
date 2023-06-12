@@ -11,6 +11,11 @@ class CVClassifier(BaseEstimator, ClassifierMixin):
   Args:
       estimator: A classifier that implements the API of scikit-learn.
       n_estimators: The number of stratified cross-validation folds.
+
+  Examples:
+      Here, we create an instance of ACC that trains a logistic regression classifier with 10 cross-validation folds.
+
+          >>> ACC(CVClassifier(LogisticRegression(), 10))
   """
   def __init__(self, estimator, n_estimators, random_state=None):
     self.estimator = estimator

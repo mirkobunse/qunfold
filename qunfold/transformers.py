@@ -79,7 +79,7 @@ class DistanceTransformer(AbstractTransformer):
   """A distance-based feature transformation, as it is used in `EDx` and `EDy`.
 
   Args:
-      metric (optional): The metric with which the distance between data items is measured. Defaults to `"euclidean"`.
+      metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
   """
   def __init__(self, metric="euclidean", preprocessor=None):

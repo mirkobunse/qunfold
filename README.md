@@ -4,7 +4,7 @@
 
 # qunfold | Quantification & Unfolding
 
-This Python package implements composable methods for quantification and unfolding.
+This Python package implements our unified framework of algorithms for quantification and unfolding. It is designed for enabling the composition of novel methods from existing and easily customized loss functions and data representations. Moreover, this package leverages a powerful optimization back-end to yield state-of-the-art performances for all compositions.
 
 
 ## Installation

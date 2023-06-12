@@ -63,6 +63,18 @@ class QuaPyWrapper(BaseQuantifier):
 
     Args:
         generic_method: A GenericMethod method to wrap.
+
+    Examples:
+        Here, we wrap an instance of ACC to perform a grid search with QuaPy.
+
+            >>> qunfold_method = QuaPyWrapper(ACC(RandomForestClassifier(obb_score=True)))
+            >>> quapy.model_selection.GridSearchQ(
+            >>>     model = qunfold_method,
+            >>>     param_grid = { # try both splitting criteria
+            >>>         "transformer__classifier__estimator__criterion": ["gini", "entropy"],
+            >>>     },
+            >>>     # ...
+            >>> )
     """
     def __init__(self, generic_method):
         self.generic_method = generic_method
