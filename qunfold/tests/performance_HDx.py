@@ -1,13 +1,31 @@
 import argparse
+import jax
+import jax.numpy as jnp
 import numpy as np
 import time
+from jax.experimental import sparse
+from functools import partial
 from qunfold import HistogramTransformer
 from qunfold.tests import RNG, make_problem, generate_data
 from scipy.sparse import csr_matrix
 
+@partial(jax.jit, static_argnames=["n_samples", "n_bins"])
+def _jax_transform_Xj(Xj, e, n_samples, n_bins):
+  i_row = jnp.arange(n_samples, dtype=int)
+  i_col = jnp.clip(jnp.ceil((Xj - e[0]) / (e[1]-e[0])).astype(int), 0, n_bins-1)
+  return sparse.BCOO(
+    (jnp.ones(n_samples, dtype=int), jnp.stack((i_row, i_col)).T),
+    shape = (n_samples, n_bins)
+  ).todense()
+
 class JaxHistogramTransformer(HistogramTransformer):
   """This implementation of the HistogramTransformer is based on JAX's JIT capabilities."""
-  pass
+  def _transform_after_preprocessor(self, X):
+    fun = partial(_jax_transform_Xj, n_samples=X.shape[0], n_bins=self.n_bins)
+    fX = jax.vmap(fun)(X.T, jnp.stack(self.edges)).swapaxes(0, 1).reshape((X.shape[0], -1))
+    if self.unit_scale:
+      fX = fX / fX.sum(axis=1, keepdims=True)
+    return fX
 
 class SparseHistogramTransformer(HistogramTransformer):
   """This implementation of the HistogramTransformer is based on SciPy's sparse API."""
@@ -75,7 +93,8 @@ def main():
         t = transformer(n_bins)
         t.fit_transform(X_trn, y_trn)
         start = time.time()
-        fX = t.transform(X_tst)
+        for _ in range(10): # predict 10 times
+          fX = t.transform(X_tst)
         name = transformer.__name__
         times = results.get(name, [])
         times.append(time.time() - start)
@@ -90,7 +109,7 @@ def main():
           print()
           n_unequal += 1
   for name, times in results.items():
-    print(f"{name}: {np.mean(times)}")
+    print(f"{name}: {np.mean(times) / 10}")
   print(f"{n_unequal} unequal results between methods")
 
 if __name__ == '__main__':
