@@ -131,7 +131,6 @@ class HistogramTransformer(AbstractTransformer):
     self.edges = []
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)[1:]
-      e[-1] = np.inf
       self.edges.append(e)
     return self._transform_after_preprocessor(X), y
   def transform(self, X):
