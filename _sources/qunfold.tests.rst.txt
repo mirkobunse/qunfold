@@ -1,6 +1,17 @@
 qunfold.tests package
 =====================
 
+Submodules
+----------
+
+qunfold.tests.performance\_HDx module
+-------------------------------------
+
+.. automodule:: qunfold.tests.performance_HDx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

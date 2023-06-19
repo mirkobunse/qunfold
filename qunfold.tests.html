@@ -73,6 +73,59 @@
              
   <section id="qunfold-tests-package">
 <h1>qunfold.tests package<a class="headerlink" href="#qunfold-tests-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-qunfold.tests.performance_HDx">
+<span id="qunfold-tests-performance-hdx-module"></span><h2>qunfold.tests.performance_HDx module<a class="headerlink" href="#module-qunfold.tests.performance_HDx" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.tests.performance_HDx.JaxHistogramTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.tests.performance_HDx.</span></span><span class="sig-name descname"><span class="pre">JaxHistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.JaxHistogramTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="qunfold.html#qunfold.transformers.HistogramTransformer" title="qunfold.transformers.HistogramTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a></p>
+<p>This implementation of the HistogramTransformer is based on JAX’s JIT capabilities.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.tests.performance_HDx.NaiveHistogramTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.tests.performance_HDx.</span></span><span class="sig-name descname"><span class="pre">NaiveHistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.NaiveHistogramTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="qunfold.html#qunfold.transformers.HistogramTransformer" title="qunfold.transformers.HistogramTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a></p>
+<p>This implementation of the HistogramTransformer is based on for loops.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.tests.performance_HDx.NaiveHistogramTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.NaiveHistogramTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to the transformer to data and return a transformation <cite>(f(X), y)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.tests.performance_HDx.SparseHistogramTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.tests.performance_HDx.</span></span><span class="sig-name descname"><span class="pre">SparseHistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.SparseHistogramTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="qunfold.html#qunfold.transformers.HistogramTransformer" title="qunfold.transformers.HistogramTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a></p>
+<p>This implementation of the HistogramTransformer is based on SciPy’s sparse API.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qunfold.tests.performance_HDx.main">
+<span class="sig-prename descclassname"><span class="pre">qunfold.tests.performance_HDx.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.main" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
 <section id="module-qunfold.tests">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qunfold.tests" title="Permalink to this heading"></a></h2>
 <dl class="py class">
