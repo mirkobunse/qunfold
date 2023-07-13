@@ -4,6 +4,14 @@ qunfold.tests package
 Submodules
 ----------
 
+qunfold.tests.benchmark\_parallel\_quapy module
+-----------------------------------------------
+
+.. automodule:: qunfold.tests.benchmark_parallel_quapy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 qunfold.tests.performance\_HDx module
 -------------------------------------
 
