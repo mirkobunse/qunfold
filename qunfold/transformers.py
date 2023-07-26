@@ -113,7 +113,7 @@ class HistogramTransformer(AbstractTransformer):
   Args:
       n_bins: The number of bins in each feature.
       preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
-      unit_scale (optional): Whether or not to scale each output to a sum of one. Defaults to `True`, indicating that the sum of each output is the number of features.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   def __init__(self, n_bins, preprocessor=None, unit_scale=True):
     self.n_bins = n_bins
