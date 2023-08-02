@@ -135,7 +135,7 @@ def main(
 
     # fit the classifiers and create transformers
     class_weights = [ None, "balanced" ]
-    C_values = [ 1e-3, 1e-2, 1e-1, 1e0, 1e1 ]
+    C_values = np.logspace(-4, 1, 21) # 1e-4 to 1e+1 with 3 steps between 1e+i and 1e+(i+1).
     if is_test_run:
         C_values = C_values[:1]
     classifier_configs = [ # (i_classifier, class_weight, C)
