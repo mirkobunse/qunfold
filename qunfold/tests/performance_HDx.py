@@ -18,18 +18,28 @@ def _jax_transform_Xj(Xj, e, n_samples, n_bins):
     shape = (n_samples, n_bins)
   ).todense()
 
+class NaivelyAveragedHistogramTransformer(HistogramTransformer):
+  """This implementation of the HistogramTransformer is based on JAX's JIT capabilities."""
+  def _transform_after_preprocessor(self, X, average=False):
+    fX = super()._transform_after_preprocessor(X, average=False)
+    if average:
+      return fX.mean(axis=0)
+    return fX
+
 class JaxHistogramTransformer(HistogramTransformer):
   """This implementation of the HistogramTransformer is based on JAX's JIT capabilities."""
-  def _transform_after_preprocessor(self, X):
+  def _transform_after_preprocessor(self, X, average=False):
     fun = partial(_jax_transform_Xj, n_samples=X.shape[0], n_bins=self.n_bins)
     fX = jax.vmap(fun)(X.T, jnp.stack(self.edges)).swapaxes(0, 1).reshape((X.shape[0], -1))
     if self.unit_scale:
       fX = fX / fX.sum(axis=1, keepdims=True)
+    if average:
+      return fX.mean(axis=0)
     return fX
 
 class SparseHistogramTransformer(HistogramTransformer):
   """This implementation of the HistogramTransformer is based on SciPy's sparse API."""
-  def _transform_after_preprocessor(self, X):
+  def _transform_after_preprocessor(self, X, average=False):
     fX = []
     for j in range(X.shape[1]): # feature index
       e = self.edges[j]
@@ -43,6 +53,8 @@ class SparseHistogramTransformer(HistogramTransformer):
     fX = np.stack(fX).swapaxes(0, 1).reshape((X.shape[0], -1))
     if self.unit_scale:
       fX = fX / fX.sum(axis=1, keepdims=True)
+    if average:
+      return fX.mean(axis=0)
     return fX
 
 class NaiveHistogramTransformer(HistogramTransformer):
@@ -62,7 +74,7 @@ class NaiveHistogramTransformer(HistogramTransformer):
       e[-1] = np.inf # THIS LINE IS DIFFERENT FROM THE ORIGINAL fit_transform
       self.edges.append(e)
     return self._transform_after_preprocessor(X), y
-  def _transform_after_preprocessor(self, X):
+  def _transform_after_preprocessor(self, X, average=False):
     fX = np.zeros((X.shape[0], self.n_bins * X.shape[1]), dtype=int)
     for j in range(X.shape[1]): # feature index
       e = self.edges[j]
@@ -71,14 +83,17 @@ class NaiveHistogramTransformer(HistogramTransformer):
         fX[i, offset + np.argmax(e >= X[i,j])] = 1 # argmax returns the index of the 1st True
     if self.unit_scale:
       fX = fX / fX.sum(axis=1, keepdims=True)
+    if average:
+      return fX.mean(axis=0)
     return fX
 
 def main():
   transformers = [
     HistogramTransformer,
-    JaxHistogramTransformer,
-    SparseHistogramTransformer,
-    NaiveHistogramTransformer,
+    NaivelyAveragedHistogramTransformer,
+    # JaxHistogramTransformer,
+    # SparseHistogramTransformer,
+    # NaiveHistogramTransformer,
   ]
   results = {} # mapping from class names to prediction times
   n_unequal = 0
@@ -86,7 +101,7 @@ def main():
     q, M, p_trn = make_problem()
     X_trn, y_trn = generate_data(M, p_trn)
     p_tst = RNG.permutation(p_trn)
-    X_tst, y_tst = generate_data(M, p_tst)
+    X_tst, y_tst = generate_data(M, p_tst, n_samples=10000)
     for n_bins in [2, 4, 8]:
       fX_ref = None
       for i, transformer in enumerate(transformers):
@@ -94,18 +109,17 @@ def main():
         t.fit_transform(X_trn, y_trn)
         start = time.time()
         for _ in range(10): # predict 10 times
-          fX = t.transform(X_tst)
+          fX = t.transform(X_tst, average=True)
         name = transformer.__name__
         times = results.get(name, [])
         times.append(time.time() - start)
         results[name] = times
         if fX_ref is None:
           fX_ref = fX
-        elif not np.all(fX == fX_ref):
+        elif not np.allclose(fX, fX_ref):
           print(name)
-          print(fX_ref[:5,:2])
-          print(fX[:5,:2])
-          print(X_tst[:5,0])
+          print(fX_ref)
+          print(fX)
           print()
           n_unequal += 1
   for name, times in results.items():
