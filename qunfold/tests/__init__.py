@@ -179,6 +179,7 @@ class TestHistogramTransformer(TestCase):
     f = qunfold.HistogramTransformer(10, unit_scale=False)
     self.assertTrue(np.all(f.fit_transform(X, y)[0] == fX))
     self.assertTrue(np.all(f.transform(X) == fX))
+    self.assertTrue(np.all(f.transform(X, average=True) == fX.mean(axis=0)))
 
     # test unit_scale=True, the new default
     self.assertTrue(np.all(f.transform(X).sum(axis=1) == X.shape[1]))
