@@ -126,7 +126,13 @@ class GenericMethod:
     """
     loss_dict = losses.instantiate_loss(self.loss, q, M, N)
     rng = np.random.RandomState(self.seed)
-    x0 = _rand_x0(rng, M.shape[1]) # random starting point
+    # x0 = _rand_x0(rng, M.shape[1]) # random starting point
+    try:
+      x0 = np.clip(np.dot(np.linalg.pinv(M), q), 1e-6, 1-1e-6)
+      x0 = np.log(x0 / x0.sum())[1:] # map to latent quantities
+    except np.linalg.LinAlgError:
+      print("ERROR: np.linalg.LinAlgError")
+      x0 = _rand_x0(rng, M.shape[1]) # random starting point
     state = _CallbackState(x0)
     try:
       opt = optimize.minimize(
