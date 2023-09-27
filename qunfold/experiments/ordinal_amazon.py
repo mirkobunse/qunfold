@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import quapy as qp
 from copy import deepcopy
-from qunfold import ACC, ClassTransformer, GenericMethod, LeastSquaresLoss, TikhonovRegularized
+from qunfold import ACC, ClassTransformer, GenericMethod, LeastSquaresLoss, PACC, TikhonovRegularized
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from qunfold.losses import _tikhonov_matrix, _tikhonov
@@ -31,6 +31,7 @@ class MultiGridSearch:
                 )
                 for val in itertools.product(*list(param_grid.values()))
             ])
+        t_0 = time()
         results = qp.util.parallel(
             self._delayed_validate,
             (
@@ -56,6 +57,7 @@ class MultiGridSearch:
                             self.best_stds[(method_name, score_key)] = param_scores[score_key+"_std"]
                             self.best_params[(method_name, score_key)] = params
                             self.best_methods[(method_name, score_key)] = method
+        print(f"VAL phase took {(time()-t_0)/60} min")
         return self
     def _delayed_validate(self, args):
         method_name, method, params, trn_data, protocol_name, protocol, i_trial, n_trials = args
@@ -73,6 +75,7 @@ class MultiGridSearch:
                 param_scores[protocol_name+"_oq_"+error_metric+"_std"] = np.std(errors)
         return method_name, params, param_scores, method
     def test(self, protocols):
+        t_0 = time()
         self.results = pd.DataFrame(qp.util.parallel(
             self._delayed_test,
             (
@@ -91,6 +94,7 @@ class MultiGridSearch:
             seed = self.seed,
             n_jobs = self.n_jobs,
         ))
+        print(f"TST phase took {(time()-t_0)/60} min")
         return self
     def _delayed_test(self, args):
         method_name, score_key, protocol, params, method, i_trial, n_trials = args
@@ -206,7 +210,16 @@ def main(
         ("o-ACC",
             GenericMethod(
                 TikhonovRegularized(LeastSquaresLoss(), 0.01),
-                ClassTransformer(clf),
+                ClassTransformer(clf, is_probabilistic=False),
+                seed = seed,
+            ),
+            dict(clf_grid, loss__weights=[(1, 1e-1), (1, 1e-3), (1, 1e-5)]) # extend
+        ),
+        ("PACC", PACC(clf, seed=seed), clf_grid),
+        ("o-PACC",
+            GenericMethod(
+                TikhonovRegularized(LeastSquaresLoss(), 0.01),
+                ClassTransformer(clf, is_probabilistic=True),
                 seed = seed,
             ),
             dict(clf_grid, loss__weights=[(1, 1e-1), (1, 1e-3), (1, 1e-5)]) # extend
@@ -239,6 +252,7 @@ def main(
         tst_gen_real.true_prevs.df = tst_gen_real.true_prevs.df[:10]
 
     # validation for all methods, all protocols and all error_metrics, then testing
+    t_0 = time()
     gs = MultiGridSearch(
         error_metrics = ["nmd"],
         app_oq_frac = .5,
@@ -251,6 +265,8 @@ def main(
     ).test(
         {"app": tst_gen_app, "real": tst_gen_real},
     )
+    print(f"The entire experiment took {(time()-t_0)/60} min")
+    print(gs.results)
     gs.results.to_csv(output_path) # store the results
     print(f"{gs.results.shape[0]} results succesfully stored at {output_path}")
 
