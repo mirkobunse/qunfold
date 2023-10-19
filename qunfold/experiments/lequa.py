@@ -12,12 +12,12 @@ from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
+from time import time
 from tqdm.auto import tqdm
 
 # for debugging; this variant raises exceptions instead of hiding them
 import signal
 from copy import deepcopy
-from time import time
 class MyGridSearchQ(qp.model_selection.GridSearchQ):
     def _delayed_eval(self, args):
         params, training = args
@@ -55,30 +55,40 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     )
 
     # configure and train the method; select the best hyper-parameters
-    # quapy_method = qp.model_selection.GridSearchQ(
-    quapy_method = MyGridSearchQ(
-        model = method,
-        param_grid = param_grid,
-        protocol = val_gen,
-        error = "m" + error_metric, # ae -> mae, rae -> mrae
-        refit = False,
-        # verbose = True,
-    ).fit(trn_data)
-    parameters = quapy_method.best_params_
-    val_error = quapy_method.best_score_
-    quapy_method = quapy_method.best_model_
-    print(
-        f"VAL [{i_method+1:02d}/{n_trials:02d}]:",
-        datetime.now().strftime('%H:%M:%S'),
-        f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
-    )
+    if param_grid is not None:
+        # quapy_method = qp.model_selection.GridSearchQ(
+        quapy_method = MyGridSearchQ(
+            model = method,
+            param_grid = param_grid,
+            protocol = val_gen,
+            error = "m" + error_metric, # ae -> mae, rae -> mrae
+            refit = False,
+            # verbose = True,
+        ).fit(trn_data)
+        parameters = quapy_method.best_params_
+        val_error = quapy_method.best_score_
+        quapy_method = quapy_method.best_model_
+        print(
+            f"VAL [{i_method+1:02d}/{n_trials:02d}]:",
+            datetime.now().strftime('%H:%M:%S'),
+            f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
+        )
+    else:
+        quapy_method = method.fit(trn_data)
+        parameters = None
+        val_error = -1
+        print(
+            f"Skipping validation of {package} {method_name} due to fixed hyper-parameters."
+        )
 
     # evaluate the method on the test samples and return the result
+    t_0 = time()
     errors = qp.evaluation.evaluate( # errors of all predictions
         quapy_method,
         protocol = tst_gen,
         error_metric = error_metric
     )
+    prediction_time = (time() - t_0) / len(errors) # average prediction_time
     error = errors.mean()
     error_std = errors.std()
     print(
@@ -92,6 +102,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
         "error_metric": error_metric,
         "error": error,
         "error_std": error_std,
+        "prediction_time": prediction_time,
         "val_error": val_error,
         "parameters": str(parameters),
     }
@@ -158,10 +169,6 @@ def main(
     # load the data
     trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
 
-    # for now, only a subset of the samples is used; TODO use all samples
-    val_gen.true_prevs.df = val_gen.true_prevs.df[:100]
-    tst_gen.true_prevs.df = tst_gen.true_prevs.df[:500]
-
     if is_test_run: # use a minimal testing configuration
         clf.set_params(n_estimators = 3, estimator__max_iter = 3)
         clf_grid = {
@@ -176,30 +183,17 @@ def main(
             ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
             ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
             ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
-            ("HDy", "qunfold",
-                QuaPyWrapper(HDy(clf, 2, seed=seed)),
-                {
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
-                    "transformer__n_bins": [2, 4],
-                }
-            ),
+            ("HDy", "qunfold", QuaPyWrapper(HDy(clf, 2, seed=seed)), None),
             ("HDy", "QuaPy",
                 qp.method.aggregative.DistributionMatching(
                     classifier = qp_clf,
                     divergence = 'HD',
                     cdf = False
                 ),
-                dict(qp_clf_grid, nbins = [2, 4]) # extend the qp_clf_grid
+                None
             ),
-            ("EDy", "qunfold",
-                QuaPyWrapper(EDy(clf, seed=seed)),
-                {
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
-                }
-            ),
-            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
+            ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
+            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
