@@ -19,7 +19,7 @@ def _jax_transform_Xj(Xj, e, n_samples, n_bins):
   ).todense()
 
 class NaivelyAveragedHistogramTransformer(HistogramTransformer):
-  """This implementation of the HistogramTransformer is based on JAX's JIT capabilities."""
+  """This variant of the HistogramTransformer implements average=True as fX.mean()."""
   def _transform_after_preprocessor(self, X, average=False):
     fX = super()._transform_after_preprocessor(X, average=False)
     if average:
