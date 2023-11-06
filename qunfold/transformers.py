@@ -11,7 +11,7 @@ class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
   @abstractmethod
   def fit_transform(self, X, y):
-    """This abstract method has to the transformer to data and return a transformation `(f(X), y)`.
+    """This abstract method has to return a transformation `(f(X), y)` of the input data.
 
     Note:
         Implementations of this abstract method must set the property `self.n_classes`.

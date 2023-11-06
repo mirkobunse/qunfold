@@ -7,18 +7,19 @@ from sklearn.utils.multiclass import unique_labels
 class CVClassifier(BaseEstimator, ClassifierMixin):
   """An ensemble of classifiers that are trained from cross-validation folds.
 
-  All objects of this type have a fixed attribute `oob_score = True` and, when trained, a fitted attribute `self.oob_decision_function`, just like scikit-learn bagging classifiers.
+  All objects of this type have a fixed attribute `oob_score = True` and, when trained, a fitted attribute `self.oob_decision_function_`, just like scikit-learn bagging classifiers.
 
   Args:
       estimator: A classifier that implements the API of scikit-learn.
-      n_estimators: The number of stratified cross-validation folds.
+      n_estimators (optional): The number of stratified cross-validation folds. Defaults to `5`.
+      random_state (optional): The random state for stratification. Defaults to `None`.
 
   Examples:
       Here, we create an instance of ACC that trains a logistic regression classifier with 10 cross-validation folds.
 
           >>> ACC(CVClassifier(LogisticRegression(), 10))
   """
-  def __init__(self, estimator, n_estimators, random_state=None):
+  def __init__(self, estimator, n_estimators=5, random_state=None):
     self.estimator = estimator
     self.n_estimators = n_estimators
     self.random_state = random_state
