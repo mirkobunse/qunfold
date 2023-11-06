@@ -507,14 +507,15 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">qunfold.sklearn</span></code> module allows you to train classification-based quantification methods through cross-validation. Importing this module requires <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> to be installed.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.sklearn.</span></span><span class="sig-name descname"><span class="pre">CVClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_estimators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.sklearn.</span></span><span class="sig-name descname"><span class="pre">CVClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_estimators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>An ensemble of classifiers that are trained from cross-validation folds.</p>
-<p>All objects of this type have a fixed attribute <cite>oob_score = True</cite> and, when trained, a fitted attribute <cite>self.oob_decision_function</cite>, just like scikit-learn bagging classifiers.</p>
+<p>All objects of this type have a fixed attribute <cite>oob_score = True</cite> and, when trained, a fitted attribute <cite>self.oob_decision_function_</cite>, just like scikit-learn bagging classifiers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>estimator</strong> – A classifier that implements the API of scikit-learn.</p></li>
-<li><p><strong>n_estimators</strong> – The number of stratified cross-validation folds.</p></li>
+<li><p><strong>n_estimators</strong> (<em>optional</em>) – The number of stratified cross-validation folds. Defaults to <cite>5</cite>.</p></li>
+<li><p><strong>random_state</strong> (<em>optional</em>) – The random state for stratification. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 </dl>
