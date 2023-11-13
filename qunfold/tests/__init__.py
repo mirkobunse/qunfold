@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 import qunfold
 import time
 from quapy.data import LabelledCollection
@@ -185,3 +186,47 @@ class TestHistogramTransformer(TestCase):
     self.assertTrue(np.all(f.transform(X).sum(axis=1) == X.shape[1]))
     f2 = qunfold.HistogramTransformer(10)
     self.assertTrue(np.allclose(f2.fit_transform(X, y)[0].sum(axis=1), 1))
+
+class TestHellingerSurrogateLoss(TestCase):
+  #old implementation of hellinger surrogate loss for comparison
+  def old_hellinger_loss_function(self, p, q, M, indices):
+    v = (jnp.sqrt(q) - jnp.sqrt(jnp.dot(M, p)))**2
+    return jnp.sum(jnp.array([ jnp.sum(v[i]) for i in indices ]))
+
+  # old instantiation of hellinger surrogate loss for comparison
+  def _old_instantiate(self, q, M, n_bins, N=None):
+    n_features = int(M.shape[0] / n_bins) # derive the number from M's shape
+    indices = [ jnp.arange(i * n_bins, (i+1) * n_bins) for i in range(n_features) ]
+    nonzero = jnp.any(M != 0, axis=1)
+    M = M[nonzero,:]
+    q = q[nonzero]
+    if not jnp.all(nonzero):
+      i = 0
+      for j in range(len(indices)):
+        indices_j = []
+        for k in indices[j]:
+          if nonzero[k]:
+            indices_j.append(i)
+            i += 1
+        indices[j] = jnp.array(indices_j, dtype=int)
+    return lambda p: self.old_hellinger_loss_function(p, q, M, indices)
+  
+  def test_loss(self):
+    for _ in range(20):
+      q, M, p_true = make_problem()
+
+      # vary p so the distance isnt just 0
+      p_test = p_true + np.random.randint(1, 25, p_true.shape[0])
+      p_test /= p_test.sum()
+      new_hellinger_surrogate_loss = qunfold.HellingerSurrogateLoss()._instantiate(q, M)
+      old_hellinger_surrogate_loss = self._old_instantiate(q, M, n_bins=1)
+
+      # make sure both loss functions return roughly 0 for the true distribution
+      self.assertAlmostEqual(new_hellinger_surrogate_loss(p_true), 0, places=6)
+      self.assertAlmostEqual(old_hellinger_surrogate_loss(p_true), 0, places=6)
+
+      # make sure the functions return roughly the same for other distributions
+      # check for 6 decimal place accuracy
+      self.assertAlmostEquals(new_hellinger_surrogate_loss(p_test),
+                              old_hellinger_surrogate_loss(p_test),
+                              places=6)
