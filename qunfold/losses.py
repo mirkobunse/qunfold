@@ -128,7 +128,7 @@ class EnergyLoss(FunctionLoss):
 
 def _hellinger_surrogate(p, q, M):
   v = jnp.sqrt(q * jnp.dot(M, p))
-  return (jnp.dot(M, p).sum() + q.sum()) - 2 * jnp.sum(v)
+  return -jnp.sum(v)
 
 class HellingerSurrogateLoss(AbstractLoss):
   """The loss function of HDx and HDy (González-Castro et al., 2013).

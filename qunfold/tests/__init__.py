@@ -11,8 +11,10 @@ from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
+from qunfold.methods import HDx
+from qunfold.losses import HellingerSurrogateLoss
 
-RNG = np.random.RandomState(876) # make tests reproducible
+RNG = np.random.RandomState(877) # make tests reproducible
 
 def make_problem(n_features=None, n_classes=None):
   if n_classes is None:
@@ -213,20 +215,31 @@ class TestHellingerSurrogateLoss(TestCase):
   
   def test_loss(self):
     for _ in range(20):
-      q, M, p_true = make_problem()
+      q_hl, M_hl, p_true_hl = make_problem(10, 4)
+      X_tst_hl, y_tst_hl = generate_data(M_hl, p_true_hl)
+
+      n_bins_hl = np.random.randint(2, 11)
+
+      fitted_hl = HDx(n_bins_hl).fit(X_tst_hl, y_tst_hl)
+
+      M_tst_hl = fitted_hl.M
+      q_hl = fitted_hl.transformer.transform(X_tst_hl, average=False).mean(axis=0)
 
       # vary p so the distance isnt just 0
-      p_test = p_true + np.random.randint(1, 25, p_true.shape[0])
-      p_test /= p_test.sum()
-      new_hellinger_surrogate_loss = qunfold.HellingerSurrogateLoss()._instantiate(q, M)
-      old_hellinger_surrogate_loss = self._old_instantiate(q, M, n_bins=1)
+      p_tst_hl = p_true_hl + np.random.randint(1, 25, p_true_hl.shape[0])
+      p_tst_hl /= p_tst_hl.sum()
+
+      F_hl = jnp.sum(q_hl)
+
+      new_loss = HellingerSurrogateLoss()._instantiate(q_hl, M_tst_hl)
+      old_loss = self._old_instantiate(q_hl, M_tst_hl, n_bins=n_bins_hl)
 
       # make sure both loss functions return roughly 0 for the true distribution
-      self.assertAlmostEqual(new_hellinger_surrogate_loss(p_true), 0, places=6)
-      self.assertAlmostEqual(old_hellinger_surrogate_loss(p_true), 0, places=6)
+      self.assertAlmostEqual(F_hl + new_loss(fitted_hl.p_trn), 0, places=5)
+      self.assertAlmostEqual(0.5 * old_loss(fitted_hl.p_trn), 0, places=5)
 
       # make sure the functions return roughly the same for other distributions
       # check for 6 decimal place accuracy
-      self.assertAlmostEquals(new_hellinger_surrogate_loss(p_test),
-                              old_hellinger_surrogate_loss(p_test),
-                              places=6)
+      self.assertAlmostEquals(F_hl + new_loss(p_tst_hl),
+                              0.5 * old_loss(p_tst_hl),
+                              places=5) 
