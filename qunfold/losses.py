@@ -136,7 +136,7 @@ class HellingerSurrogateLoss(AbstractLoss):
   This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
   """
   def __init__(self):
-    pass
+    pass    
 
   def _instantiate(self, q, M, N=None):
     return lambda p: _hellinger_surrogate(p, q, M)
