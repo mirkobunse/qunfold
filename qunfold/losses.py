@@ -126,20 +126,18 @@ class EnergyLoss(FunctionLoss):
   def __init__(self):
     super().__init__(_energy)
 
-def _hellinger_surrogate(p, q, M):
+def _hellinger_surrogate(p, q, M, N=None):
   v = jnp.sqrt(q * jnp.dot(M, p))
   return -jnp.sum(v)
 
-class HellingerSurrogateLoss(AbstractLoss):
+class HellingerSurrogateLoss(FunctionLoss):
   """The loss function of HDx and HDy (González-Castro et al., 2013).
 
   This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
   """
   def __init__(self):
-    pass    
+    super().__init__(_hellinger_surrogate)    
 
-  def _instantiate(self, q, M, N=None):
-    return lambda p: _hellinger_surrogate(p, q, M)
 
 # helper function for CombinedLoss
 def _combine_losses(losses, weights, q, M, p, N):
