@@ -22,6 +22,11 @@ def _blobel(p, q, M, N):
 def _energy(p, q, M, N=None):
   return jnp.dot(p, 2 * q - jnp.dot(M, p))
 
+# helper function for the Hellinger surrogate loss, leveraging the fact that the
+# average of squared distances can be computed over a single concatenation of histograms
+def _hellinger_surrogate(p, q, M, N=None):
+  return -jnp.sqrt(q * jnp.dot(M, p)).sum()
+
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
@@ -126,14 +131,10 @@ class EnergyLoss(FunctionLoss):
   def __init__(self):
     super().__init__(_energy)
 
-def _hellinger_surrogate(p, q, M, N=None):
-  v = jnp.sqrt(q * jnp.dot(M, p))
-  return -jnp.sum(v)
-
 class HellingerSurrogateLoss(FunctionLoss):
   """The loss function of HDx and HDy (González-Castro et al., 2013).
 
-  This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
+  This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. Their approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
   """
   def __init__(self):
     super().__init__(_hellinger_surrogate)    

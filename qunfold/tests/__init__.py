@@ -14,7 +14,7 @@ from unittest import TestCase
 from qunfold.methods import HDx
 from qunfold.losses import HellingerSurrogateLoss
 
-RNG = np.random.RandomState(877) # make tests reproducible
+RNG = np.random.RandomState(876) # make tests reproducible
 
 def make_problem(n_features=None, n_classes=None):
   if n_classes is None:
@@ -177,7 +177,7 @@ class TestDistanceTransformer(TestCase):
 class TestHistogramTransformer(TestCase):
   def test_transformer(self):
     X = np.load("qunfold/tests/HDx_X.npy")
-    y = np.random.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
+    y = RNG.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
     fX = np.load("qunfold/tests/HDx_fX.npy") # ground-truth by QUnfold.jl
     f = qunfold.HistogramTransformer(10, unit_scale=False)
     self.assertTrue(np.all(f.fit_transform(X, y)[0] == fX))
@@ -215,31 +215,27 @@ class TestHellingerSurrogateLoss(TestCase):
   
   def test_loss(self):
     for _ in range(20):
-      q_hl, M_hl, p_true_hl = make_problem(10, 4)
-      X_tst_hl, y_tst_hl = generate_data(M_hl, p_true_hl)
+      _, M, p_true = make_problem(10, 4)
+      X_trn, y_trn = generate_data(M, p_true)
+      n_bins = RNG.randint(2, 11)
 
-      n_bins_hl = np.random.randint(2, 11)
+      m_hl = HDx(n_bins).fit(X_trn, y_trn)
+      M_hl = m_hl.M
+      q_hl = m_hl.transformer.transform(X_trn, average=False).mean(axis=0)
+      F_hl = jnp.sum(q_hl) # the number of features
 
-      fitted_hl = HDx(n_bins_hl).fit(X_tst_hl, y_tst_hl)
+      # draw a random p uniformly from the unit simplex, so the distance isn't just 0
+      p_tst = RNG.dirichlet(np.ones(len(m_hl.p_trn)))
 
-      M_tst_hl = fitted_hl.M
-      q_hl = fitted_hl.transformer.transform(X_tst_hl, average=False).mean(axis=0)
-
-      # vary p so the distance isnt just 0
-      p_tst_hl = p_true_hl + np.random.randint(1, 25, p_true_hl.shape[0])
-      p_tst_hl /= p_tst_hl.sum()
-
-      F_hl = jnp.sum(q_hl)
-
-      new_loss = HellingerSurrogateLoss()._instantiate(q_hl, M_tst_hl)
-      old_loss = self._old_instantiate(q_hl, M_tst_hl, n_bins=n_bins_hl)
+      new_loss = HellingerSurrogateLoss()._instantiate(q_hl, M_hl)
+      old_loss = self._old_instantiate(q_hl, M_hl, n_bins=n_bins)
 
       # make sure both loss functions return roughly 0 for the true distribution
-      self.assertAlmostEqual(F_hl + new_loss(fitted_hl.p_trn), 0, places=5)
-      self.assertAlmostEqual(0.5 * old_loss(fitted_hl.p_trn), 0, places=5)
+      self.assertAlmostEqual(F_hl + new_loss(m_hl.p_trn), 0, places=5)
+      self.assertAlmostEqual(0.5 * old_loss(m_hl.p_trn), 0, places=5)
 
       # make sure the functions return roughly the same for other distributions
       # check for 6 decimal place accuracy
-      self.assertAlmostEquals(F_hl + new_loss(p_tst_hl),
-                              0.5 * old_loss(p_tst_hl),
-                              places=5) 
+      self.assertAlmostEquals(F_hl + new_loss(p_tst),
+                              0.5 * old_loss(p_tst),
+                              places=5)
