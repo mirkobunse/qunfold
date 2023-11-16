@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 import qunfold
 import time
 from quapy.data import LabelledCollection
@@ -10,6 +11,8 @@ from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
+from qunfold.methods import HDx
+from qunfold.losses import HellingerSurrogateLoss
 
 RNG = np.random.RandomState(876) # make tests reproducible
 
@@ -174,7 +177,7 @@ class TestDistanceTransformer(TestCase):
 class TestHistogramTransformer(TestCase):
   def test_transformer(self):
     X = np.load("qunfold/tests/HDx_X.npy")
-    y = np.random.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
+    y = RNG.choice(5, size=X.shape[0]) # the HistogramTransformer ignores labels
     fX = np.load("qunfold/tests/HDx_fX.npy") # ground-truth by QUnfold.jl
     f = qunfold.HistogramTransformer(10, unit_scale=False)
     self.assertTrue(np.all(f.fit_transform(X, y)[0] == fX))
@@ -185,3 +188,54 @@ class TestHistogramTransformer(TestCase):
     self.assertTrue(np.all(f.transform(X).sum(axis=1) == X.shape[1]))
     f2 = qunfold.HistogramTransformer(10)
     self.assertTrue(np.allclose(f2.fit_transform(X, y)[0].sum(axis=1), 1))
+
+class TestHellingerSurrogateLoss(TestCase):
+  #old implementation of hellinger surrogate loss for comparison
+  def old_hellinger_loss_function(self, p, q, M, indices):
+    v = (jnp.sqrt(q) - jnp.sqrt(jnp.dot(M, p)))**2
+    return jnp.sum(jnp.array([ jnp.sum(v[i]) for i in indices ]))
+
+  # old instantiation of hellinger surrogate loss for comparison
+  def _old_instantiate(self, q, M, n_bins, N=None):
+    n_features = int(M.shape[0] / n_bins) # derive the number from M's shape
+    indices = [ jnp.arange(i * n_bins, (i+1) * n_bins) for i in range(n_features) ]
+    nonzero = jnp.any(M != 0, axis=1)
+    M = M[nonzero,:]
+    q = q[nonzero]
+    if not jnp.all(nonzero):
+      i = 0
+      for j in range(len(indices)):
+        indices_j = []
+        for k in indices[j]:
+          if nonzero[k]:
+            indices_j.append(i)
+            i += 1
+        indices[j] = jnp.array(indices_j, dtype=int)
+    return lambda p: self.old_hellinger_loss_function(p, q, M, indices)
+  
+  def test_loss(self):
+    for _ in range(20):
+      _, M, p_true = make_problem(10, 4)
+      X_trn, y_trn = generate_data(M, p_true)
+      n_bins = RNG.randint(2, 11)
+
+      m_hl = HDx(n_bins).fit(X_trn, y_trn)
+      M_hl = m_hl.M
+      q_hl = m_hl.transformer.transform(X_trn, average=False).mean(axis=0)
+      F_hl = jnp.sum(q_hl) # the number of features
+
+      # draw a random p uniformly from the unit simplex, so the distance isn't just 0
+      p_tst = RNG.dirichlet(np.ones(len(m_hl.p_trn)))
+
+      new_loss = HellingerSurrogateLoss()._instantiate(q_hl, M_hl)
+      old_loss = self._old_instantiate(q_hl, M_hl, n_bins=n_bins)
+
+      # make sure both loss functions return roughly 0 for the true distribution
+      self.assertAlmostEqual(F_hl + new_loss(m_hl.p_trn), 0, places=5)
+      self.assertAlmostEqual(0.5 * old_loss(m_hl.p_trn), 0, places=5)
+
+      # make sure the functions return roughly the same for other distributions
+      # check for 6 decimal place accuracy
+      self.assertAlmostEquals(F_hl + new_loss(p_tst),
+                              0.5 * old_loss(p_tst),
+                              places=5)

@@ -22,6 +22,11 @@ def _blobel(p, q, M, N):
 def _energy(p, q, M, N=None):
   return jnp.dot(p, 2 * q - jnp.dot(M, p))
 
+# helper function for the Hellinger surrogate loss, leveraging the fact that the
+# average of squared distances can be computed over a single concatenation of histograms
+def _hellinger_surrogate(p, q, M, N=None):
+  return -jnp.sqrt(q * jnp.dot(M, p)).sum()
+
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
@@ -126,37 +131,14 @@ class EnergyLoss(FunctionLoss):
   def __init__(self):
     super().__init__(_energy)
 
-# helper function for the HellingerSurrogateLoss
-def _hellinger_surrogate(p, q, M, indices):
-  v = (jnp.sqrt(q) - jnp.sqrt(jnp.dot(M, p)))**2
-  return jnp.sum(jnp.array([ jnp.sum(v[i]) for i in indices ]))
-
-class HellingerSurrogateLoss(AbstractLoss):
+class HellingerSurrogateLoss(FunctionLoss):
   """The loss function of HDx and HDy (González-Castro et al., 2013).
 
-  This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
-
-  Args:
-      n_bins: The number of bins that is used in the feature transformation.
+  This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. Their approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.
   """
-  def __init__(self, n_bins):
-    self.n_bins = n_bins
-  def _instantiate(self, q, M, N=None):
-    n_features = int(M.shape[0] / self.n_bins) # derive the number from M's shape
-    indices = [ jnp.arange(i * self.n_bins, (i+1) * self.n_bins) for i in range(n_features) ]
-    nonzero = _nonzero_features(M)
-    M = M[nonzero,:]
-    q = q[nonzero]
-    if not jnp.all(nonzero):
-      i = 0
-      for j in range(len(indices)):
-        indices_j = []
-        for k in indices[j]:
-          if nonzero[k]:
-            indices_j.append(i)
-            i += 1
-        indices[j] = jnp.array(indices_j, dtype=int)
-    return lambda p: _hellinger_surrogate(p, q, M, indices)
+  def __init__(self):
+    super().__init__(_hellinger_surrogate)    
+
 
 # helper function for CombinedLoss
 def _combine_losses(losses, weights, q, M, p, N):
