@@ -124,6 +124,11 @@
 <li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestDistanceTransformer.test_transformer"><code class="docutils literal notranslate"><span class="pre">TestDistanceTransformer.test_transformer()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHellingerSurrogateLoss"><code class="docutils literal notranslate"><span class="pre">TestHellingerSurrogateLoss</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHellingerSurrogateLoss.old_hellinger_loss_function"><code class="docutils literal notranslate"><span class="pre">TestHellingerSurrogateLoss.old_hellinger_loss_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHellingerSurrogateLoss.test_loss"><code class="docutils literal notranslate"><span class="pre">TestHellingerSurrogateLoss.test_loss()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer"><code class="docutils literal notranslate"><span class="pre">TestHistogramTransformer</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="qunfold.tests.html#qunfold.tests.TestHistogramTransformer.test_transformer"><code class="docutils literal notranslate"><span class="pre">TestHistogramTransformer.test_transformer()</span></code></a></li>
 </ul>
@@ -221,15 +226,10 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.losses.HellingerSurrogateLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">HellingerSurrogateLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.HellingerSurrogateLoss" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.AbstractLoss" title="qunfold.losses.AbstractLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">HellingerSurrogateLoss</span></span><a class="headerlink" href="#qunfold.losses.HellingerSurrogateLoss" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.losses.FunctionLoss" title="qunfold.losses.FunctionLoss"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></p>
 <p>The loss function of HDx and HDy (González-Castro et al., 2013).</p>
-<p>This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. This approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>n_bins</strong> – The number of bins that is used in the feature transformation.</p>
-</dd>
-</dl>
+<p>This loss function computes the average of the squared Hellinger distances between feature-wise (or class-wise) histograms. Note that the original HDx and HDy by González-Castro et al (2013) do not use the squared but the regular Hellinger distance. Their approach is problematic because the regular distance is not always twice differentiable and, hence, complicates numerical optimizations.</p>
 </dd></dl>
 
 <dl class="py class">
