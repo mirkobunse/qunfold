@@ -10,7 +10,7 @@ def _onehot_encoding(y, n_classes):
 class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
   @abstractmethod
-  def fit_transform(self, X, y):
+  def fit_transform(self, X, y, average=True):
     """This abstract method has to return a transformation `(f(X), y)` of the input data.
 
     Note:
@@ -25,7 +25,7 @@ class AbstractTransformer(ABC):
     """
     pass
   @abstractmethod
-  def transform(self, X):
+  def transform(self, X, average=True):
     """This abstract method has to transform `X` into `f(X)`.
 
     Args:
@@ -50,7 +50,7 @@ class ClassTransformer(AbstractTransformer):
     self.classifier = classifier
     self.is_probabilistic = is_probabilistic
     self.fit_classifier = fit_classifier
-  def fit_transform(self, X, y):
+  def fit_transform(self, X, y, average=True):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
@@ -67,13 +67,16 @@ class ClassTransformer(AbstractTransformer):
     y = y[is_finite] - y.min() # map to zero-based labels
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+    if average:
+      fX = fX.mean(axis=0)
     return fX, y
-  def transform(self, X):
+  def transform(self, X, average=True):
     fX = self.classifier.predict_proba(X)
-    if self.is_probabilistic:
-      return fX
-    else:
-      return _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+    if not self.is_probabilistic:
+      fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+    if average:
+        fX = fX.mean(axis=0)
+    return fX
 
 class DistanceTransformer(AbstractTransformer):
   """A distance-based feature transformation, as it is used in `EDx` and `EDy`.
@@ -85,26 +88,28 @@ class DistanceTransformer(AbstractTransformer):
   def __init__(self, metric="euclidean", preprocessor=None):
     self.metric = metric
     self.preprocessor = preprocessor
-  def fit_transform(self, X, y):
+  def fit_transform(self, X, y, average=True):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y)
+      X, y = self.preprocessor.fit_transform(X, y, average=False)
       self.n_classes = self.preprocessor.n_classes
     else:
       y -= y.min() # map to zero-based labels
       self.n_classes = len(np.unique(y))
     self.X_trn = X
     self.y_trn = y
-    return self._transform_after_preprocessor(X), y
-  def transform(self, X):
+    return self._transform_after_preprocessor(X, average=average), y
+  def transform(self, X, average=True):
     if self.preprocessor is not None:
-      X = self.preprocessor.transform(X)
-    return self._transform_after_preprocessor(X)
-  def _transform_after_preprocessor(self, X):
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(X, average=average)
+  def _transform_after_preprocessor(self, X, average=True):
     fX = np.zeros((X.shape[0], self.n_classes))
     for i in range(self.n_classes): # class index
       fX[:, i] = cdist(X, self.X_trn[self.y_trn == i], metric=self.metric).mean(axis=1)
+    if average:
+      fX = fX.mean(axis=0)
     return fX
 
 class HistogramTransformer(AbstractTransformer):
@@ -119,11 +124,11 @@ class HistogramTransformer(AbstractTransformer):
     self.n_bins = n_bins
     self.preprocessor = preprocessor
     self.unit_scale = unit_scale
-  def fit_transform(self, X, y):
+  def fit_transform(self, X, y, average=True):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y)
+      X, y = self.preprocessor.fit_transform(X, y, average=False)
       self.n_classes = self.preprocessor.n_classes
     else:
       y -= y.min() # map to zero-based labels
@@ -132,12 +137,12 @@ class HistogramTransformer(AbstractTransformer):
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)
       self.edges.append(e)
-    return self._transform_after_preprocessor(X), y
-  def transform(self, X, average=False):
+    return self._transform_after_preprocessor(X, average=average), y
+  def transform(self, X, average=True):
     if self.preprocessor is not None:
-      X = self.preprocessor.transform(X)
+      X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X, average=average)
-  def _transform_after_preprocessor(self, X, average=False):
+  def _transform_after_preprocessor(self, X, average=True):
     if not average:
       fX = []
       for j in range(X.shape[1]): # feature index
