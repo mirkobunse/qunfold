@@ -65,10 +65,16 @@ class ClassTransformer(AbstractTransformer):
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:]
     y = y[is_finite] - y.min() # map to zero-based labels
+    self.p_trn = np.zeros((self.n_classes))
+    for c in range(self.n_classes):
+      self.p_trn[c] = (y==c).sum() / y.shape[0]
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
     if average:
-      fX = fX.mean(axis=0)
+      M = np.zeros((fX.shape[1], self.n_classes))
+      for c in range(self.n_classes):
+        M[:,c] = fX[y==c, :].mean(axis=0)
+      return M
     return fX, y
   def transform(self, X, average=True):
     fX = self.classifier.predict_proba(X)
@@ -99,7 +105,15 @@ class DistanceTransformer(AbstractTransformer):
       self.n_classes = len(np.unique(y))
     self.X_trn = X
     self.y_trn = y
-    return self._transform_after_preprocessor(X, average=average), y
+    self.p_trn = np.zeros((self.n_classes))
+    if average:
+      M = np.zeros((self.n_classes, self.n_classes))
+      for c in range(self.n_classes):
+        M[:,c] = self._transform_after_preprocessor(X[y==c])
+        self.p_trn[c] = (y==c).sum() / y.shape[0]
+      return M
+    else:
+      return self._transform_after_preprocessor(X, average=False), y
   def transform(self, X, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
@@ -137,6 +151,14 @@ class HistogramTransformer(AbstractTransformer):
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)
       self.edges.append(e)
+    self.p_trn = np.zeros((self.n_classes))
+    for c in range(self.n_classes):
+      self.p_trn[c] = (y==c).sum() / y.shape[0]
+    if average:
+      M = np.zeros((X.shape[1] * self.n_bins, self.n_classes))
+      for c in range(self.n_classes):
+        M[:,c] = self._transform_after_preprocessor(X[y==c])
+      return M
     return self._transform_after_preprocessor(X, average=average), y
   def transform(self, X, average=True):
     if self.preprocessor is not None:
