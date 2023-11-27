@@ -113,20 +113,21 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.tests.performance_HDx.NaiveHistogramTransformer.fit_transform">
 <span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.tests.performance_HDx.NaiveHistogramTransformer.fit_transform" title="Permalink to this definition"></a></dt>
-<dd><p>This abstract method has to return a transformation <cite>(f(X), y)</cite> of the input data.</p>
+<dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+<dd class="field-even"><p>A transfer matrix <cite>M</cite> if <cite>average==True</cite> or a transformation <cite>(f(X), y)</cite> if <cite>average==False</cite>.</p>
 </dd>
 </dl>
 </dd></dl>

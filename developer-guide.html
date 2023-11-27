@@ -210,35 +210,39 @@ make<span class="w"> </span>html
 <dd><p>Abstract base class for transformers.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
-<dd><p>This abstract method has to return a transformation <cite>(f(X), y)</cite> of the input data.</p>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.n_classes</cite>.</p>
+<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A transformation <cite>(f(X), y)</cite>.</p>
+<dd class="field-even"><p>A transfer matrix <cite>M</cite> if <cite>average==True</cite> or a transformation <cite>(f(X), y)</cite> if <cite>average==False</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
-<dd><p>This abstract method has to transform <cite>X</cite> into <cite>f(X)</cite>.</p>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X</strong> – The feature matrix that will be transformed.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix that will be transformed.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a vector <cite>q</cite> or a transformation <cite>f(X)</cite>. Defaults to <cite>True</cite>.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A transformation <cite>f(X)</cite> of this feature matrix.</p>
+<dd class="field-even"><p>A vector <cite>q = f(X).mean(axis=0)</cite> if <cite>average==True</cite> or a transformation <cite>f(X)</cite> if <cite>average==False</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
