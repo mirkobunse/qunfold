@@ -94,13 +94,7 @@ class GenericMethod:
     Returns:
         This fitted quantifier itself.
     """
-    fX, fy = self.transformer.fit_transform(X, y) # f(x) for x ∈ X
-    self.M = np.zeros((fX.shape[1], self.transformer.n_classes)) # (n_features, n_classes)
-    for c in range(self.transformer.n_classes):
-      self.M[:,c] = fX[fy==c,:].mean(axis=0) # one histogram of f(X) per class
-    self.p_trn = np.zeros(self.transformer.n_classes)
-    _classes, _counts = np.unique(fy, return_counts=True)
-    self.p_trn[_classes] = _counts / _counts.sum()
+    self.M = self.transformer.fit_transform(X, y)
     return self
   def predict(self, X):
     """Predict the class prevalences in a data set.
@@ -111,9 +105,9 @@ class GenericMethod:
     Returns:
         A numpy array of class prevalences.
     """
-    q = self.transformer.transform(X).mean(axis=0)
+    q = self.transformer.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
-  def solve(self, q, M, N=None): # TODO add argument p_trn
+  def solve(self, q, M, N=None): # TODO add argument p_trn=self.p_trn
     """Solve the linear system of equations `q=M*p` for `p`.
 
     Args:
@@ -142,6 +136,9 @@ class GenericMethod:
       traceback.print_exc()
       opt = state.get_state()
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
+  @property
+  def p_trn(self):
+    return self.transformer.p_trn
 
 class ACC(GenericMethod):
   """Adjusted Classify & Count by Forman (2008).
