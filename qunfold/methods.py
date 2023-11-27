@@ -95,7 +95,6 @@ class GenericMethod:
         This fitted quantifier itself.
     """
     self.M = self.transformer.fit_transform(X, y)
-    self.p_trn = self.transformer.p_trn
     return self
   def predict(self, X):
     """Predict the class prevalences in a data set.
@@ -106,9 +105,9 @@ class GenericMethod:
     Returns:
         A numpy array of class prevalences.
     """
-    q = self.transformer.transform(X, average=True)
+    q = self.transformer.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
-  def solve(self, q, M, N=None): # TODO add argument p_trn
+  def solve(self, q, M, N=None): # TODO add argument p_trn=self.p_trn
     """Solve the linear system of equations `q=M*p` for `p`.
 
     Args:
@@ -137,6 +136,9 @@ class GenericMethod:
       traceback.print_exc()
       opt = state.get_state()
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
+  @property
+  def p_trn(self):
+    return self.transformer.p_trn
 
 class ACC(GenericMethod):
   """Adjusted Classify & Count by Forman (2008).
