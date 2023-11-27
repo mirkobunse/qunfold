@@ -62,6 +62,7 @@ class ClassTransformer(AbstractTransformer):
       self.classifier.fit(X, y)
     self.n_classes = len(self.classifier.classes_)
     fX = self.classifier.oob_decision_function_
+    # fX = self.classifier.predict_proba(X) # (to completely satisfy q = Mp in testing)
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:]
     y = y[is_finite] - y.min() # map to zero-based labels
@@ -73,7 +74,7 @@ class ClassTransformer(AbstractTransformer):
     if average:
       M = np.zeros((fX.shape[1], self.n_classes))
       for c in range(self.n_classes):
-        M[:,c] = fX[y==c, :].mean(axis=0)
+        M[:,c] = fX[y==c].mean(axis=0)
       return M
     return fX, y
   def transform(self, X, average=True):
