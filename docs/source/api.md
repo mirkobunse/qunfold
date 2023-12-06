@@ -83,8 +83,6 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 .. autoclass:: qunfold.HistogramTransformer
 
-.. autoclass:: qunfold.KernelTransformer
-
 .. autoclass:: qunfold.EnergyKernelTransformer
 
 .. autoclass:: qunfold.GaussianKernelTransformer

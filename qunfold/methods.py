@@ -289,24 +289,22 @@ class HDy(GenericMethod):
     )
 
 class KMM(GenericMethod):
-  r"""The kernel-based KMM method by Dussap et al. (2023).
+  """The kernel-based KMM method by Dussap et al. (2023).
   
   This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `KernelTransformer`.
 
   Args:
-    kernel: a string selecting one of the supported kernel functions ("energy", "gaussian", "laplacian").
-    sigma: necessary parameter to calculate the `gaussian` and `laplacian` kernel functions.
-    **kwargs: keyword arguments accepted by `GenericMethod`.
+      kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", and "laplacian". Defaults to "energy".
+      sigma (optional): A smoothing parameter in the `gaussian` and `laplacian` kernels. Defaults to `1`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`.
   """
-  kernel_map = {
-    'gaussian' : transformers._gaussianKernelProduct,
-    'energy' : transformers._energyKernelProduct,
-    'laplacian' : transformers._laplacianKernelProduct
-  }
-  def __init__(self, kernel : str, sigma=1, **kwargs):
-    GenericMethod.__init__(
-      self,
-      losses.LeastSquaresLoss(),
-      transformers.KernelTransformer(kernel=self.kernel_map[kernel], sigma=sigma), # transformers.KernelTransformer(kernel)
-      **kwargs
-    )
+  def __init__(self, kernel="energy", sigma=1, **kwargs):
+    if kernel == "energy":
+      transformer = transformers.EnergyKernelTransformer()
+    elif kernel == "gaussian":
+      transformer = transformers.GaussianKernelTransformer(sigma=sigma)
+    elif kernel == "laplacian":
+      transformer = transformers.LaplacianKernelTransformer(sigma=sigma)
+    else:
+      transformer = transformers.KernelTransformer(kernel)
+    GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, **kwargs)
