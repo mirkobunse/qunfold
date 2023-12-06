@@ -283,7 +283,10 @@ class GaussianKernelTransformer(KernelTransformer):
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
   def __init__(self, sigma=1):
-    KernelTransformer.__init__(self, partial(_gaussianKernel, sigma=sigma))
+    self.sigma = sigma
+  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
+  def kernel(self):
+    return partial(_gaussianKernel, sigma=self.sigma)
 
 class LaplacianKernelTransformer(KernelTransformer):
   """A kernel-based feature transformation, as it is used in `KMM`, that uses the `laplacian` kernel.
@@ -292,4 +295,7 @@ class LaplacianKernelTransformer(KernelTransformer):
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
   def __init__(self, sigma=1):
-    KernelTransformer.__init__(self, partial(_laplacianKernel, sigma=sigma))
+    self.sigma = sigma
+  @property
+  def kernel(self):
+    return partial(_gaussianKernel, sigma=self.sigma)

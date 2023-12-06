@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, ClassTransformer
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -135,6 +135,9 @@ def main(
     qp_clf_grid = {
         "classifier__C": clf_grid["transformer__classifier__estimator__C"],
     }
+    kmm_grid = {
+        "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
+    }
     methods = [ # (method_name, package, method, param_grid)
         ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
         ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=5), qp_clf_grid),
@@ -164,6 +167,9 @@ def main(
             }
         ),
         ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
+        ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy")), None),
+        ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
+        ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
     ]
 
     # load the data
@@ -177,6 +183,9 @@ def main(
         qp_clf = clf.estimator
         qp_clf_grid = {
             "classifier__C": clf_grid["transformer__classifier__estimator__C"],
+        }
+        kmm_grid = {
+            "transformer__sigma": [1e-1],
         }
         methods = [ # (method_name, package, method, param_grid)
             ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
@@ -194,6 +203,9 @@ def main(
             ),
             ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
             ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
+            ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy")), None),
+            ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
+            ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
