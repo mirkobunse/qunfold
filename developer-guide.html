@@ -61,6 +61,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#feature-transformations">Feature transformations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.transformers.AbstractTransformer"><code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.KernelTransformer"><code class="docutils literal notranslate"><span class="pre">KernelTransformer</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -249,6 +250,18 @@ make<span class="w"> </span>html
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<p>For those transformations that use a kernel embedding, you can provide a <code class="docutils literal notranslate"><span class="pre">KernelTransformer</span></code> with your kernel function.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.KernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kernel</strong> – A callable that will be used as the kernel. Must follow the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

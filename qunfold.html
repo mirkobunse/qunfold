@@ -458,6 +458,23 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="qunfold.methods.KMM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">KMM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.KMM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
+<p>The kernel-based KMM method by Dussap et al. (2023).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>KernelTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel</strong> (<em>optional</em>) – Which kernel to use. Can be a callable with the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite> or one of “energy”, “gaussian”, and “laplacian”. Defaults to “energy”.</p></li>
+<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter in the <cite>gaussian</cite> and <cite>laplacian</cite> kernels. Defaults to <cite>1</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.PACC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.PACC" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.methods.GenericMethod" title="qunfold.methods.GenericMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericMethod</span></code></a></p>
@@ -877,6 +894,29 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.EnergyKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">EnergyKernelTransformer</span></span><a class="headerlink" href="#qunfold.transformers.EnergyKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.KernelTransformer" title="qunfold.transformers.KernelTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelTransformer</span></code></a></p>
+<p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>energy</cite> kernel:</p>
+<p>k(x, y) = ||x|| + ||y|| - ||x - y||</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.GaussianKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.GaussianKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.KernelTransformer" title="qunfold.transformers.KernelTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelTransformer</span></code></a></p>
+<p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>gaussian</cite> kernel:</p>
+<blockquote>
+<div><p>k(x, y) = exp(-||x - y||^2 / (2σ^2))</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">HistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
@@ -929,6 +969,40 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">KernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kernel</strong> – A callable that will be used as the kernel. Must follow the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer.transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.transformers.LaplacianKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">LaplacianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.LaplacianKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.KernelTransformer" title="qunfold.transformers.KernelTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">KernelTransformer</span></code></a></p>
+<p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>laplacian</cite> kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

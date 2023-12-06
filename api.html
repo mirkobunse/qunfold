@@ -64,6 +64,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.EDy"><code class="docutils literal notranslate"><span class="pre">EDy</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.HDx"><code class="docutils literal notranslate"><span class="pre">HDx</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.HDy"><code class="docutils literal notranslate"><span class="pre">HDy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.KMM"><code class="docutils literal notranslate"><span class="pre">KMM</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#unfolding">Unfolding</a><ul>
@@ -89,6 +90,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.ClassTransformer"><code class="docutils literal notranslate"><span class="pre">ClassTransformer</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.DistanceTransformer"><code class="docutils literal notranslate"><span class="pre">DistanceTransformer</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.HistogramTransformer"><code class="docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.EnergyKernelTransformer"><code class="docutils literal notranslate"><span class="pre">EnergyKernelTransformer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">GaussianKernelTransformer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LaplacianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">LaplacianKernelTransformer</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
@@ -315,6 +319,22 @@
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.KMM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KMM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KMM" title="Permalink to this definition"></a></dt>
+<dd><p>The kernel-based KMM method by Dussap et al. (2023).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>KernelTransformer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel</strong> (<em>optional</em>) – Which kernel to use. Can be a callable with the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite> or one of “energy”, “gaussian”, and “laplacian”. Defaults to “energy”.</p></li>
+<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter in the <cite>gaussian</cite> and <cite>laplacian</cite> kernels. Defaults to <cite>1</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="unfolding">
 <h3>Unfolding<a class="headerlink" href="#unfolding" title="Permalink to this heading"></a></h3>
@@ -464,6 +484,38 @@
 <li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>unit_scale</strong> (<em>optional</em>) – Whether or not to scale each output to a sum of one. A value of <cite>False</cite> indicates that the sum of each output is the number of features. Defaults to <cite>True</cite>.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.EnergyKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">EnergyKernelTransformer</span></span><a class="headerlink" href="#qunfold.EnergyKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>energy</cite> kernel:</p>
+<p>k(x, y) = ||x|| + ||y|| - ||x - y||</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.GaussianKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>gaussian</cite> kernel:</p>
+<blockquote>
+<div><p>k(x, y) = exp(-||x - y||^2 / (2σ^2))</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.LaplacianKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LaplacianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LaplacianKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>laplacian</cite> kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
 </dd>
 </dl>
 </dd></dl>

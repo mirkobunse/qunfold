@@ -63,3 +63,9 @@ To implement a custom feature transformation, you have to create a sub-class of 
 .. autoclass:: qunfold.transformers.AbstractTransformer
    :members:
 ```
+
+For those transformations that use a kernel embedding, you can provide a `KernelTransformer` with your kernel function.
+
+```{eval-rst}
+.. autoclass:: qunfold.KernelTransformer
+```
