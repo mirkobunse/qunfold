@@ -1,6 +1,6 @@
 # Experiments
 
-We validate the performance of `qunfold`, in comparison to [QuaPy](https://github.com/HLT-ISTI/QuaPy), through experiments with the [LeQua2022 data](LeQua2022.github.io/). We document these experiments for transparency and to facilitate implementations of similar experiments.
+We validate the performance of `qunfold`, in comparison to [QuaPy](https://github.com/HLT-ISTI/QuaPy), through experiments with the [LeQua2022 data](https://lequa2022.github.io/). We document these experiments for transparency and to facilitate implementations of similar experiments.
 
 
 ## Setup
