@@ -192,3 +192,101 @@ class HistogramTransformer(AbstractTransformer):
           hist = hist / X.shape[1]
         histograms.append(hist / X.shape[0])
       return np.concatenate(histograms)
+    
+# Kernelfunction for EnergyKernelTransformer
+def _energyKernelProduct(X, Y, sigma=1):  # sigma not needed but added for consistent kernel signature
+    nx = X.shape[0]
+    ny = Y.shape[0]
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
+    norm_x = np.sqrt((X**2).sum(-1)).sum(0) / nx
+    norm_y = np.sqrt((Y**2).sum(-1)).sum(1) / ny
+    Dlk = np.sqrt(((X - Y)**2).sum(-1))
+    return np.squeeze(norm_x + norm_y) - Dlk.sum(0).sum(0) / (nx * ny)
+# Kernelfunction for GaussianKernelTransformer
+def _gaussianKernelProduct(X, Y, sigma=1):
+    nx = X.shape[0]
+    ny = Y.shape[0]
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
+    D_lk = ((X - Y)**2).sum(-1)
+    K_ij = np.exp((-D_lk / (2 * sigma**2))).sum(0).sum(0) / (nx * ny)
+    return K_ij
+# Kernelfunction for GaussianKernelTransformer
+def _laplacianKernelProduct(X, Y, sigma=1):
+    nx = X.shape[0]
+    ny = Y.shape[0]
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
+    D_lk = np.abs(((X - Y))).sum(-1) 
+    K_ij = np.exp((-sigma * D_lk)).sum(0).sum(0) / (nx * ny)
+    return K_ij
+
+class KernelTransformer:
+  """A kernel-based feature transformation, as it is used in `KMM`.
+  
+  Args:
+    kernel: a callable that will be used as the kernel. Must follow the signature ``k(X, Y, sigma)``.
+    sigma: a necessary parameter to calculate `gaussian` and `laplacian` kernel. Defaults to `1`
+  """
+  def __init__(self, kernel, sigma=1) -> None:
+    self.kernel = kernel
+    self.sigma = sigma
+  def fit_transform(self, X, y):
+    self.n_classes = len(np.unique(y))
+    self.X_trn = X
+    self.y_trn = y
+    self.p_trn = np.zeros((self.n_classes))
+    for c in range(self.n_classes):
+      self.p_trn[c] = (y==c).sum() / y.shape[0]
+    M = np.zeros((self.n_classes, self.n_classes))
+    for i in range(self.n_classes):
+      for j in range(i, self.n_classes):
+        M[i, j] = self.kernel(X[y==i], X[y==j], sigma=self.sigma)
+        if i != j:
+            M[j, i] = M[i, j]
+    return M
+  def transform(self, X):
+    q = np.zeros((self.n_classes))
+    for i in range(self.n_classes):
+      q[i] = self.kernel(self.X_trn[self.y_trn==i], X, sigma=self.sigma)
+    return q
+
+class EnergyKernelTransformer(KernelTransformer):
+  """A kernel-based feature transformation as it is used in `KMM`, that uses the `energy` kernel\n
+  k(x, y) = ||x|| + ||y|| - ||x - y||.
+
+  Args:
+    sigma: unused parameter that is kept to keep consistent signature across supported kernels. Defaults to `1`.
+  """
+  def __init__(self, sigma=1) -> None:
+    KernelTransformer.__init__(
+      self,
+      kernel=_energyKernelProduct
+    )
+  
+class GaussianKernelTransformer(KernelTransformer):
+  """A kernel-based feature transformation as it is used in `KMM`, that uses the `gaussian` kernel.
+
+  Args:
+    sigma: necessary parameter to calculate the `gaussian` kernel.
+  """
+  def __init__(self, sigma=1) -> None:
+    KernelTransformer.__init__(
+      self,
+      kernel=_gaussianKernelProduct,
+      sigma=sigma
+    )
+  
+class LaplacianKernelTransformer(KernelTransformer):
+  """A kernel-based feature transformation as it is used in `KMM`, that uses the `laplacian` kernel.
+
+  Args:
+    sigma: necessary parameter to calculate the `laplacian` kernel.
+  """
+  def __init__(self, sigma=1) -> None:
+    KernelTransformer.__init__(
+      self,
+      kernel=_laplacianKernelProduct,
+      sigma=sigma
+    )

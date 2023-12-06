@@ -61,6 +61,9 @@ class TestMethods(TestCase):
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
       p_edx = qunfold.EDx().fit(X_trn, y_trn).predict(X_tst)
       p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
+      p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
+      p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
@@ -82,6 +85,12 @@ class TestMethods(TestCase):
         f"             {p_edy.nit} it.; {p_edy.message}",
         f"     p_custom = {p_custom}",
         f"             {p_custom.nit} it.; {p_custom.message}",
+        f"     p_kmme = {p_kmme}",
+        f"             {p_kmme.nit} it.; {p_kmme.message}",
+        f"     p_kmmg = {p_kmmg}",
+        f"             {p_kmmg.nit} it.; {p_kmmg.message}",
+        f"     p_kmml = {p_kmml}",
+        f"             {p_kmml.nit} it.; {p_kmml.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2

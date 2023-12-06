@@ -106,7 +106,7 @@ class GenericMethod:
     Returns:
         A numpy array of class prevalences.
     """
-    q = self.transformer.transform(X, average=True)
+    q = self.transformer.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
   def solve(self, q, M, N=None): # TODO add argument p_trn
     """Solve the linear system of equations `q=M*p` for `p`.
@@ -283,5 +283,28 @@ class HDy(GenericMethod):
         ),
         unit_scale = False,
       ),
+      **kwargs
+    )
+
+class KMM(GenericMethod):
+  r"""The kernel-based KMM method by Dussap et al. (2023).
+  
+  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `KernelTransformer`.
+
+  Args:
+    kernel: a string selecting one of the supported kernel functions ("energy", "gaussian", "laplacian").
+    sigma: necessary parameter to calculate the `gaussian` and `laplacian` kernel functions.
+    **kwargs: keyword arguments accepted by `GenericMethod`.
+  """
+  kernel_map = {
+    'gaussian' : transformers._gaussianKernelProduct,
+    'energy' : transformers._energyKernelProduct,
+    'laplacian' : transformers._laplacianKernelProduct
+  }
+  def __init__(self, kernel : str, sigma=1, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.LeastSquaresLoss(),
+      transformers.KernelTransformer(kernel=self.kernel_map[kernel], sigma=sigma), # transformers.KernelTransformer(kernel)
       **kwargs
     )

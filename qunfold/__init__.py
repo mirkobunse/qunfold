@@ -13,6 +13,10 @@ from .transformers import (
     ClassTransformer,
     HistogramTransformer,
     DistanceTransformer,
+    KernelTransformer,
+    EnergyKernelTransformer,
+    LaplacianKernelTransformer,
+    GaussianKernelTransformer,
 )
 
 from .methods import (
@@ -24,4 +28,5 @@ from .methods import (
     HDy,
     EDx,
     EDy,
+    KMM,
 )
