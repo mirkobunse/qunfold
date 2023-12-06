@@ -7,34 +7,56 @@ from scipy.spatial.distance import cdist
 def _onehot_encoding(y, n_classes):
   return np.eye(n_classes)[y] # https://stackoverflow.com/a/42874726/20580159
 
+def class_prevalences(y, n_classes=None):
+  """Determine the prevalence of each class.
+
+  Args:
+      y: An array of labels, shape (n_samples,).
+      n_classes (optional): The number of classes. Defaults to `None`, which corresponds to `np.max(y)+1`.
+
+  Returns:
+      An array of class prevalences that sums to one, shape (n_classes,).
+  """
+  if n_classes is None:
+    n_classes = np.max(y)+1
+  n_samples_per_class = np.zeros(n_classes, dtype=int)
+  i, n = np.unique(y, return_counts=True)
+  n_samples_per_class[i] = n # non-existing classes maintain a zero entry
+  return n_samples_per_class / n_samples_per_class.sum() # normalize to prevalences
+
 class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
   @abstractmethod
   def fit_transform(self, X, y, average=True):
-    """This abstract method has to return a transformation `(f(X), y)` of the input data.
+    """This abstract method has to fit the transformer and to return the transformation of the input data.
 
     Note:
-        Implementations of this abstract method must set the property `self.n_classes`.
+        Implementations of this abstract method must set the property `self.p_trn = class_prevalences(y)`.
 
     Args:
         X: The feature matrix to which this transformer will be fitted.
         y: The labels to which this transformer will be fitted.
+        average (optional): Whether to return a transfer matrix `M` or a transformation `(f(X), y)`. Defaults to `True`.
 
     Returns:
-        A transformation `(f(X), y)`.
+        A transfer matrix `M` if `average==True` or a transformation `(f(X), y)` if `average==False`.
     """
     pass
   @abstractmethod
   def transform(self, X, average=True):
-    """This abstract method has to transform `X` into `f(X)`.
+    """This abstract method has to transform the data `X`.
 
     Args:
         X: The feature matrix that will be transformed.
+        average (optional): Whether to return a vector `q` or a transformation `f(X)`. Defaults to `True`.
 
     Returns:
-        A transformation `f(X)` of this feature matrix.
+        A vector `q = f(X).mean(axis=0)` if `average==True` or a transformation `f(X)` if `average==False`.
     """
     pass
+  @property
+  def n_classes(self):
+    return len(self.p_trn)
 
 class ClassTransformer(AbstractTransformer):
   """A classification-based feature transformation.
@@ -60,15 +82,11 @@ class ClassTransformer(AbstractTransformer):
       )
     if self.fit_classifier:
       self.classifier.fit(X, y)
-    self.n_classes = len(self.classifier.classes_)
     fX = self.classifier.oob_decision_function_
-    # fX = self.classifier.predict_proba(X) # (to completely satisfy q = Mp in testing)
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:]
     y = y[is_finite] - y.min() # map to zero-based labels
-    self.p_trn = np.zeros((self.n_classes))
-    for c in range(self.n_classes):
-      self.p_trn[c] = (y==c).sum() / y.shape[0]
+    self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
     if average:
@@ -100,18 +118,16 @@ class DistanceTransformer(AbstractTransformer):
       raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False)
-      self.n_classes = self.preprocessor.n_classes
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.n_classes = len(np.unique(y))
+      self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
     self.X_trn = X
     self.y_trn = y
-    self.p_trn = np.zeros((self.n_classes))
     if average:
       M = np.zeros((self.n_classes, self.n_classes))
       for c in range(self.n_classes):
         M[:,c] = self._transform_after_preprocessor(X[y==c])
-        self.p_trn[c] = (y==c).sum() / y.shape[0]
       return M
     else:
       return self._transform_after_preprocessor(X, average=False), y
@@ -144,17 +160,14 @@ class HistogramTransformer(AbstractTransformer):
       raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False)
-      self.n_classes = self.preprocessor.n_classes
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.n_classes = len(np.unique(y))
+      self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
     self.edges = []
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)
       self.edges.append(e)
-    self.p_trn = np.zeros((self.n_classes))
-    for c in range(self.n_classes):
-      self.p_trn[c] = (y==c).sum() / y.shape[0]
     if average:
       M = np.zeros((X.shape[1] * self.n_bins, self.n_classes))
       for c in range(self.n_classes):
