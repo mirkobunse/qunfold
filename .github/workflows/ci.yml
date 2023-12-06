@@ -10,12 +10,12 @@ jobs:
 
   # take out unit tests
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Unit tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version:
-        - "3.10"
+        - "3.11"
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,10 +29,11 @@ jobs:
     - name: Test with unittest
       run: python -m unittest
 
-  # build and push documentation to gh-pages
+  # build and push documentation to gh-pages (if pushed to the main branch)
   docs:
     name: Documentation
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
     - uses: actions/checkout@v1
     - name: Build documentation
