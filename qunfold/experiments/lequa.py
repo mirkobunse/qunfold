@@ -109,6 +109,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
 
 def main(
         output_path,
+        n_jobs = 1,
         seed = 867,
         is_full_run = False,
         is_test_run = False,
@@ -235,7 +236,7 @@ def main(
         f"and {len(tst_gen.true_prevs.df)} testing samples"
     )
     results = []
-    with Pool() as pool:
+    with Pool(n_jobs if n_jobs > 0 else None) as pool:
         results.extend(pool.imap(configured_trial, trials))
     df = pd.DataFrame(results)
     df.to_csv(output_path) # store the results
@@ -244,6 +245,8 @@ def main(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('output_path', type=str, help='path of an output *.csv file')
+    parser.add_argument('--n_jobs', type=int, default=1, metavar='N',
+                        help='number of concurrent jobs or 0 for all processors (default: 1)')
     parser.add_argument('--seed', type=int, default=876, metavar='N',
                         help='random number generator seed (default: 876)')
     parser.add_argument("--is_full_run", action="store_true",
@@ -252,6 +255,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(
         args.output_path,
+        args.n_jobs,
         args.seed,
         args.is_full_run,
         args.is_test_run,
