@@ -39,7 +39,7 @@ venv/bin/pip install -e .[experiments]
 The experiments are implemented through a main function that you can call as follows:
 
 ```bash
-venv/bin/python -m qunfold.experiments.lequa --is_full_run lequa_results.csv
+venv/bin/python -m qunfold.experiments.lequa --is_full_run --n_jobs 0 lequa_results.csv
 ```
 
 Replacing the switch `--is_full_run` with `--is_test_run`, you can execute the entire code path with minimal effort, to test whether the experiment is working. This functionality is particularly helpful if you make changes to the experiments.

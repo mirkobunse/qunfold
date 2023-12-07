@@ -114,7 +114,7 @@ venv/bin/pip<span class="w"> </span>install<span class="w"> </span>-e<span class
 <section id="running-the-experiments">
 <h2>Running the experiments<a class="headerlink" href="#running-the-experiments" title="Permalink to this heading"></a></h2>
 <p>The experiments are implemented through a main function that you can call as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>venv/bin/python<span class="w"> </span>-m<span class="w"> </span>qunfold.experiments.lequa<span class="w"> </span>--is_full_run<span class="w"> </span>lequa_results.csv
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>venv/bin/python<span class="w"> </span>-m<span class="w"> </span>qunfold.experiments.lequa<span class="w"> </span>--is_full_run<span class="w"> </span>--n_jobs<span class="w"> </span><span class="m">0</span><span class="w"> </span>lequa_results.csv
 </pre></div>
 </div>
 <p>Replacing the switch <code class="docutils literal notranslate"><span class="pre">--is_full_run</span></code> with <code class="docutils literal notranslate"><span class="pre">--is_test_run</span></code>, you can execute the entire code path with minimal effort, to test whether the experiment is working. This functionality is particularly helpful if you make changes to the experiments.</p>
