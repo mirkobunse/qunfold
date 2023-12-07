@@ -110,6 +110,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
 def main(
         output_path,
         seed = 867,
+        is_full_run = False,
         is_test_run = False,
     ):
     print(f"Starting a lequa experiment to produce {output_path} with seed {seed}")
@@ -210,6 +211,9 @@ def main(
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
         tst_gen.true_prevs.df = tst_gen.true_prevs.df[:3] # use only 3 testing samples
+    elif not is_full_run:
+        val_gen.true_prevs.df = val_gen.true_prevs.df[:100] # use only 100 validation samples
+        tst_gen.true_prevs.df = tst_gen.true_prevs.df[:500] # use only 500 testing samples
 
     # parallelize over all methods
     error_metrics = ['ae', 'rae']
@@ -225,7 +229,11 @@ def main(
         (x[0], x[1][0][0], x[1][0][1], x[1][0][2], x[1][0][3], x[1][1])
         for x in enumerate(itertools.product(methods, error_metrics))
     ]
-    print(f"Starting {len(trials)} trials")
+    print(
+        f"Starting {len(trials)} trials",
+        f"with {len(val_gen.true_prevs.df)} validation",
+        f"and {len(tst_gen.true_prevs.df)} testing samples"
+    )
     results = []
     with Pool() as pool:
         results.extend(pool.imap(configured_trial, trials))
@@ -238,10 +246,13 @@ if __name__ == '__main__':
     parser.add_argument('output_path', type=str, help='path of an output *.csv file')
     parser.add_argument('--seed', type=int, default=876, metavar='N',
                         help='random number generator seed (default: 876)')
+    parser.add_argument("--is_full_run", action="store_true",
+                        help="whether to use all 1000 validation and 5000 testing samples")
     parser.add_argument("--is_test_run", action="store_true")
     args = parser.parse_args()
     main(
         args.output_path,
         args.seed,
+        args.is_full_run,
         args.is_test_run,
     )
