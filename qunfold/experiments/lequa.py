@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, LeastSquaresLoss, EnergyKernelTransformer, GenericMethod
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -170,8 +170,22 @@ def main(
         ),
         ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
         ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy")), None),
-        ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
-        ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
+        ("KMMey", "qunfold", # KMM with the energy kernel after classification
+            QuaPyWrapper(GenericMethod(
+                LeastSquaresLoss(),
+                EnergyKernelTransformer(preprocessor=ClassTransformer(
+                    clf,
+                    is_probabilistic = True,
+                )),
+                seed = seed
+            )),
+            {
+                "transformer__preprocessor__classifier__estimator__C":
+                    clf_grid["transformer__classifier__estimator__C"],
+            }
+        ),
+        # ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
+        # ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
     ]
 
     # load the data
@@ -206,8 +220,22 @@ def main(
             ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
             ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
             ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy")), None),
-            ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
-            ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
+            ("KMMey", "qunfold", # KMM with the energy kernel after classification
+                QuaPyWrapper(GenericMethod(
+                    LeastSquaresLoss(),
+                    EnergyKernelTransformer(preprocessor=ClassTransformer(
+                        clf,
+                        is_probabilistic = True,
+                    )),
+                    seed = seed
+                )),
+                {
+                    "transformer__preprocessor__classifier__estimator__C":
+                        clf_grid["transformer__classifier__estimator__C"],
+                }
+            ),
+            # ("KMMg", "qunfold", QuaPyWrapper(KMM(kernel="gaussian")), kmm_grid),
+            # ("KMMl", "qunfold", QuaPyWrapper(KMM(kernel="laplacian")), kmm_grid),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
