@@ -206,47 +206,67 @@ class HistogramTransformer(AbstractTransformer):
           hist = hist / X.shape[1]
         histograms.append(hist / X.shape[0])
       return np.concatenate(histograms)
-    
-# kernel function for the EnergyKernelTransformer
-def _energyKernel(X, Y):
-    nx = X.shape[0]
-    ny = Y.shape[0]
-    X = X.reshape((X.shape[0], 1, X.shape[1]))
-    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
-    norm_x = np.sqrt((X**2).sum(-1)).sum(0) / nx
-    norm_y = np.sqrt((Y**2).sum(-1)).sum(1) / ny
-    Dlk = np.sqrt(((X - Y)**2).sum(-1))
-    return np.squeeze(norm_x + norm_y) - Dlk.sum(0).sum(0) / (nx * ny)
 
-# kernel function for the GaussianKernelTransformer
-def _gaussianKernel(X, Y, sigma):
-    nx = X.shape[0]
-    ny = Y.shape[0]
-    X = X.reshape((X.shape[0], 1, X.shape[1]))
-    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
-    D_lk = ((X - Y)**2).sum(-1)
-    K_ij = np.exp((-D_lk / (2 * sigma**2))).sum(0).sum(0) / (nx * ny)
-    return K_ij
+class EnergyKernelTransformer(AbstractTransformer):
+  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `energy` kernel:
 
-# kernel function for the LaplacianKernelTransformer
-def _laplacianKernel(X, Y, sigma):
-    nx = X.shape[0]
-    ny = Y.shape[0]
-    X = X.reshape((X.shape[0], 1, X.shape[1]))
-    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
-    D_lk = np.abs(((X - Y))).sum(-1) 
-    K_ij = np.exp((-sigma * D_lk)).sum(0).sum(0) / (nx * ny)
-    return K_ij
+      k(x_1, x_2) = ||x_1|| + ||x_2|| - ||x_1 - x_2||
+
+  Note:
+      The methods of this transformer do not support setting `average=False`.
+
+  Args:
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+  """
+  def __init__(self, preprocessor=None):
+    self.preprocessor = preprocessor
+  def fit_transform(self, X, y, average=True):
+    if not average:
+      raise ValueError("EnergyKernelTransformer does not support average=False")
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y, average=False)
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
+    else:
+      y -= y.min() # map to zero-based labels
+      self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
+    self.X_trn = X
+    self.y_trn = y
+    self.norms = np.zeros(self.n_classes) # = ||x||
+    for c in range(self.n_classes):
+      self.norms[c] = np.linalg.norm(X[y==c], axis=1).mean()
+    M = np.zeros((self.n_classes, self.n_classes))
+    for c in range(self.n_classes):
+      M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c])
+    return M
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("EnergyKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X, average=False)
+    norm = np.linalg.norm(X, axis=1).mean()
+    return self._transform_after_preprocessor(X, norm)
+  def _transform_after_preprocessor(self, X, norm):
+    dists = np.zeros(self.n_classes) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
+    for i in range(self.n_classes):
+      dists[i] = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean").mean()
+    return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
 class KernelTransformer:
   """A kernel-based feature transformation, as it is used in `KMM`.
+
+  Note:
+      The methods of this transformer do not support setting `average=False`.
 
   Args:
       kernel: A callable that will be used as the kernel. Must follow the signature `(X[y==i], X[y==j]) -> scalar`.
   """
   def __init__(self, kernel):
     self.kernel = kernel
-  def fit_transform(self, X, y):
+  def fit_transform(self, X, y, average=True):
+    if not average:
+      raise ValueError("KernelTransformer does not support average=False")
     self.n_classes = len(np.unique(y))
     self.X_trn = X
     self.y_trn = y
@@ -260,19 +280,23 @@ class KernelTransformer:
         if i != j:
             M[j, i] = M[i, j]
     return M
-  def transform(self, X):
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("KernelTransformer does not support average=False")
     q = np.zeros((self.n_classes))
     for i in range(self.n_classes):
       q[i] = self.kernel(self.X_trn[self.y_trn==i], X)
     return q
 
-class EnergyKernelTransformer(KernelTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `energy` kernel:
-
-      k(x, y) = ||x|| + ||y|| - ||x - y||
-  """
-  def __init__(self):
-    KernelTransformer.__init__(self, _energyKernel)
+# kernel function for the GaussianKernelTransformer
+def _gaussianKernel(X, Y, sigma):
+    nx = X.shape[0]
+    ny = Y.shape[0]
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
+    D_lk = ((X - Y)**2).sum(-1)
+    K_ij = np.exp((-D_lk / (2 * sigma**2))).sum(0).sum(0) / (nx * ny)
+    return K_ij
 
 class GaussianKernelTransformer(KernelTransformer):
   """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
@@ -288,6 +312,16 @@ class GaussianKernelTransformer(KernelTransformer):
   def kernel(self):
     return partial(_gaussianKernel, sigma=self.sigma)
 
+# kernel function for the LaplacianKernelTransformer
+def _laplacianKernel(X, Y, sigma):
+    nx = X.shape[0]
+    ny = Y.shape[0]
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
+    D_lk = np.abs(((X - Y))).sum(-1) 
+    K_ij = np.exp((-sigma * D_lk)).sum(0).sum(0) / (nx * ny)
+    return K_ij
+
 class LaplacianKernelTransformer(KernelTransformer):
   """A kernel-based feature transformation, as it is used in `KMM`, that uses the `laplacian` kernel.
 
@@ -298,4 +332,4 @@ class LaplacianKernelTransformer(KernelTransformer):
     self.sigma = sigma
   @property
   def kernel(self):
-    return partial(_gaussianKernel, sigma=self.sigma)
+    return partial(_laplacianKernel, sigma=self.sigma)
