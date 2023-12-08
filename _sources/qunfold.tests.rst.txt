@@ -20,6 +20,14 @@ qunfold.tests.performance\_HDx module
    :undoc-members:
    :show-inheritance:
 
+qunfold.tests.performance\_KMM module
+-------------------------------------
+
+.. automodule:: qunfold.tests.performance_KMM
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
