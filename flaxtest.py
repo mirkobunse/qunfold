@@ -141,9 +141,11 @@ class SimpleModule(nn.Module):
   """A simple model."""
   @nn.compact
   def __call__(self, x):
-    # x = nn.Dense(features=512)(x)
+    # x = nn.Dense(features=300)(x)
     # x = nn.relu(x)
-    x = nn.Dense(features=280)(x) # the LeQua T1B data has 28 classes
+    # x = nn.Dense(features=300)(x)
+    # x = nn.relu(x)
+    x = nn.Dense(features=64)(x) # the LeQua T1B data has 28 classes
     return x
 
 # a storage for all state involved in training, including metrics
@@ -166,7 +168,9 @@ def create_training_state(module, rng, learning_rate, momentum):
   )
 
 def mean_embedding(phi_X):
-  return nn.activation.softmax(phi_X, axis=1).mean(axis=0)
+  # return nn.activation.softmax(phi_X, axis=1).mean(axis=0)
+  # return phi_X.mean(axis=0)
+  return nn.activation.sigmoid(phi_X).mean(axis=0)
 
 class DeepTransformer(AbstractTransformer):
   def __init__(self, state):
@@ -198,22 +202,16 @@ def training_step(state, sample):
       An updated TrainingState object.
   """
   def loss_fn(params):
-    qs = [
+    qs = jnp.array([
       mean_embedding(state.apply_fn({ "params": params }, X_q))
       for X_q in sample["X_q"]
-    ]
+    ])
     M = jnp.vstack([
       mean_embedding(state.apply_fn({ "params": params }, X_i))
       for X_i in sample["X_M"]
     ]).T
-    losses = jnp.vstack([
-      qunfold.losses._lsq(p_T, q, M) # least squares
-      for p_T, q in zip(sample["p_Ts"], qs)
-    ]) # - jnp.vstack([
-    #   qunfold.losses._lsq(p_T, q, M) # contrastive term
-    #   for p_T, q in zip([ *sample["p_Ts"][1:], sample["p_Ts"][0] ], qs)
-    # ])
-    return losses.mean()
+    v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T
+    return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
   state = state.apply_gradients(grads=jax.grad(loss_fn)(state.params)) # update the state
   metric_updates = state.metrics.single_from_model_output(
     loss = loss_fn(state.params)
@@ -223,14 +221,14 @@ def training_step(state, sample):
 
 def main(
     n_batches = 500,
-    batch_size = 10,
+    batch_size = 64,
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
   ):
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
   p_trn = n_samples_per_class(y_trn) / len(y_trn)
-  val_gen.true_prevs.df = val_gen.true_prevs.df[:10] # use only 10 validation samples
+  val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
 
   # baseline performance: SLD, the winner @ LeQua2022
   baseline = qp.method.aggregative.EMQ(LogisticRegression(C=0.01)).fit(trn_data)
