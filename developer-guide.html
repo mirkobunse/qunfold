@@ -213,11 +213,11 @@ make<span class="w"> </span>html
 <dd><p>Abstract base class for transformers.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -225,6 +225,7 @@ make<span class="w"> </span>html
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

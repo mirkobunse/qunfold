@@ -374,13 +374,14 @@
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.methods.GenericMethod.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.fit" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.GenericMethod.fit" title="Permalink to this definition"></a></dt>
 <dd><p>Fit this quantifier to data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this quantifier will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this quantifier will be fitted.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -744,11 +745,11 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <p>Abstract base class for transformers.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -756,6 +757,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -763,11 +765,6 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.n_classes">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_classes</span></span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.n_classes" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
@@ -805,11 +802,11 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.ClassTransformer.fit_transform">
-<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.ClassTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -817,6 +814,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -859,11 +857,11 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.DistanceTransformer.fit_transform">
-<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.DistanceTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.DistanceTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -871,6 +869,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -917,11 +916,11 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.EnergyKernelTransformer.fit_transform">
-<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.EnergyKernelTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.EnergyKernelTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -929,6 +928,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -992,11 +992,11 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.HistogramTransformer.fit_transform">
-<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.HistogramTransformer.fit_transform" title="Permalink to this definition"></a></dt>
 <dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method must set the property <cite>self.p_trn = class_prevalences(y)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1004,6 +1004,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1034,7 +1035,7 @@ sub-estimator of a meta-estimator, e.g. used inside a
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">KernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#qunfold.transformers.AbstractTransformer" title="qunfold.transformers.AbstractTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></p>
 <p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1047,13 +1048,43 @@ sub-estimator of a meta-estimator, e.g. used inside a
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer.fit_transform">
-<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer.fit_transform" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer.fit_transform" title="Permalink to this definition"></a></dt>
+<dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transfer matrix <cite>M</cite> if <cite>average==True</cite> or a transformation <cite>(f(X), y)</cite> if <cite>average==False</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.transformers.KernelTransformer.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.KernelTransformer.transform" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix that will be transformed.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a vector <cite>q</cite> or a transformation <cite>f(X)</cite>. Defaults to <cite>True</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A vector <cite>q = f(X).mean(axis=0)</cite> if <cite>average==True</cite> or a transformation <cite>f(X)</cite> if <cite>average==False</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
