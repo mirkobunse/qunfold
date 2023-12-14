@@ -56,9 +56,6 @@ class AbstractTransformer(ABC):
         A vector `q = f(X).mean(axis=0)` if `average==True` or a transformation `f(X)` if `average==False`.
     """
     pass
-  @property
-  def n_classes(self):
-    return len(self.p_trn)
 
 class ClassTransformer(AbstractTransformer):
   """A classification-based feature transformation.
@@ -88,19 +85,20 @@ class ClassTransformer(AbstractTransformer):
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:]
     y = y[is_finite] - y.min() # map to zero-based labels
-    self.p_trn = class_prevalences(y, n_classes) # also sets self.n_classes
+    self.p_trn = class_prevalences(y, n_classes)
     if not self.is_probabilistic:
-      fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+      fX = _onehot_encoding(np.argmax(fX, axis=1), len(self.p_trn))
     if average:
-      M = np.zeros((fX.shape[1], self.n_classes))
-      for c in range(self.n_classes):
-        M[:,c] = fX[y==c].mean(axis=0)
+      M = np.zeros((fX.shape[1], len(self.p_trn)))
+      for c in range(M.shape[1]):
+        if np.sum(y==c) > 0:
+          M[:,c] = fX[y==c].mean(axis=0)
       return M
     return fX, y
   def transform(self, X, average=True):
     fX = self.classifier.predict_proba(X)
     if not self.is_probabilistic:
-      fX = _onehot_encoding(np.argmax(fX, axis=1), self.n_classes)
+      fX = _onehot_encoding(np.argmax(fX, axis=1), len(self.p_trn))
     if average:
         fX = fX.mean(axis=0)
     return fX
@@ -123,13 +121,14 @@ class DistanceTransformer(AbstractTransformer):
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.p_trn = class_prevalences(y, n_classes) # also sets self.n_classes
+      self.p_trn = class_prevalences(y, n_classes)
     self.X_trn = X
     self.y_trn = y
     if average:
-      M = np.zeros((self.n_classes, self.n_classes))
-      for c in range(self.n_classes):
-        M[:,c] = self._transform_after_preprocessor(X[y==c])
+      M = np.zeros((len(self.p_trn), len(self.p_trn)))
+      for c in range(M.shape[1]):
+        if np.sum(y==c) > 0:
+          M[:,c] = self._transform_after_preprocessor(X[y==c])
       return M
     else:
       return self._transform_after_preprocessor(X, average=False), y
@@ -138,9 +137,10 @@ class DistanceTransformer(AbstractTransformer):
       X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X, average=average)
   def _transform_after_preprocessor(self, X, average=True):
-    fX = np.zeros((X.shape[0], self.n_classes))
-    for i in range(self.n_classes): # class index
-      fX[:, i] = cdist(X, self.X_trn[self.y_trn == i], metric=self.metric).mean(axis=1)
+    fX = np.zeros((X.shape[0], len(self.p_trn)))
+    for i in range(fX.shape[1]): # class index
+      if np.sum(self.y_trn==i) > 0:
+        fX[:, i] = cdist(X, self.X_trn[self.y_trn==i], metric=self.metric).mean(axis=1)
     if average:
       fX = fX.mean(axis=0)
     return fX
@@ -165,15 +165,16 @@ class HistogramTransformer(AbstractTransformer):
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.p_trn = class_prevalences(y, n_classes) # also sets self.n_classes
+      self.p_trn = class_prevalences(y, n_classes)
     self.edges = []
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)
       self.edges.append(e)
     if average:
-      M = np.zeros((X.shape[1] * self.n_bins, self.n_classes))
-      for c in range(self.n_classes):
-        M[:,c] = self._transform_after_preprocessor(X[y==c])
+      M = np.zeros((X.shape[1] * self.n_bins, len(self.p_trn)))
+      for c in range(M.shape[1]):
+        if np.sum(y==c) > 0:
+          M[:,c] = self._transform_after_preprocessor(X[y==c])
       return M
     return self._transform_after_preprocessor(X, average=average), y
   def transform(self, X, average=True):
@@ -231,15 +232,17 @@ class EnergyKernelTransformer(AbstractTransformer):
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.p_trn = class_prevalences(y, n_classes) # also sets self.n_classes
+      self.p_trn = class_prevalences(y, n_classes)
     self.X_trn = X
     self.y_trn = y
-    self.norms = np.zeros(self.n_classes) # = ||x||
-    for c in range(self.n_classes):
-      self.norms[c] = np.linalg.norm(X[y==c], axis=1).mean()
-    M = np.zeros((self.n_classes, self.n_classes))
-    for c in range(self.n_classes):
-      M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c])
+    self.norms = np.zeros(len(self.p_trn)) # = ||x||
+    for c in range(len(self.norms)):
+      if np.sum(y==c) > 0:
+        self.norms[c] = np.linalg.norm(X[y==c], axis=1).mean()
+    M = np.zeros((len(self.p_trn), len(self.p_trn)))
+    for c in range(M.shape[1]):
+      if np.sum(y==c) > 0:
+        M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c])
     return M
   def transform(self, X, average=True):
     if not average:
@@ -249,9 +252,10 @@ class EnergyKernelTransformer(AbstractTransformer):
     norm = np.linalg.norm(X, axis=1).mean()
     return self._transform_after_preprocessor(X, norm)
   def _transform_after_preprocessor(self, X, norm):
-    dists = np.zeros(self.n_classes) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
-    for i in range(self.n_classes):
-      dists[i] = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean").mean()
+    dists = np.zeros(len(self.p_trn)) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
+    for i in range(len(dists)):
+      if np.sum(self.y_trn==i) > 0:
+        dists[i] = cdist(X, self.X_trn[self.y_trn==i], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
 class KernelTransformer(AbstractTransformer):
@@ -269,22 +273,24 @@ class KernelTransformer(AbstractTransformer):
     if not average:
       raise ValueError("KernelTransformer does not support average=False")
     y -= y.min() # map to zero-based labels
-    self.p_trn = class_prevalences(y, n_classes) # also sets self.n_classes
+    self.p_trn = class_prevalences(y, n_classes)
     self.X_trn = X
     self.y_trn = y
-    M = np.zeros((self.n_classes, self.n_classes))
-    for i in range(self.n_classes):
-      for j in range(i, self.n_classes):
-        M[i, j] = self.kernel(X[y==i], X[y==j])
-        if i != j:
+    M = np.zeros((len(self.p_trn), len(self.p_trn)))
+    for i in range(M.shape[0]):
+      for j in range(i, M.shape[1]):
+        if np.sum(y==i) > 0 and np.sum(y==j):
+          M[i, j] = self.kernel(X[y==i], X[y==j])
+          if i != j:
             M[j, i] = M[i, j]
     return M
   def transform(self, X, average=True):
     if not average:
       raise ValueError("KernelTransformer does not support average=False")
-    q = np.zeros((self.n_classes))
-    for i in range(self.n_classes):
-      q[i] = self.kernel(self.X_trn[self.y_trn==i], X)
+    q = np.zeros(len(self.p_trn))
+    for i in range(len(q)):
+      if np.sum(self.y_trn==i) > 0:
+        q[i] = self.kernel(self.X_trn[self.y_trn==i], X)
     return q
 
 # kernel function for the GaussianKernelTransformer
