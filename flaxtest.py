@@ -175,13 +175,14 @@ def mean_embedding(phi_X):
 class DeepTransformer(AbstractTransformer):
   def __init__(self, state):
     self.state = state
-  def fit_transform(self, X, y, average=True):
+  def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("DeepTransformer does not support average=False")
-    self.p_trn = n_samples_per_class(y) / len(y) # also sets self.n_classes
+    qunfold.transformers._check_y(y, n_classes)
+    self.p_trn = qunfold.transformers.class_prevalences(y, n_classes)
     M = jnp.vstack([
       mean_embedding(self.state.apply_fn({ "params": self.state.params }, X_i))
-      for X_i in [ X[y == i] for i in range(self.n_classes) ]
+      for X_i in [ X[y == i] for i in range(len(self.p_trn)) ]
     ]).T
     return M
   def transform(self, X, average=True):
@@ -210,7 +211,7 @@ def training_step(state, sample):
       mean_embedding(state.apply_fn({ "params": params }, X_i))
       for X_i in sample["X_M"]
     ]).T
-    v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T
+    v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
     return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
   state = state.apply_gradients(grads=jax.grad(loss_fn)(state.params)) # update the state
   metric_updates = state.metrics.single_from_model_output(
@@ -297,6 +298,26 @@ def main(
       "p_Ts": p_Ts,
     }
     training_state = training_step(training_state, sample)
+
+    # # do we need a softmax operator for pinv(M) @ q ?
+    # _qs = jnp.array([
+    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_q))
+    #   for X_q in sample["X_q"]
+    # ])
+    # _M = jnp.vstack([
+    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i))
+    #   for X_i in sample["X_M"]
+    # ]).T
+    # _p_hat = (jnp.linalg.pinv(_M) @ _qs.T).T
+    # _p_hat = _p_hat / _p_hat.sum(axis=1, keepdims=True)
+    # print(_p_hat.sum(axis=1))
+
+    # # are we allowed to back-propagate through pinv(M)? M is required to have a constant rank
+    # _M = jnp.vstack([
+    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i))
+    #   for X_i in sample["X_M"]
+    # ]).T
+    # print(jnp.linalg.matrix_rank(_M))
 
     # compute average training metrics for this epoch and reset the metric state
     for metric, value in training_state.metrics.compute().items():
