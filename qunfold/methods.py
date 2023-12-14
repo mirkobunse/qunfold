@@ -84,17 +84,18 @@ class GenericMethod:
     self.solver = solver
     self.solver_options = solver_options
     self.seed = seed
-  def fit(self, X, y):
+  def fit(self, X, y, n_classes=None):
     """Fit this quantifier to data.
 
     Args:
         X: The feature matrix to which this quantifier will be fitted.
         y: The labels to which this quantifier will be fitted.
+        n_classes (optional): The number of expected classes. Defaults to `None`.
 
     Returns:
         This fitted quantifier itself.
     """
-    self.M = self.transformer.fit_transform(X, y)
+    self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
     return self
   def predict(self, X):
     """Predict the class prevalences in a data set.
