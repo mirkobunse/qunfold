@@ -229,6 +229,7 @@ class TestHellingerSurrogateLoss(TestCase):
     for _ in range(20):
       _, M, p_true = make_problem(10, 4)
       X_trn, y_trn = generate_data(M, p_true)
+      y_trn -= y_trn.min() # map to zero-based labels
       n_bins = RNG.randint(2, 11)
 
       m_hl = HDx(n_bins).fit(X_trn, y_trn)

@@ -1,12 +1,9 @@
 import numpy as np
+import warnings
 from abc import ABC, abstractmethod
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
-
-# helper function for crisp transformations
-def _onehot_encoding(y, n_classes):
-  return np.eye(n_classes)[y] # https://stackoverflow.com/a/42874726/20580159
 
 def class_prevalences(y, n_classes=None):
   """Determine the prevalence of each class.
@@ -25,6 +22,12 @@ def class_prevalences(y, n_classes=None):
   n_samples_per_class[i] = n # non-existing classes maintain a zero entry
   return n_samples_per_class / n_samples_per_class.sum() # normalize to prevalences
 
+# helper function for ensuring sane labels
+def _check_y(y, n_classes=None):
+  if n_classes is not None:
+    if n_classes != np.max(y)+1:
+      warnings.warn(f"Classes are missing: n_classes != np.max(y)+1 = {np.max(y)+1}")
+
 class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
   @abstractmethod
@@ -32,7 +35,7 @@ class AbstractTransformer(ABC):
     """This abstract method has to fit the transformer and to return the transformation of the input data.
 
     Note:
-        Implementations of this abstract method must set the property `self.p_trn = class_prevalences(y, n_classes)`.
+        Implementations of this abstract method should check the sanity of labels by calling `_check_y(y, n_classes)` and they must set the property `self.p_trn = class_prevalences(y, n_classes)`.
 
     Args:
         X: The feature matrix to which this transformer will be fitted.
@@ -57,6 +60,10 @@ class AbstractTransformer(ABC):
     """
     pass
 
+# helper function for ClassTransformer(..., is_probabilistic=False)
+def _onehot_encoding(y, n_classes):
+  return np.eye(n_classes)[y] # https://stackoverflow.com/a/42874726/20580159
+
 class ClassTransformer(AbstractTransformer):
   """A classification-based feature transformation.
 
@@ -72,35 +79,38 @@ class ClassTransformer(AbstractTransformer):
     self.is_probabilistic = is_probabilistic
     self.fit_classifier = fit_classifier
   def fit_transform(self, X, y, average=True, n_classes=None):
-    if y.min() not in [0, 1]:
-      raise ValueError("y.min() ∉ [0, 1]")
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
       raise ValueError(
         "The ClassTransformer either requires a bagging classifier with oob_score=True",
         "or an instance of qunfold.sklearn.CVClassifier"
       )
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
       self.classifier.fit(X, y)
-    fX = self.classifier.oob_decision_function_
+    fX = np.zeros((len(X), n_classes))
+    fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
-    fX = fX[is_finite,:]
-    y = y[is_finite] - y.min() # map to zero-based labels
-    self.p_trn = class_prevalences(y, n_classes)
+    fX = fX[is_finite,:] # drop instances that never became OOB
+    y = y[is_finite]
     if not self.is_probabilistic:
-      fX = _onehot_encoding(np.argmax(fX, axis=1), len(self.p_trn))
+      fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
     if average:
-      M = np.zeros((fX.shape[1], len(self.p_trn)))
-      for c in range(M.shape[1]):
+      M = np.zeros((n_classes, n_classes))
+      for c in range(n_classes):
         if np.sum(y==c) > 0:
           M[:,c] = fX[y==c].mean(axis=0)
       return M
     return fX, y
   def transform(self, X, average=True):
-    fX = self.classifier.predict_proba(X)
+    n_classes = len(self.p_trn)
+    fX = np.zeros((len(X), n_classes))
+    fX[:, self.classifier.classes_] = self.classifier.predict_proba(X)
     if not self.is_probabilistic:
-      fX = _onehot_encoding(np.argmax(fX, axis=1), len(self.p_trn))
+      fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
     if average:
-        fX = fX.mean(axis=0)
+      return fX.mean(axis=0) # = q
     return fX
 
 class DistanceTransformer(AbstractTransformer):
@@ -114,19 +124,18 @@ class DistanceTransformer(AbstractTransformer):
     self.metric = metric
     self.preprocessor = preprocessor
   def fit_transform(self, X, y, average=True, n_classes=None):
-    if y.min() not in [0, 1]:
-      raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      y -= y.min() # map to zero-based labels
+      _check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
     self.y_trn = y
     if average:
-      M = np.zeros((len(self.p_trn), len(self.p_trn)))
-      for c in range(M.shape[1]):
+      M = np.zeros((n_classes, n_classes))
+      for c in range(n_classes):
         if np.sum(y==c) > 0:
           M[:,c] = self._transform_after_preprocessor(X[y==c])
       return M
@@ -137,12 +146,13 @@ class DistanceTransformer(AbstractTransformer):
       X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X, average=average)
   def _transform_after_preprocessor(self, X, average=True):
-    fX = np.zeros((X.shape[0], len(self.p_trn)))
-    for i in range(fX.shape[1]): # class index
-      if np.sum(self.y_trn==i) > 0:
-        fX[:, i] = cdist(X, self.X_trn[self.y_trn==i], metric=self.metric).mean(axis=1)
+    n_classes = len(self.p_trn)
+    fX = np.zeros((X.shape[0], n_classes))
+    for c in range(n_classes):
+      if np.sum(self.y_trn==c) > 0:
+        fX[:,c] = cdist(X, self.X_trn[self.y_trn==c], metric=self.metric).mean(axis=1)
     if average:
-      fX = fX.mean(axis=0)
+      return fX.mean(axis=0) # = q
     return fX
 
 class HistogramTransformer(AbstractTransformer):
@@ -158,21 +168,20 @@ class HistogramTransformer(AbstractTransformer):
     self.preprocessor = preprocessor
     self.unit_scale = unit_scale
   def fit_transform(self, X, y, average=True, n_classes=None):
-    if y.min() not in [0, 1]:
-      raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      y -= y.min() # map to zero-based labels
+      _check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     self.edges = []
     for x in X.T: # iterate over columns = features
       e = np.histogram_bin_edges(x, bins=self.n_bins)
       self.edges.append(e)
     if average:
-      M = np.zeros((X.shape[1] * self.n_bins, len(self.p_trn)))
-      for c in range(M.shape[1]):
+      M = np.zeros((X.shape[1] * self.n_bins, n_classes))
+      for c in range(n_classes):
         if np.sum(y==c) > 0:
           M[:,c] = self._transform_after_preprocessor(X[y==c])
       return M
@@ -207,7 +216,7 @@ class HistogramTransformer(AbstractTransformer):
         if self.unit_scale:
           hist = hist / X.shape[1]
         histograms.append(hist / X.shape[0])
-      return np.concatenate(histograms)
+      return np.concatenate(histograms) # = q
 
 class EnergyKernelTransformer(AbstractTransformer):
   """A kernel-based feature transformation, as it is used in `KMM`, that uses the `energy` kernel:
@@ -225,22 +234,21 @@ class EnergyKernelTransformer(AbstractTransformer):
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("EnergyKernelTransformer does not support average=False")
-    if y.min() not in [0, 1]:
-      raise ValueError("y.min() ∉ [0, 1]")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      y -= y.min() # map to zero-based labels
+      _check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
     self.y_trn = y
-    self.norms = np.zeros(len(self.p_trn)) # = ||x||
+    self.norms = np.zeros(n_classes) # = ||x||
     for c in range(len(self.norms)):
       if np.sum(y==c) > 0:
         self.norms[c] = np.linalg.norm(X[y==c], axis=1).mean()
-    M = np.zeros((len(self.p_trn), len(self.p_trn)))
-    for c in range(M.shape[1]):
+    M = np.zeros((n_classes, n_classes))
+    for c in range(n_classes):
       if np.sum(y==c) > 0:
         M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c])
     return M
@@ -252,10 +260,11 @@ class EnergyKernelTransformer(AbstractTransformer):
     norm = np.linalg.norm(X, axis=1).mean()
     return self._transform_after_preprocessor(X, norm)
   def _transform_after_preprocessor(self, X, norm):
-    dists = np.zeros(len(self.p_trn)) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
-    for i in range(len(dists)):
-      if np.sum(self.y_trn==i) > 0:
-        dists[i] = cdist(X, self.X_trn[self.y_trn==i], metric="euclidean").mean()
+    n_classes = len(self.p_trn)
+    dists = np.zeros(n_classes) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
+    for c in range(n_classes):
+      if np.sum(self.y_trn==c) > 0:
+        dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
 class KernelTransformer(AbstractTransformer):
@@ -272,13 +281,14 @@ class KernelTransformer(AbstractTransformer):
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("KernelTransformer does not support average=False")
-    y -= y.min() # map to zero-based labels
+    _check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
     self.y_trn = y
-    M = np.zeros((len(self.p_trn), len(self.p_trn)))
-    for i in range(M.shape[0]):
-      for j in range(i, M.shape[1]):
+    M = np.zeros((n_classes, n_classes))
+    for i in range(n_classes):
+      for j in range(i, n_classes):
         if np.sum(y==i) > 0 and np.sum(y==j):
           M[i, j] = self.kernel(X[y==i], X[y==j])
           if i != j:
@@ -287,10 +297,11 @@ class KernelTransformer(AbstractTransformer):
   def transform(self, X, average=True):
     if not average:
       raise ValueError("KernelTransformer does not support average=False")
-    q = np.zeros(len(self.p_trn))
-    for i in range(len(q)):
-      if np.sum(self.y_trn==i) > 0:
-        q[i] = self.kernel(self.X_trn[self.y_trn==i], X)
+    n_classes = len(self.p_trn)
+    q = np.zeros(n_classes)
+    for c in range(n_classes):
+      if np.sum(self.y_trn==c) > 0:
+        q[c] = self.kernel(self.X_trn[self.y_trn==c], X)
     return q
 
 # kernel function for the GaussianKernelTransformer
