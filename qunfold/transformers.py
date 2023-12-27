@@ -333,3 +333,27 @@ class LaplacianKernelTransformer(KernelTransformer):
   @property
   def kernel(self):
     return partial(_laplacianKernel, sigma=self.sigma)
+  
+class GaussianKernelTransformerRFF(KernelTransformer):
+  def __init__(self, sigma, n_rff):
+    self.sigma = sigma
+    self.n_rff = n_rff
+  def fit_transform(self, X, y, seed=123, average=True):    # no preprocessor option yet
+    self.rng = np.random.default_rng(seed)
+    self.n_classes = len(np.unique(y))
+    self.X_trn = X
+    self.y_trn = y
+    self.p_trn = class_prevalences(y)
+    self.w = self.rng.normal(loc=0, scale=(1./self.sigma), size=(int(self.n_rff/2), X.shape[1])).astype(np.float32)
+    mu = []
+    for c in range(self.n_classes):
+      Xw = X[y==c] @ self.w.T
+      C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
+      m = np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
+      mu.append(m)
+    mu = np.stack(mu, axis=1)
+    self.M = mu.T @ mu
+    return self.M
+  @property
+  def kernel(self):
+    return partial(_gaussianKernel, sigma=self.sigma)
