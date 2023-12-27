@@ -267,12 +267,12 @@ class KernelTransformer:
   def fit_transform(self, X, y, average=True):
     if not average:
       raise ValueError("KernelTransformer does not support average=False")
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
     self.n_classes = len(np.unique(y))
     self.X_trn = X
     self.y_trn = y
-    self.p_trn = np.zeros((self.n_classes))
-    for c in range(self.n_classes):
-      self.p_trn[c] = (y==c).sum() / y.shape[0]
+    self.p_trn = class_prevalences(y)
     M = np.zeros((self.n_classes, self.n_classes))
     for i in range(self.n_classes):
       for j in range(i, self.n_classes):
@@ -311,6 +311,53 @@ class GaussianKernelTransformer(KernelTransformer):
   @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
   def kernel(self):
     return partial(_gaussianKernel, sigma=self.sigma)
+  
+class GaussianKernelTransformerFast(KernelTransformer):
+  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
+
+      k(x, y) = exp(-||x - y||^2 / (2σ^2))
+
+  Args:
+      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
+  """
+  def __init__(self, sigma=1, preprocessor=None):
+    self.sigma = sigma
+    self.preprocessor = preprocessor
+  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
+  def kernel(self):
+    return partial(_gaussianKernel, sigma=self.sigma)
+  def fit_transform(self, X, y, average=True):
+    if not average:
+      raise ValueError("GaussianKernelTransformer does not support average=False")
+    if y.min() not in [0, 1]:
+      raise ValueError("y.min() ∉ [0, 1]")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y, average=False)
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
+    else:
+      y -= y.min() # map to zero-based labels
+      self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
+    self.X_trn = X
+    self.y_trn = y
+    self.n_classes = len(np.unique(y))
+    M = np.zeros((self.n_classes, self.n_classes))
+    for c in range(self.n_classes):
+      M[:,c] = self._transform_after_preprocessor(X[y==c])
+    return M
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("GaussianKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(X)
+  def _transform_after_preprocessor(self, X):
+    res = np.zeros(self.n_classes)
+    for i in range(self.n_classes):
+      norm_fac = (X.shape[0] * self.X_trn[self.y_trn==i].shape[0])
+      sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
+      res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
+    return res
+  
 
 # kernel function for the LaplacianKernelTransformer
 def _laplacianKernel(X, Y, sigma):
@@ -334,10 +381,11 @@ class LaplacianKernelTransformer(KernelTransformer):
   def kernel(self):
     return partial(_laplacianKernel, sigma=self.sigma)
   
-class GaussianKernelTransformerRFF(KernelTransformer):
-  def __init__(self, sigma, n_rff):
+class GaussianKernelTransformerRFF(GaussianKernelTransformerFast):
+  def __init__(self, sigma=1, n_rff=1000, preprocessor=None):
     self.sigma = sigma
     self.n_rff = n_rff
+    self.preprocessor = preprocessor
   def fit_transform(self, X, y, seed=123, average=True):    # no preprocessor option yet
     self.rng = np.random.default_rng(seed)
     self.n_classes = len(np.unique(y))
