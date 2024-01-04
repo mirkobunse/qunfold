@@ -305,6 +305,10 @@ class KMM(GenericMethod):
       transformer = transformers.GaussianKernelTransformer(sigma=sigma)
     elif kernel == "laplacian":
       transformer = transformers.LaplacianKernelTransformer(sigma=sigma)
+    elif kernel == "rff":
+      transformer = transformers.GaussianKernelTransformerRFF(sigma=sigma)
+    elif kernel == "fast":
+      transformer = transformers.GaussianKernelTransformerFast(sigma=sigma)
     else:
       transformer = transformers.KernelTransformer(kernel)
     GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, **kwargs)
