@@ -12,6 +12,7 @@ from flax.training import train_state
 from qunfold.quapy import QuaPyWrapper
 from qunfold.transformers import AbstractTransformer
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 
 
 
@@ -170,6 +171,7 @@ def create_training_state(module, rng, learning_rate, momentum):
 def mean_embedding(phi_X):
   # return nn.activation.softmax(phi_X, axis=1).mean(axis=0)
   # return phi_X.mean(axis=0)
+  # return nn.activation.sigmoid(10 * phi_X).mean(axis=0) # factor 10 for a steeper activation
   return nn.activation.sigmoid(phi_X).mean(axis=0)
 
 class DeepTransformer(AbstractTransformer):
@@ -190,6 +192,9 @@ class DeepTransformer(AbstractTransformer):
       raise ValueError("DeepTransformer does not support average=False")
     q = mean_embedding(self.state.apply_fn({ "params": self.state.params }, X))
     return q
+
+# TODO implement a learning rate schedule with validation plateau-ing:
+# https://github.com/HDembinski/essays/blob/master/regression.ipynb
 
 @jax.jit
 def training_step(state, sample):
@@ -261,6 +266,7 @@ def main(
   print("Training...")
   X_trn = jnp.array(X_trn, dtype=jnp.float32)
   y_trn = jnp.array(y_trn)
+  X_M, X_q, y_M, y_q = train_test_split(X_trn, y_trn, stratify=y_trn, test_size=.5, random_state=25)
   sample_rng = np.random.default_rng(25)
   metrics_history = {
     "trn_loss": [],
@@ -291,10 +297,10 @@ def main(
     p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
     sample = {
       "X_q": [
-        X_trn[draw_indices(y_trn, p_T, sample_size, random_state=sample_rng)]
+        X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
         for p_T in p_Ts
       ],
-      "X_M": [ X_trn[y_trn == i] for i in range(28) ],
+      "X_M": [ X_M[y_M == i] for i in range(28) ],
       "p_Ts": p_Ts,
     }
     training_state = training_step(training_state, sample)
