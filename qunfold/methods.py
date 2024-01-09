@@ -295,7 +295,7 @@ class KMM(GenericMethod):
   This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `KernelTransformer`.
 
   Args:
-      kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", and "laplacian". Defaults to "energy".
+      kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", "laplacian" and "rff". Defaults to "energy".
       sigma (optional): A smoothing parameter in the `gaussian` and `laplacian` kernels. Defaults to `1`.
       **kwargs: Keyword arguments accepted by `GenericMethod`.
   """

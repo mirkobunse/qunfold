@@ -328,7 +328,7 @@ class GaussianKernelTransformer(KernelTransformer):
   @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
   def kernel(self):
     return partial(_gaussianKernel, sigma=self.sigma)
-  def fit_transform(self, X, y, average=True):
+  def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianKernelTransformer does not support average=False")
     if y.min() not in [0, 1]:
@@ -338,12 +338,13 @@ class GaussianKernelTransformer(KernelTransformer):
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       y -= y.min() # map to zero-based labels
-      self.p_trn = class_prevalences(y) # also sets self.n_classes correctly
+      _check_y(y, n_classes)
+      self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
     self.y_trn = y
-    self.n_classes = len(np.unique(y))
-    M = np.zeros((self.n_classes, self.n_classes))
-    for c in range(self.n_classes):
+    M = np.zeros((n_classes, n_classes))
+    for c in range(n_classes):
       M[:,c] = self._transform_after_preprocessor(X[y==c])
     return M
   def transform(self, X, average=True):
@@ -353,8 +354,9 @@ class GaussianKernelTransformer(KernelTransformer):
       X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X)
   def _transform_after_preprocessor(self, X):
-    res = np.zeros(self.n_classes)
-    for i in range(self.n_classes):
+    n_classes = len(self.p_trn)
+    res = np.zeros(n_classes)
+    for i in range(n_classes):
       norm_fac = X.shape[0] * self.X_trn[self.y_trn==i].shape[0]
       sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
@@ -383,19 +385,27 @@ class LaplacianKernelTransformer(KernelTransformer):
     return partial(_laplacianKernel, sigma=self.sigma)
   
 class GaussianKernelTransformerRFF(KernelTransformer):
+  """An efficient approximation of the `GaussianKernelTransformer` using `Random Fourier Features`.
+
+  Args:
+      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
+      n_rff (optional): The number of Random Fourier Features. Defaults to `1000` 
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+  """
   def __init__(self, sigma=1, n_rff=1000, preprocessor=None):
     self.sigma = sigma
     self.n_rff = n_rff
     self.preprocessor = preprocessor
-  def fit_transform(self, X, y, seed=123, average=True):    # no preprocessor option yet
+  def fit_transform(self, X, y, seed=123, average=True, n_classes=None):
     self.rng = np.random.default_rng(seed)
-    self.n_classes = len(np.unique(y))
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn)
     self.X_trn = X
     self.y_trn = y
-    self.p_trn = class_prevalences(y)
     self.w = self.rng.normal(loc=0, scale=(1./self.sigma), size=(int(self.n_rff/2), X.shape[1])).astype(np.float32)
     self.mu = []
-    for c in range(self.n_classes):
+    for c in range(n_classes):
       m = self._transform_after_preprocessor(X[y==c])
       self.mu.append(m)
     self.mu = np.stack(self.mu, axis=1)
