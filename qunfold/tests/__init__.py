@@ -64,6 +64,7 @@ class TestMethods(TestCase):
       p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
       p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
       p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
+      p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
@@ -91,6 +92,8 @@ class TestMethods(TestCase):
         f"             {p_kmmg.nit} it.; {p_kmmg.message}",
         f"     p_kmml = {p_kmml}",
         f"             {p_kmml.nit} it.; {p_kmml.message}",
+        f"     p_rff = {p_rff}",
+        f"             {p_rff.nit} it.; {p_rff.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2

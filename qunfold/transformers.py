@@ -306,20 +306,6 @@ class GaussianKernelTransformer(KernelTransformer):
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
-  def __init__(self, sigma=1):
-    self.sigma = sigma
-  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
-  def kernel(self):
-    return partial(_gaussianKernel, sigma=self.sigma)
-  
-class GaussianKernelTransformerFast(KernelTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
-
-      k(x, y) = exp(-||x - y||^2 / (2σ^2))
-
-  Args:
-      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
-  """
   def __init__(self, sigma=1, preprocessor=None):
     self.sigma = sigma
     self.preprocessor = preprocessor
@@ -358,7 +344,6 @@ class GaussianKernelTransformerFast(KernelTransformer):
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
     return res
   
-
 # kernel function for the LaplacianKernelTransformer
 def _laplacianKernel(X, Y, sigma):
     nx = X.shape[0]
@@ -381,7 +366,7 @@ class LaplacianKernelTransformer(KernelTransformer):
   def kernel(self):
     return partial(_laplacianKernel, sigma=self.sigma)
   
-class GaussianKernelTransformerRFF(GaussianKernelTransformerFast):
+class GaussianKernelTransformerRFF(KernelTransformer):
   def __init__(self, sigma=1, n_rff=1000, preprocessor=None):
     self.sigma = sigma
     self.n_rff = n_rff
@@ -393,15 +378,20 @@ class GaussianKernelTransformerRFF(GaussianKernelTransformerFast):
     self.y_trn = y
     self.p_trn = class_prevalences(y)
     self.w = self.rng.normal(loc=0, scale=(1./self.sigma), size=(int(self.n_rff/2), X.shape[1])).astype(np.float32)
-    mu = []
+    self.mu = []
     for c in range(self.n_classes):
-      Xw = X[y==c] @ self.w.T
-      C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
-      m = np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
-      mu.append(m)
-    mu = np.stack(mu, axis=1)
-    self.M = mu.T @ mu
+      m = self._transform_after_preprocessor(X[y==c])
+      self.mu.append(m)
+    self.mu = np.stack(self.mu, axis=1)
+    self.M = self.mu.T @ self.mu
     return self.M
-  @property
-  def kernel(self):
-    return partial(_gaussianKernel, sigma=self.sigma)
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("GaussianKernelTransformerRFF does not support average=False")
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(X) @ self.mu
+  def _transform_after_preprocessor(self, X):
+    Xw = X @ self.w.T
+    C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
+    return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)

@@ -298,13 +298,15 @@ class KMM(GenericMethod):
       sigma (optional): A smoothing parameter in the `gaussian` and `laplacian` kernels. Defaults to `1`.
       **kwargs: Keyword arguments accepted by `GenericMethod`.
   """
-  def __init__(self, kernel="energy", sigma=1, **kwargs):
+  def __init__(self, kernel="energy", sigma=1, n_rff=1000, **kwargs):
     if kernel == "energy":
       transformer = transformers.EnergyKernelTransformer()
     elif kernel == "gaussian":
       transformer = transformers.GaussianKernelTransformer(sigma=sigma)
     elif kernel == "laplacian":
       transformer = transformers.LaplacianKernelTransformer(sigma=sigma)
+    elif kernel == "rff":
+      transformer = transformers.GaussianKernelTransformerRFF(sigma=sigma, n_rff=n_rff)
     else:
       transformer = transformers.KernelTransformer(kernel)
     GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, **kwargs)
