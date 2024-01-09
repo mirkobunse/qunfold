@@ -47,6 +47,7 @@ class TestMethods(TestCase):
     start = time.time()
     for _ in range(10):
       q, M, p_trn = make_problem()
+      n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
       p_tst = RNG.permutation(p_trn)
       X_tst, y_tst = generate_data(M, p_tst)
@@ -68,7 +69,7 @@ class TestMethods(TestCase):
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
-      ).fit(X_trn, y_trn).predict(X_tst)
+      ).fit(X_trn, y_trn, n_classes).predict(X_tst)
       print(
         f"LSq: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",
@@ -106,6 +107,7 @@ class TestCVClassifier(TestCase):
     start = time.time()
     for _ in range(10):
       q, M, p_trn = make_problem()
+      n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
       p_tst = RNG.permutation(p_trn)
       X_tst, y_tst = generate_data(M, p_tst)
@@ -114,9 +116,9 @@ class TestCVClassifier(TestCase):
         n_estimators = 10,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = qunfold.ACC(lr).fit(X_trn, y_trn).predict(X_tst)
-      p_pacc = qunfold.PACC(lr).fit(X_trn, y_trn).predict(X_tst)
-      p_hdy = qunfold.HDy(lr, 3).fit(X_trn, y_trn).predict(X_tst)
+      p_acc = qunfold.ACC(lr).fit(X_trn, y_trn, n_classes).predict(X_tst)
+      p_pacc = qunfold.PACC(lr).fit(X_trn, y_trn, n_classes).predict(X_tst)
+      p_hdy = qunfold.HDy(lr, 3).fit(X_trn, y_trn, n_classes).predict(X_tst)
       print(
         f"CVC: p_acc = {p_acc}",
         f"             {p_acc.nit} it.; {p_acc.message}",
@@ -174,11 +176,12 @@ class TestDistanceTransformer(TestCase):
   def test_transformer(self):
     for _ in range(10):
       q, M, p_trn = make_problem()
+      n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
       # p_tst = RNG.permutation(p_trn)
       # X_tst, y_tst = generate_data(M, p_tst)
       m = qunfold.GenericMethod(None, qunfold.DistanceTransformer())
-      m.fit(X_trn, y_trn)
+      m.fit(X_trn, y_trn, n_classes)
       M_est = m.M
       M_true = np.zeros_like(M_est)
       for i in range(len(p_trn)):
@@ -229,6 +232,7 @@ class TestHellingerSurrogateLoss(TestCase):
     for _ in range(20):
       _, M, p_true = make_problem(10, 4)
       X_trn, y_trn = generate_data(M, p_true)
+      y_trn -= y_trn.min() # map to zero-based labels
       n_bins = RNG.randint(2, 11)
 
       m_hl = HDx(n_bins).fit(X_trn, y_trn)
