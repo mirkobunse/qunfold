@@ -339,7 +339,7 @@ class GaussianKernelTransformer(KernelTransformer):
   def _transform_after_preprocessor(self, X):
     res = np.zeros(self.n_classes)
     for i in range(self.n_classes):
-      norm_fac = (X.shape[0] * self.X_trn[self.y_trn==i].shape[0])
+      norm_fac = X.shape[0] * self.X_trn[self.y_trn==i].shape[0]
       sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
     return res

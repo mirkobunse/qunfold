@@ -151,7 +151,7 @@ class TestQuaPyWrapper(TestCase):
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
       p_acc = QuaPyWrapper(qunfold.ACC(lr))
-      self.assertEquals( # check that get_params returns the correct settings
+      self.assertEqual( # check that get_params returns the correct settings
         p_acc.get_params(deep=True)["transformer__classifier__estimator__C"],
         1e-2
       )
@@ -165,7 +165,7 @@ class TestQuaPyWrapper(TestCase):
         refit = False,
         verbose = True,
       ).fit(LabelledCollection(X_trn, y_trn))
-      self.assertEquals( # check that best parameters are actually used
+      self.assertEqual( # check that best parameters are actually used
         quapy_method.best_params_["transformer__classifier__estimator__C"],
         quapy_method.best_model_.generic_method.transformer.classifier.estimator.C
       )
@@ -248,6 +248,6 @@ class TestHellingerSurrogateLoss(TestCase):
 
       # make sure the functions return roughly the same for other distributions
       # check for 6 decimal place accuracy
-      self.assertAlmostEquals(F_hl + new_loss(p_tst),
-                              0.5 * old_loss(p_tst),
-                              places=5)
+      self.assertAlmostEqual(F_hl + new_loss(p_tst),
+                             0.5 * old_loss(p_tst),
+                             places=5)
