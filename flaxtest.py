@@ -139,15 +139,15 @@ def draw_indices(
 
 
 class SimpleModule(nn.Module):
-  """A simple model."""
+  """A simple neural network."""
   @nn.compact
   def __call__(self, x):
     # x = nn.Dense(features=300)(x)
     # x = nn.relu(x)
-    # x = nn.Dense(features=300)(x)
-    # x = nn.relu(x)
-    x = nn.Dense(features=64)(x) # the LeQua T1B data has 28 classes
-    return x
+    return (
+      nn.Dense(features=64)(x), # the typical output
+      nn.Dense(features=28)(x), # an additional output for 28 classes
+    )
 
 # a storage for all state involved in training, including metrics
 @flax.struct.dataclass
@@ -175,22 +175,27 @@ def mean_embedding(phi_X):
   return nn.activation.sigmoid(phi_X).mean(axis=0)
 
 class DeepTransformer(AbstractTransformer):
-  def __init__(self, state):
+  def __init__(self, state, output_index):
     self.state = state
+    self.output_index = output_index
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("DeepTransformer does not support average=False")
     qunfold.transformers._check_y(y, n_classes)
     self.p_trn = qunfold.transformers.class_prevalences(y, n_classes)
     M = jnp.vstack([
-      mean_embedding(self.state.apply_fn({ "params": self.state.params }, X_i))
+      mean_embedding(
+        self.state.apply_fn({ "params": self.state.params }, X_i)[self.output_index]
+      )
       for X_i in [ X[y == i] for i in range(len(self.p_trn)) ]
     ]).T
     return M
   def transform(self, X, average=True):
     if not average:
       raise ValueError("DeepTransformer does not support average=False")
-    q = mean_embedding(self.state.apply_fn({ "params": self.state.params }, X))
+    q = mean_embedding(
+      self.state.apply_fn({ "params": self.state.params }, X)[self.output_index]
+    )
     return q
 
 # TODO implement a learning rate schedule with validation plateau-ing:
@@ -209,11 +214,11 @@ def training_step(state, sample):
   """
   def loss_fn(params):
     qs = jnp.array([
-      mean_embedding(state.apply_fn({ "params": params }, X_q))
+      mean_embedding(state.apply_fn({ "params": params }, X_q)[0])
       for X_q in sample["X_q"]
     ])
     M = jnp.vstack([
-      mean_embedding(state.apply_fn({ "params": params }, X_i))
+      mean_embedding(state.apply_fn({ "params": params }, X_i)[0])
       for X_i in sample["X_M"]
     ]).T
     v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
@@ -225,11 +230,17 @@ def training_step(state, sample):
   metrics = state.metrics.merge(metric_updates)
   return state.replace(metrics=metrics) # update the state with metrics
 
+@jax.jit
+def training_step_classifier(state, X_trn, y_trn):
+  """Take out an epoch for the classification head."""
+  pass # TODO
+
 def main(
     n_batches = 500,
     batch_size = 64,
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
+    use_classifier = False,
   ):
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
@@ -245,7 +256,7 @@ def main(
   )
   error = errors.mean()
   error_std = errors.std()
-  print(f"[baseline] MAE={error:.5f}+-{error_std:.5f}")
+  print(f"[baseline (SLD)] MAE={error:.5f}+-{error_std:.5f}")
 
   # instantiate the model
   module = SimpleModule()
@@ -277,7 +288,7 @@ def main(
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
       quapy_method = QuaPyWrapper(qunfold.GenericMethod(
         qunfold.LeastSquaresLoss(),
-        DeepTransformer(training_state)
+        DeepTransformer(training_state, output_index = 1 if use_classifier else 0)
       )).fit(trn_data)
       errors = qp.evaluation.evaluate( # errors of all predictions
         quapy_method,
@@ -294,16 +305,19 @@ def main(
       )
 
     # update parameters and metrics
-    p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
-    sample = {
-      "X_q": [
-        X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
-        for p_T in p_Ts
-      ],
-      "X_M": [ X_M[y_M == i] for i in range(28) ],
-      "p_Ts": p_Ts,
-    }
-    training_state = training_step(training_state, sample)
+    if use_classifier:
+      training_state = training_step_classifier(training_state, X_trn, y_trn) # one epoch
+    else:
+      p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
+      sample = {
+        "X_q": [
+          X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
+          for p_T in p_Ts
+        ],
+        "X_M": [ X_M[y_M == i] for i in range(28) ],
+        "p_Ts": p_Ts,
+      }
+      training_state = training_step(training_state, sample)
 
     # # do we need a softmax operator for pinv(M) @ q ?
     # _qs = jnp.array([
