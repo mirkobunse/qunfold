@@ -17,6 +17,7 @@ from .transformers import (
     EnergyKernelTransformer,
     LaplacianKernelTransformer,
     GaussianKernelTransformer,
+    GaussianKernelTransformerRFF,
 )
 
 from .methods import (
