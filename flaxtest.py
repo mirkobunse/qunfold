@@ -142,8 +142,8 @@ class SimpleModule(nn.Module):
   """A simple neural network."""
   @nn.compact
   def __call__(self, x):
-    # x = nn.Dense(features=300)(x)
-    # x = nn.relu(x)
+    x = nn.Dense(features=300)(x)
+    x = nn.relu(x)
     return (
       nn.Dense(features=64)(x), # the typical output
       nn.Dense(features=28)(x), # an additional output for 28 classes
@@ -238,11 +238,12 @@ def training_step_classifier(state, X, y):
       labels = y
     ).mean()
   state = state.apply_gradients(grads=jax.grad(loss_fn)(state.params))
-  metric_updates = state.metrics.single_from_model_output(
-    loss = loss_fn(state.params)
-  )
-  metrics = state.metrics.merge(metric_updates)
-  return state.replace(metrics=metrics) # update the state with metrics
+  # metric_updates = state.metrics.single_from_model_output(
+  #   loss = loss_fn(state.params)
+  # )
+  # metrics = state.metrics.merge(metric_updates)
+  # return state.replace(metrics=metrics) # update the state with metrics
+  return state
 
 def training_epoch_classifier(state, epoch_index, X, y, batch_size=128):
   """Take out an epoch for the classification head."""
@@ -305,7 +306,8 @@ def main(
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
       quapy_method = QuaPyWrapper(qunfold.GenericMethod(
         qunfold.LeastSquaresLoss(),
-        DeepTransformer(training_state, output_index = 1 if use_classifier else 0)
+        # DeepTransformer(training_state, output_index = 1 if use_classifier else 0)
+        DeepTransformer(training_state, 0)
       )).fit(trn_data)
       errors = qp.evaluation.evaluate( # errors of all predictions
         quapy_method,
@@ -324,17 +326,17 @@ def main(
     # update parameters and metrics
     if use_classifier:
       training_state = training_epoch_classifier(training_state, batch_index, X_trn, y_trn)
-    else:
-      p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
-      sample = {
-        "X_q": [
-          X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
-          for p_T in p_Ts
-        ],
-        "X_M": [ X_M[y_M == i] for i in range(28) ],
-        "p_Ts": p_Ts,
-      }
-      training_state = training_step(training_state, sample)
+
+    p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
+    sample = {
+      "X_q": [
+        X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
+        for p_T in p_Ts
+      ],
+      "X_M": [ X_M[y_M == i] for i in range(28) ],
+      "p_Ts": p_Ts,
+    }
+    training_state = training_step(training_state, sample)
 
     # # do we need a softmax operator for pinv(M) @ q ?
     # _qs = jnp.array([
