@@ -89,7 +89,7 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 .. autoclass:: qunfold.LaplacianKernelTransformer
 
-.. autoclass:: qunfold.GaussianKernelTransformerRFF
+.. autoclass:: qunfold.GaussianRFFKernelTransformer
 ```
 
 
