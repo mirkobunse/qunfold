@@ -376,13 +376,13 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
       n_rff (optional): The number of random Fourier features. Defaults to `1000`.
       preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
-      random_state (optional): Controls the randomness of the random Fourier features.
+      seed (optional): Controls the randomness of the random Fourier features. Defaults to `None`.
   """
-  def __init__(self, sigma=1, n_rff=1000, preprocessor=None, random_state=None):
+  def __init__(self, sigma=1, n_rff=1000, preprocessor=None, seed=None):
     self.sigma = sigma
     self.n_rff = n_rff
     self.preprocessor = preprocessor
-    self.random_state = random_state
+    self.seed = seed
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianRFFKernelTransformer does not support average=False")
@@ -395,7 +395,7 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
     self.y_trn = y
-    self.w = np.random.RandomState(self.random_state).normal(
+    self.w = np.random.default_rng(self.seed).normal(
       loc = 0,
       scale = (1. / self.sigma),
       size = (self.n_rff // 2, X.shape[1]),
