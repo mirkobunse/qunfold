@@ -93,6 +93,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.EnergyKernelTransformer"><code class="docutils literal notranslate"><span class="pre">EnergyKernelTransformer</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">GaussianKernelTransformer</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.LaplacianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">LaplacianKernelTransformer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianRFFKernelTransformer"><code class="docutils literal notranslate"><span class="pre">GaussianRFFKernelTransformer</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
@@ -322,15 +323,16 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.KMM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KMM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KMM" title="Permalink to this definition"></a></dt>
-<dd><p>The kernel-based KMM method by Dussap et al. (2023).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>KernelTransformer</cite>.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KMM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KMM" title="Permalink to this definition"></a></dt>
+<dd><p>The kernel-based KMM method with random Fourier features by Dussap et al. (2023).</p>
+<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and an instance of a <cite>KernelTransformer</cite> sub-class that corresponds to the <cite>kernel</cite> argument.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>kernel</strong> (<em>optional</em>) – Which kernel to use. Can be a callable with the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite> or one of “energy”, “gaussian”, and “laplacian”. Defaults to “energy”.</p></li>
-<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter in the <cite>gaussian</cite> and <cite>laplacian</cite> kernels. Defaults to <cite>1</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>kernel</strong> (<em>optional</em>) – Which kernel to use. Can be a callable with the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite> or one of “energy”, “gaussian”, “laplacian” and “rff”. Defaults to “energy”.</p></li>
+<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter that is used if <cite>kernel in [“gaussian”, “laplacian”, “rff”]</cite>. Defaults to <cite>1</cite>.</p></li>
+<li><p><strong>n_rff</strong> (<em>optional</em>) – The number of random Fourier features if <cite>kernel == “rff”</cite>. Defaults to <cite>1000</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>. The <cite>seed</cite> argument also controls the randomness of the random Fourier features if <cite>kernel == “rff”</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -509,14 +511,17 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.GaussianKernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianKernelTransformer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianKernelTransformer" title="Permalink to this definition"></a></dt>
 <dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>gaussian</cite> kernel:</p>
 <blockquote>
 <div><p>k(x, y) = exp(-||x - y||^2 / (2σ^2))</p>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -528,6 +533,22 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.GaussianRFFKernelTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianRFFKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianRFFKernelTransformer" title="Permalink to this definition"></a></dt>
+<dd><p>An efficient approximation of the <cite>GaussianKernelTransformer</cite>, as it is used in <cite>KMM</cite>, using random Fourier features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p></li>
+<li><p><strong>n_rff</strong> (<em>optional</em>) – The number of random Fourier features. Defaults to <cite>1000</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>seed</strong> (<em>optional</em>) – Controls the randomness of the random Fourier features. Defaults to <cite>None</cite>.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
