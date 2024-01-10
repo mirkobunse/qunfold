@@ -267,8 +267,51 @@ class EnergyKernelTransformer(AbstractTransformer):
         dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
+class GaussianKernelTransformer(AbstractTransformer):
+  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
+
+      k(x, y) = exp(-||x - y||^2 / (2σ^2))
+
+  Args:
+      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+  """
+  def __init__(self, sigma=1, preprocessor=None):
+    self.sigma = sigma
+    self.preprocessor = preprocessor
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    if not average:
+      raise ValueError("GaussianKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
+    else:
+      _check_y(y, n_classes)
+      self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
+    self.X_trn = X
+    self.y_trn = y
+    M = np.zeros((n_classes, n_classes))
+    for c in range(n_classes):
+      M[:,c] = self._transform_after_preprocessor(X[y==c])
+    return M
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("GaussianKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(X)
+  def _transform_after_preprocessor(self, X):
+    n_classes = len(self.p_trn)
+    res = np.zeros(n_classes)
+    for i in range(n_classes):
+      norm_fac = X.shape[0] * self.X_trn[self.y_trn==i].shape[0]
+      sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
+      res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
+    return res
+
 class KernelTransformer(AbstractTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`.
+  """A general kernel-based feature transformation, as it is used in `KMM`. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.
 
   Note:
       The methods of this transformer do not support setting `average=False`.
@@ -304,30 +347,6 @@ class KernelTransformer(AbstractTransformer):
         q[c] = self.kernel(self.X_trn[self.y_trn==c], X)
     return q
 
-# kernel function for the GaussianKernelTransformer
-def _gaussianKernel(X, Y, sigma):
-    nx = X.shape[0]
-    ny = Y.shape[0]
-    X = X.reshape((X.shape[0], 1, X.shape[1]))
-    Y = Y.reshape((1, Y.shape[0], Y.shape[1]))
-    D_lk = ((X - Y)**2).sum(-1)
-    K_ij = np.exp((-D_lk / (2 * sigma**2))).sum(0).sum(0) / (nx * ny)
-    return K_ij
-
-class GaussianKernelTransformer(KernelTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
-
-      k(x, y) = exp(-||x - y||^2 / (2σ^2))
-
-  Args:
-      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
-  """
-  def __init__(self, sigma=1):
-    self.sigma = sigma
-  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
-  def kernel(self):
-    return partial(_gaussianKernel, sigma=self.sigma)
-
 # kernel function for the LaplacianKernelTransformer
 def _laplacianKernel(X, Y, sigma):
     nx = X.shape[0]
@@ -346,6 +365,54 @@ class LaplacianKernelTransformer(KernelTransformer):
   """
   def __init__(self, sigma=1):
     self.sigma = sigma
-  @property
+  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
   def kernel(self):
     return partial(_laplacianKernel, sigma=self.sigma)
+
+class GaussianRFFKernelTransformer(AbstractTransformer):
+  """An efficient approximation of the `GaussianKernelTransformer`, as it is used in `KMM`, using random Fourier features.
+
+  Args:
+      sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
+      n_rff (optional): The number of random Fourier features. Defaults to `1000`.
+      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      seed (optional): Controls the randomness of the random Fourier features. Defaults to `None`.
+  """
+  def __init__(self, sigma=1, n_rff=1000, preprocessor=None, seed=None):
+    self.sigma = sigma
+    self.n_rff = n_rff
+    self.preprocessor = preprocessor
+    self.seed = seed
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    if not average:
+      raise ValueError("GaussianRFFKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      self.p_trn = self.preprocessor.p_trn # copy from preprocessor
+    else:
+      _check_y(y, n_classes)
+      self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
+    self.X_trn = X
+    self.y_trn = y
+    self.w = np.random.default_rng(self.seed).normal(
+      loc = 0,
+      scale = (1. / self.sigma),
+      size = (self.n_rff // 2, X.shape[1]),
+    ).astype(np.float32)
+    self.mu = np.stack(
+      [ self._transform_after_preprocessor(X[y==c]) for c in range(n_classes) ],
+      axis = 1
+    )
+    self.M = self.mu.T @ self.mu
+    return self.M
+  def transform(self, X, average=True):
+    if not average:
+      raise ValueError("GaussianRFFKernelTransformer does not support average=False")
+    if self.preprocessor is not None:
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(X) @ self.mu
+  def _transform_after_preprocessor(self, X):
+    Xw = X @ self.w.T
+    C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
+    return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)

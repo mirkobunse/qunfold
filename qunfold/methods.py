@@ -290,22 +290,29 @@ class HDy(GenericMethod):
     )
 
 class KMM(GenericMethod):
-  """The kernel-based KMM method by Dussap et al. (2023).
-  
-  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `KernelTransformer`.
+  """The kernel-based KMM method with random Fourier features by Dussap et al. (2023).
+
+  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelTransformer` sub-class that corresponds to the `kernel` argument.
 
   Args:
-      kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", and "laplacian". Defaults to "energy".
-      sigma (optional): A smoothing parameter in the `gaussian` and `laplacian` kernels. Defaults to `1`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", "laplacian" and "rff". Defaults to "energy".
+      sigma (optional): A smoothing parameter that is used if `kernel in ["gaussian", "laplacian", "rff"]`. Defaults to `1`.
+      n_rff (optional): The number of random Fourier features if `kernel == "rff"`. Defaults to `1000`.
+      **kwargs: Keyword arguments accepted by `GenericMethod`. The `seed` argument also controls the randomness of the random Fourier features if `kernel == "rff"`.
   """
-  def __init__(self, kernel="energy", sigma=1, **kwargs):
+  def __init__(self, kernel="energy", sigma=1, n_rff=1000, seed=None, **kwargs):
     if kernel == "energy":
       transformer = transformers.EnergyKernelTransformer()
     elif kernel == "gaussian":
       transformer = transformers.GaussianKernelTransformer(sigma=sigma)
     elif kernel == "laplacian":
       transformer = transformers.LaplacianKernelTransformer(sigma=sigma)
+    elif kernel == "rff":
+      transformer = transformers.GaussianRFFKernelTransformer(
+        sigma = sigma,
+        n_rff = n_rff,
+        seed = seed,
+      )
     else:
       transformer = transformers.KernelTransformer(kernel)
-    GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, **kwargs)
+    GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)

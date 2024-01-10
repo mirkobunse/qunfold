@@ -55,16 +55,17 @@ class TestMethods(TestCase):
         oob_score = True,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = qunfold.ACC(rf).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_hdx = qunfold.HDx(3).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_edx = qunfold.EDx().fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_edy = qunfold.EDy(rf).fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn, n_classes).predict(X_tst)
-      p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn, n_classes).predict(X_tst)
+      p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
+      p_hdx = qunfold.HDx(3).fit(X_trn, y_trn).predict(X_tst)
+      p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
+      p_edx = qunfold.EDx().fit(X_trn, y_trn).predict(X_tst)
+      p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
+      p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
+      p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
+      p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
@@ -92,6 +93,8 @@ class TestMethods(TestCase):
         f"             {p_kmmg.nit} it.; {p_kmmg.message}",
         f"     p_kmml = {p_kmml}",
         f"             {p_kmml.nit} it.; {p_kmml.message}",
+        f"     p_rff = {p_rff}",
+        f"             {p_rff.nit} it.; {p_rff.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
@@ -150,7 +153,7 @@ class TestQuaPyWrapper(TestCase):
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
       p_acc = QuaPyWrapper(qunfold.ACC(lr))
-      self.assertEquals( # check that get_params returns the correct settings
+      self.assertEqual( # check that get_params returns the correct settings
         p_acc.get_params(deep=True)["transformer__classifier__estimator__C"],
         1e-2
       )
@@ -164,7 +167,7 @@ class TestQuaPyWrapper(TestCase):
         refit = False,
         verbose = True,
       ).fit(LabelledCollection(X_trn, y_trn))
-      self.assertEquals( # check that best parameters are actually used
+      self.assertEqual( # check that best parameters are actually used
         quapy_method.best_params_["transformer__classifier__estimator__C"],
         quapy_method.best_model_.generic_method.transformer.classifier.estimator.C
       )
@@ -249,6 +252,6 @@ class TestHellingerSurrogateLoss(TestCase):
 
       # make sure the functions return roughly the same for other distributions
       # check for 6 decimal place accuracy
-      self.assertAlmostEquals(F_hl + new_loss(p_tst),
-                              0.5 * old_loss(p_tst),
-                              places=5)
+      self.assertAlmostEqual(F_hl + new_loss(p_tst),
+                             0.5 * old_loss(p_tst),
+                             places=5)
