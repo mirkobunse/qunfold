@@ -10,6 +10,7 @@ This Python package implements our unified framework of algorithms for quantific
 ## Installation
 
 ```
+pip install --upgrade pip setuptools wheel
 pip install 'qunfold @ git+https://github.com/mirkobunse/qunfold'
 ```
 
