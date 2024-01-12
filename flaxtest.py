@@ -13,6 +13,7 @@ from qunfold.quapy import QuaPyWrapper
 from qunfold.transformers import AbstractTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from time import time
 
 
 
@@ -168,16 +169,15 @@ def create_training_state(module, rng, learning_rate, momentum):
     metrics = Metrics.empty()
   )
 
-def mean_embedding(phi_X):
-  # return nn.activation.softmax(phi_X, axis=1).mean(axis=0)
-  # return phi_X.mean(axis=0)
-  # return nn.activation.sigmoid(10 * phi_X).mean(axis=0) # factor 10 for a steeper activation
-  return nn.activation.sigmoid(phi_X).mean(axis=0)
+def mean_embedding(phi_X, use_classifier):
+  if use_classifier:
+    return nn.activation.softmax(phi_X[1], axis=1).mean(axis=0)
+  return nn.activation.sigmoid(phi_X[0]).mean(axis=0)
 
 class DeepTransformer(AbstractTransformer):
-  def __init__(self, state, output_index):
+  def __init__(self, state, use_classifier):
     self.state = state
-    self.output_index = output_index
+    self.use_classifier = use_classifier
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("DeepTransformer does not support average=False")
@@ -185,7 +185,8 @@ class DeepTransformer(AbstractTransformer):
     self.p_trn = qunfold.transformers.class_prevalences(y, n_classes)
     M = jnp.vstack([
       mean_embedding(
-        self.state.apply_fn({ "params": self.state.params }, X_i)[self.output_index]
+        self.state.apply_fn({ "params": self.state.params }, X_i),
+        self.use_classifier
       )
       for X_i in [ X[y == i] for i in range(len(self.p_trn)) ]
     ]).T
@@ -194,7 +195,8 @@ class DeepTransformer(AbstractTransformer):
     if not average:
       raise ValueError("DeepTransformer does not support average=False")
     q = mean_embedding(
-      self.state.apply_fn({ "params": self.state.params }, X)[self.output_index]
+      self.state.apply_fn({ "params": self.state.params }, X),
+      self.use_classifier
     )
     return q
 
@@ -214,11 +216,11 @@ def training_step(state, sample):
   """
   def loss_fn(params):
     qs = jnp.array([
-      mean_embedding(state.apply_fn({ "params": params }, X_q)[0])
+      mean_embedding(state.apply_fn({ "params": params }, X_q), False)
       for X_q in sample["X_q"]
     ])
     M = jnp.vstack([
-      mean_embedding(state.apply_fn({ "params": params }, X_i)[0])
+      mean_embedding(state.apply_fn({ "params": params }, X_i), False)
       for X_i in sample["X_M"]
     ]).T
     v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
@@ -257,7 +259,7 @@ def main(
     batch_size = 64,
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
-    use_classifier = True,
+    use_classifier = False,
   ):
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
@@ -286,7 +288,7 @@ def main(
   training_state = create_training_state(
     module,
     jax.random.key(0),
-    learning_rate = 1,
+    learning_rate = 1e-2 if use_classifier else 1,
     momentum = .9,
   )
 
@@ -299,13 +301,16 @@ def main(
   metrics_history = {
     "trn_loss": [],
   }
+  t_0 = time()
   for batch_index in range(n_batches):
+    if batch_index == 1:
+      t_0 = time() # reset after the first batch to ignore JIT overhead
 
     # evaluate every n_batches_between_evaluations
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
       quapy_method = QuaPyWrapper(qunfold.GenericMethod(
         qunfold.LeastSquaresLoss(),
-        DeepTransformer(training_state, output_index = 1 if use_classifier else 0)
+        DeepTransformer(training_state, use_classifier)
       )).fit(trn_data)
       errors = qp.evaluation.evaluate( # errors of all predictions
         quapy_method,
@@ -318,6 +323,7 @@ def main(
         f"[{batch_index:2d}/{n_batches}] ",
         f"MAE={error:.5f}+-{error_std:.5f}",
         f", trn_loss={np.array(metrics_history['trn_loss'])[-n_batches_between_evaluations:].mean():e}" if batch_index > 0 else "",
+        f", {(batch_index-1) / (time()-t_0):.3f} it/s" if batch_index > 0 else "",
         sep = "",
       )
 
