@@ -144,6 +144,12 @@ def draw_indices(
 def draw_indices_parallel(args, y, m):
   return draw_indices(y, args[1], m=m, random_state=args[0])
 
+def predict_parallel(args, M): # args = (q, p)
+  return qp.error.ae(
+    args[1],
+    qunfold.GenericMethod(qunfold.LeastSquaresLoss(), None).solve(args[0], M)
+  )
+
 
 class SimpleModule(nn.Module):
   """A simple neural network."""
@@ -179,32 +185,6 @@ def mean_embedding(phi_X, use_classifier):
   if use_classifier:
     return nn.activation.softmax(phi_X[1], axis=1).mean(axis=0)
   return nn.activation.sigmoid(phi_X[0]).mean(axis=0)
-
-class DeepTransformer(AbstractTransformer):
-  def __init__(self, state, use_classifier):
-    self.state = state
-    self.use_classifier = use_classifier
-  def fit_transform(self, X, y, average=True, n_classes=None):
-    if not average:
-      raise ValueError("DeepTransformer does not support average=False")
-    qunfold.transformers._check_y(y, n_classes)
-    self.p_trn = qunfold.transformers.class_prevalences(y, n_classes)
-    M = jnp.vstack([
-      mean_embedding(
-        self.state.apply_fn({ "params": self.state.params }, X_i),
-        self.use_classifier
-      )
-      for X_i in [ X[y == i] for i in range(len(self.p_trn)) ]
-    ]).T
-    return M
-  def transform(self, X, average=True):
-    if not average:
-      raise ValueError("DeepTransformer does not support average=False")
-    q = mean_embedding(
-      self.state.apply_fn({ "params": self.state.params }, X),
-      self.use_classifier
-    )
-    return q
 
 # TODO implement a learning rate schedule with validation plateau-ing:
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
@@ -242,7 +222,7 @@ def main(
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
   p_trn = n_samples_per_class(y_trn) / len(y_trn)
-  val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
+  val_gen.true_prevs.df = val_gen.true_prevs.df[:n_jobs] # use only n_jobs validation samples
 
   # baseline performance: SLD, the winner @ LeQua2022
   baseline = qp.method.aggregative.EMQ(LogisticRegression(C=0.01)).fit(trn_data)
@@ -317,19 +297,24 @@ def main(
 
     # evaluate every n_batches_between_evaluations
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
-      t_eval = time() # remember the evaluation time to ignore it later
-      quapy_method = QuaPyWrapper(qunfold.GenericMethod(
-        qunfold.LeastSquaresLoss(),
-        DeepTransformer(training_state, use_classifier)
-      )).fit(trn_data)
-      errors = qp.evaluation.evaluate( # errors of all predictions
-        quapy_method,
-        protocol = val_gen,
-        error_metric = "ae"
+      # t_eval = time() # remember the evaluation time to ignore it later
+      errors = []
+      qps = [ # (q, p)
+        (mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i), use_classifier), p_i)
+        for (X_i, p_i) in val_gen()
+      ]
+      _predict_parallel = partial(
+        predict_parallel,
+        M = np.vstack([
+          mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i), use_classifier)
+          for X_i in [ X_trn[y_trn == i] for i in range(28) ]
+        ]).T
       )
-      error = errors.mean()
-      error_std = errors.std()
-      t_0 += time() - t_eval # ignore evaluation time by pretending to have started later
+      with Pool(n_jobs if n_jobs > 0 else None) as pool:
+        errors.extend(pool.imap(_predict_parallel, qps))
+      error = np.mean(errors)
+      error_std = np.std(errors)
+      # t_0 += time() - t_eval # ignore evaluation time by pretending to have started later
       print(
         f"[{batch_index:2d}/{n_batches}] ",
         f"MAE={error:.5f}+-{error_std:.5f}",
