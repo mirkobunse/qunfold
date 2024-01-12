@@ -9,6 +9,8 @@ from copy import deepcopy
 from clu import metrics # utilities for handling metrics in training loops
 from flax import linen as nn
 from flax.training import train_state
+from functools import partial
+from multiprocessing import Pool
 from qunfold.quapy import QuaPyWrapper
 from qunfold.transformers import AbstractTransformer
 from sklearn.linear_model import LogisticRegression
@@ -139,6 +141,10 @@ def draw_indices(
 
 
 
+def draw_indices_parallel(args, y, m):
+  return draw_indices(y, args[1], m=m, random_state=args[0])
+
+
 class SimpleModule(nn.Module):
   """A simple neural network."""
   @nn.compact
@@ -231,6 +237,7 @@ def main(
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
     use_classifier = False,
+    n_jobs = 8,
   ):
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
@@ -336,10 +343,12 @@ def main(
       training_state = training_epoch_classifier(training_state, batch_index, X_trn, y_trn)
     else:
       p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
-      X_q_i = jnp.vstack([
-        X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
-        for p_T in p_Ts
-      ])
+      q_i = []
+      draw_parallel = partial(draw_indices_parallel, y=y_q, m=sample_size)
+      with Pool(n_jobs if n_jobs > 0 else None) as pool:
+        q_i.extend(pool.imap(draw_parallel, enumerate(p_Ts)))
+      p_Ts = jnp.vstack([ n_samples_per_class(y_q[i], 28) / sample_size for i in q_i ])
+      X_q_i = jnp.vstack([ X_q[i] for i in q_i ])
       training_state = training_step(training_state, p_Ts, X_q_i)
 
     # # do we need a softmax operator for pinv(M) @ q ?
