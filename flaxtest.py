@@ -204,31 +204,20 @@ class DeepTransformer(AbstractTransformer):
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
 
 @jax.jit
-def training_step(state, sample):
+def training_step(state, p_Ts, X_q_i, avg_q, X_M, avg_M):
   """Perform a single parameter update.
-
-  Args:
-      state: A TrainingState object.
-      sample: A dict with keys "X_q", "X_M", and "p".
 
   Returns:
       An updated TrainingState object.
   """
   def loss_fn(params):
-    qs = jnp.array([
-      mean_embedding(state.apply_fn({ "params": params }, X_q), False)
-      for X_q in sample["X_q"]
-    ])
-    M = jnp.vstack([
-      mean_embedding(state.apply_fn({ "params": params }, X_i), False)
-      for X_i in sample["X_M"]
-    ]).T
-    v = sample["p_Ts"] - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
+    qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)[0]))
+    M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M)[0])).T
+    v = p_Ts - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
     return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
-  state = state.apply_gradients(grads=jax.grad(loss_fn)(state.params)) # update the state
-  metric_updates = state.metrics.single_from_model_output(
-    loss = loss_fn(state.params)
-  )
+  loss, grad = jax.value_and_grad(loss_fn)(state.params)
+  state = state.apply_gradients(grads=grad) # update the state
+  metric_updates = state.metrics.single_from_model_output(loss=loss)
   metrics = state.metrics.merge(metric_updates)
   return state.replace(metrics=metrics) # update the state with metrics
 
@@ -296,7 +285,19 @@ def main(
   print("Training...")
   X_trn = jnp.array(X_trn, dtype=jnp.float32)
   y_trn = jnp.array(y_trn)
-  X_M, X_q, y_M, y_q = train_test_split(X_trn, y_trn, stratify=y_trn, test_size=.5, random_state=25)
+  X_M, X_q, y_M, y_q = train_test_split(
+    X_trn,
+    y_trn,
+    stratify = y_trn,
+    test_size = .5,
+    random_state = 25
+  )
+  avg_M = np.zeros((28, len(X_M))) # shape (n_classes, n_samples)
+  for i in range(28):
+    avg_M[i, y_M == i] = 1 / np.sum(y_M == i)
+  avg_q = np.zeros((batch_size, batch_size * sample_size))
+  for i in range(batch_size):
+    avg_q[i,i*sample_size:(i+1)*sample_size] = 1 / sample_size
   sample_rng = np.random.default_rng(25)
   metrics_history = {
     "trn_loss": [],
@@ -308,6 +309,7 @@ def main(
 
     # evaluate every n_batches_between_evaluations
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
+      t_eval = time() # remember the evaluation time to ignore it later
       quapy_method = QuaPyWrapper(qunfold.GenericMethod(
         qunfold.LeastSquaresLoss(),
         DeepTransformer(training_state, use_classifier)
@@ -319,11 +321,12 @@ def main(
       )
       error = errors.mean()
       error_std = errors.std()
+      t_0 += time() - t_eval # ignore evaluation time by pretending to have started later
       print(
         f"[{batch_index:2d}/{n_batches}] ",
         f"MAE={error:.5f}+-{error_std:.5f}",
         f", trn_loss={np.array(metrics_history['trn_loss'])[-n_batches_between_evaluations:].mean():e}" if batch_index > 0 else "",
-        f", {(batch_index-1) / (time()-t_0):.3f} it/s" if batch_index > 0 else "",
+        f", {(batch_index-1) / (time() - t_0):.3f} it/s" if batch_index > 0 else "",
         sep = "",
       )
 
@@ -332,15 +335,11 @@ def main(
       training_state = training_epoch_classifier(training_state, batch_index, X_trn, y_trn)
     else:
       p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
-      sample = {
-        "X_q": [
-          X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
-          for p_T in p_Ts
-        ],
-        "X_M": [ X_M[y_M == i] for i in range(28) ],
-        "p_Ts": p_Ts,
-      }
-      training_state = training_step(training_state, sample)
+      X_q_i = jnp.vstack([
+        X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
+        for p_T in p_Ts
+      ])
+      training_state = training_step(training_state, p_Ts, X_q_i, avg_q, X_M, avg_M)
 
     # # do we need a softmax operator for pinv(M) @ q ?
     # _qs = jnp.array([
