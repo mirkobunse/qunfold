@@ -1,0 +1,3 @@
+[submodule "docker/custom-container-example"]
+	path = docker/custom-container-example
+	url = git@gitlab.tu-dortmund.de:lamarr/lamarr-public/custom-container-example.git
