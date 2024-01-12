@@ -142,10 +142,11 @@ class SimpleModule(nn.Module):
   """A simple neural network."""
   @nn.compact
   def __call__(self, x):
-    x = nn.Dense(features=64)(x)
+    x = nn.Dense(features=300)(x)
+    x = nn.relu(x)
     return (
-      x, # the typical output
-      nn.Dense(features=28)(nn.relu(x)), # an additional output for 28 classes
+      nn.Dense(features=64)(x), # the typical output
+      nn.Dense(features=28)(x), # an additional output for 28 classes
     )
 
 # a storage for all state involved in training, including metrics
