@@ -204,24 +204,6 @@ class DeepTransformer(AbstractTransformer):
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
 
 @jax.jit
-def training_step(state, p_Ts, X_q_i, avg_q, X_M, avg_M):
-  """Perform a single parameter update.
-
-  Returns:
-      An updated TrainingState object.
-  """
-  def loss_fn(params):
-    qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)[0]))
-    M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M)[0])).T
-    v = p_Ts - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
-    return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
-  loss, grad = jax.value_and_grad(loss_fn)(state.params)
-  state = state.apply_gradients(grads=grad) # update the state
-  metric_updates = state.metrics.single_from_model_output(loss=loss)
-  metrics = state.metrics.merge(metric_updates)
-  return state.replace(metrics=metrics) # update the state with metrics
-
-@jax.jit
 def training_step_classifier(state, X, y):
   def loss_fn(params):
     return optax.softmax_cross_entropy_with_integer_labels(
@@ -302,6 +284,25 @@ def main(
   metrics_history = {
     "trn_loss": [],
   }
+
+  @jax.jit
+  def training_step(state, p_Ts, X_q_i):
+    """Perform a single parameter update.
+
+    Returns:
+        An updated TrainingState object.
+    """
+    def loss_fn(params):
+      qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)[0]))
+      M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M)[0])).T
+      v = p_Ts - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
+      return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
+    loss, grad = jax.value_and_grad(loss_fn)(state.params)
+    state = state.apply_gradients(grads=grad) # update the state
+    metric_updates = state.metrics.single_from_model_output(loss=loss)
+    metrics = state.metrics.merge(metric_updates)
+    return state.replace(metrics=metrics) # update the state with metrics
+
   t_0 = time()
   for batch_index in range(n_batches):
     if batch_index == 1:
@@ -339,7 +340,7 @@ def main(
         X_q[draw_indices(y_q, p_T, sample_size, random_state=sample_rng)]
         for p_T in p_Ts
       ])
-      training_state = training_step(training_state, p_Ts, X_q_i, avg_q, X_M, avg_M)
+      training_state = training_step(training_state, p_Ts, X_q_i)
 
     # # do we need a softmax operator for pinv(M) @ q ?
     # _qs = jnp.array([
