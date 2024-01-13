@@ -16,6 +16,7 @@ from qunfold.transformers import AbstractTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from time import time
+from typing import Callable, Sequence
 
 
 
@@ -152,15 +153,13 @@ def predict_parallel(args, M): # args = (q, p)
 
 
 class SimpleModule(nn.Module):
-  """A simple neural network."""
+  """A simple dense neural network with ReLU activation."""
+  n_features: Sequence[int]
   @nn.compact
   def __call__(self, x):
-    # x = nn.Dense(features=300)(x)
-    # x = nn.relu(x)
-    return (
-      nn.Dense(features=64)(x), # the typical output
-      nn.Dense(features=28)(x), # an additional output for 28 classes
-    )
+    for i, n_features in enumerate(self.n_features):
+      x = nn.Dense(n_features)(nn.activation.relu(x) if i > 0 else x)
+    return x
 
 # a storage for all state involved in training, including metrics
 @flax.struct.dataclass
@@ -183,8 +182,8 @@ def create_training_state(module, rng, learning_rate, momentum):
 
 def mean_embedding(phi_X, use_classifier):
   if use_classifier:
-    return nn.activation.softmax(phi_X[1], axis=1).mean(axis=0)
-  return nn.activation.sigmoid(phi_X[0]).mean(axis=0)
+    return nn.activation.softmax(phi_X, axis=1).mean(axis=0)
+  return nn.activation.sigmoid(phi_X).mean(axis=0)
 
 # TODO implement a learning rate schedule with validation plateau-ing:
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
@@ -193,7 +192,7 @@ def mean_embedding(phi_X, use_classifier):
 def training_step_classifier(state, X, y):
   def loss_fn(params):
     return optax.softmax_cross_entropy_with_integer_labels(
-      logits = state.apply_fn({'params': params}, X)[1],
+      logits = state.apply_fn({'params': params}, X),
       labels = y
     ).mean()
   state = state.apply_gradients(grads=jax.grad(loss_fn)(state.params))
@@ -236,7 +235,7 @@ def main(
   print(f"[baseline (SLD)] MAE={error:.5f}+-{error_std:.5f}")
 
   # instantiate the model
-  module = SimpleModule()
+  module = SimpleModule([28] if use_classifier else [64])
   print(module.tabulate( # inspect the structure of the model
     jax.random.key(0),
     jnp.ones((1, 300)),
@@ -280,8 +279,8 @@ def main(
         An updated TrainingState object.
     """
     def loss_fn(params):
-      qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)[0]))
-      M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M)[0])).T
+      qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)))
+      M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M))).T
       v = p_Ts - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
       return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
     loss, grad = jax.value_and_grad(loss_fn)(state.params)
@@ -297,7 +296,6 @@ def main(
 
     # evaluate every n_batches_between_evaluations
     if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
-      # t_eval = time() # remember the evaluation time to ignore it later
       errors = []
       qps = [ # (q, p)
         (mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i), use_classifier), p_i)
@@ -314,7 +312,6 @@ def main(
         errors.extend(pool.imap(_predict_parallel, qps))
       error = np.mean(errors)
       error_std = np.std(errors)
-      # t_0 += time() - t_eval # ignore evaluation time by pretending to have started later
       print(
         f"[{batch_index:2d}/{n_batches}] ",
         f"MAE={error:.5f}+-{error_std:.5f}",
@@ -335,26 +332,6 @@ def main(
       p_Ts = jnp.vstack([ n_samples_per_class(y_q[i], 28) / sample_size for i in q_i ])
       X_q_i = jnp.vstack([ X_q[i] for i in q_i ])
       training_state = training_step(training_state, p_Ts, X_q_i)
-
-    # # do we need a softmax operator for pinv(M) @ q ?
-    # _qs = jnp.array([
-    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_q))
-    #   for X_q in sample["X_q"]
-    # ])
-    # _M = jnp.vstack([
-    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i))
-    #   for X_i in sample["X_M"]
-    # ]).T
-    # _p_hat = (jnp.linalg.pinv(_M) @ _qs.T).T
-    # _p_hat = _p_hat / _p_hat.sum(axis=1, keepdims=True)
-    # print(_p_hat.sum(axis=1))
-
-    # # are we allowed to back-propagate through pinv(M)? M is required to have a constant rank
-    # _M = jnp.vstack([
-    #   mean_embedding(training_state.apply_fn({ "params": training_state.params }, X_i))
-    #   for X_i in sample["X_M"]
-    # ]).T
-    # print(jnp.linalg.matrix_rank(_M))
 
     # compute average training metrics for this epoch and reset the metric state
     for metric, value in training_state.metrics.compute().items():
