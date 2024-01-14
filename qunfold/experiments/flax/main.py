@@ -136,7 +136,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     training_state = training_state.replace(metrics=training_state.metrics.empty()) # reset
 
     # evaluate every n_batches_between_evaluations
-    if batch_index % n_batches_between_evaluations == 0 or (batch_index+1) == n_batches:
+    if (batch_index+1) % n_batches_between_evaluations == 0 or batch_index == 0:
       qs, M = validation_embedding(training_state)
       solve_parallel = partial(_solve_parallel, M=M)
       errors = []
@@ -177,8 +177,8 @@ def main(
     n_features = [ [64], [128] ]
     learning_rates = [ 1e0 ]
     batch_sizes = [ 8 ]
-    kwargs["n_batches"] = 3
-    kwargs["n_batches_between_evaluations"] = 3
+    kwargs["n_batches"] = 2
+    kwargs["n_batches_between_evaluations"] = 2
     kwargs["n_val"] = 3
   kwargs["n_experiments"] = len(n_features) * len(learning_rates) * len(batch_sizes)
 
