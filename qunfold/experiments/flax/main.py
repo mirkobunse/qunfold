@@ -23,15 +23,15 @@ from . import (
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
 
 def _main( # one trial of the experiment; to be taken out with multiple configurations
-    n_features = [64],
-    learning_rate = 1,
+    args,
+    n_experiments = None,
     n_batches = 500,
-    batch_size = 64,
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
     n_jobs = 8,
-    n_val = 8,
+    n_val = 64,
   ):
+  i_experiment, (n_features, learning_rate, batch_size) = args
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
   X_trn = jnp.array(X_trn, dtype=jnp.float32)
@@ -56,12 +56,6 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
 
   # instantiate the model
   module = SimpleModule(n_features)
-  print(module.tabulate( # inspect the structure of the model
-    jax.random.key(0),
-    jnp.ones((1, 300)),
-    compute_flops = True,
-    compute_vjp_flops = True
-  ))
   training_state = create_training_state(
     module,
     jax.random.key(0),
@@ -70,7 +64,6 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   )
 
   # take out the training
-  print("Training...")
   X_M, X_q, y_M, y_q = train_test_split(
     X_trn,
     y_trn,
@@ -163,11 +156,11 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
         "it_per_s": it_per_s,
       })
       print(
-        f"[{batch_index+1:2d}/{n_batches}] ",
-        f"MAE={error:.5f}+-{error_std:.5f}",
-        f", trn_loss={trn_loss:e}",
-        f", {it_per_s:.3f} it/s",
-        sep = "",
+        f"[{i_experiment+1}/{n_experiments} |",
+        f"{batch_index+1}/{n_batches}]",
+        f"MAE={error:.5f}+-{error_std:.5f},",
+        f"trn_loss={trn_loss:e},",
+        f"{it_per_s:.3f} it/s",
       )
   return results
 
@@ -178,19 +171,22 @@ def main(
   # configure the experiments
   n_features = [ [64], [128], [64, 64], [128, 128], [64, 64, 64], [128, 128, 128] ]
   learning_rates = [ 1e-2, 1e-1, 1e0, 1e1 ]
+  batch_sizes = [ 32, 64, 128 ]
   kwargs = {}
   if is_test_run:
     n_features = [ [64], [128] ]
     learning_rates = [ 1e0 ]
+    batch_sizes = [ 8 ]
     kwargs["n_batches"] = 3
     kwargs["n_batches_between_evaluations"] = 3
-    kwargs["batch_size"] = 8
     kwargs["n_val"] = 3
+  kwargs["n_experiments"] = len(n_features) * len(learning_rates) * len(batch_sizes)
 
   # run all experiments one after another
+  print(f"Starting {kwargs['n_experiments']} experiments")
   results = []
-  for args in itertools.product(n_features, learning_rates):
-    results.extend(_main(*args, **kwargs))
+  for args in enumerate(itertools.product(n_features, learning_rates, batch_sizes)):
+    results.extend(_main(args, **kwargs))
   results = pd.DataFrame(results)
 
   # store the results
