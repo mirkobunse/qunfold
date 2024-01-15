@@ -1,9 +1,21 @@
 import argparse
 import numpy as np
 import pandas as pd
+import quapy as qp
 from matplotlib import pyplot as plt
+from sklearn.linear_model import LogisticRegression
 
 _CONFIG_COLS = ["n_features", "learning_rate", "batch_size"]
+
+def baseline(n_val=64): # baseline performance: SLD, the winner @ LeQua2022
+  trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
+  X_trn, y_trn = trn_data.Xy
+  val_gen.true_prevs.df = val_gen.true_prevs.df[:n_val] # use only n_jobs validation samples
+  return qp.evaluation.evaluate( # average of all predictions
+    qp.method.aggregative.EMQ(LogisticRegression(C=0.01)).fit(trn_data),
+    protocol = val_gen,
+    error_metric = "mae"
+  )
 
 def main(results_path):
   df = pd.read_csv(results_path, index_col=0).set_index(_CONFIG_COLS) # read the results
@@ -21,9 +33,13 @@ def main(results_path):
   n_remaining = len(df.groupby(_CONFIG_COLS))
   print(f"Removed {n_configurations - n_remaining} configurations for being dominated")
 
+  baseline_mae = baseline()
+  print(f"Baseline performance: SLD(LR(C=0.01)) = {baseline_mae}")
+
   fig, ax = plt.subplots() # figsize=(5, 2.7)
   for name, sdf in df.groupby(_CONFIG_COLS):
     ax.plot(sdf["batch_index"], sdf["mae"], label=name)
+  ax.axhline(baseline_mae, linestyle="dashed", color="gray", label="SLD(LR) (baseline)")
   ax.set_xlabel("n_batches")
   ax.set_ylabel("MAE")
   ax.legend()
