@@ -149,6 +149,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       results.append({
         "n_features": str(n_features),
         "learning_rate": learning_rate,
+        "batch_size": batch_size,
         "batch_index": batch_index+1,
         "mae": error,
         "mae_std": error_std,
