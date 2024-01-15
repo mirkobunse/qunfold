@@ -3,6 +3,7 @@ import itertools
 import jax
 import jax.numpy as jnp
 import numpy as np
+import optax
 import pandas as pd
 import quapy as qp
 from flax import linen as nn
@@ -15,7 +16,6 @@ from . import (
   draw_indices,
   SimpleModule,
   create_training_state,
-  _draw_indices_parallel,
   _solve_parallel,
 )
 
@@ -25,9 +25,8 @@ from . import (
 def _main( # one trial of the experiment; to be taken out with multiple configurations
     args,
     n_experiments = None,
-    n_batches = 500,
-    sample_size = 1000,
-    n_batches_between_evaluations = 10, # how many samples to process between evaluations
+    n_epochs = 50,
+    n_epochs_between_evaluations = 1, # how many samples to process between evaluations
     n_jobs = 8,
     n_val = 64,
   ):
@@ -64,38 +63,23 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   )
 
   # take out the training
-  X_M, X_q, y_M, y_q = train_test_split(
-    X_trn,
-    y_trn,
-    stratify = y_trn,
-    test_size = .5,
-    random_state = 25
-  )
-  avg_M = np.zeros((28, len(y_M))) # shape (n_classes, n_samples)
-  for i in range(28):
-    avg_M[i, y_M == i] = 1 / np.sum(y_M == i)
-  avg_M = jnp.array(avg_M, dtype=jnp.float32)
-  avg_q = np.zeros((batch_size, batch_size * sample_size))
-  for i in range(batch_size):
-    avg_q[i,i*sample_size:(i+1)*sample_size] = 1 / sample_size
-  avg_q = jnp.array(avg_q, dtype=jnp.float32)
   sample_rng = np.random.default_rng(25)
   metrics_history = {
     "trn_loss": [],
   }
 
   @jax.jit
-  def training_step(state, p_Ts, X_q_i):
+  def training_step(state, X_batch, y_batch):
     """Perform a single parameter update.
 
     Returns:
         An updated TrainingState object.
     """
     def loss_fn(params):
-      qs = jnp.dot(avg_q, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_q_i)))
-      M = jnp.dot(avg_M, nn.activation.sigmoid(state.apply_fn({ "params": params }, X_M))).T
-      v = p_Ts - (jnp.linalg.pinv(M) @ qs.T).T # p_T - p_hat for each p_T
-      return (v**2).sum(axis=1).mean() # least squares ||p* - pinv(M)q||
+      return optax.softmax_cross_entropy_with_integer_labels(
+        logits = state.apply_fn({'params': params}, X_batch),
+        labels = y_batch
+      ).mean()
     loss, grad = jax.value_and_grad(loss_fn)(state.params)
     state = state.apply_gradients(grads=grad) # update the state
     metric_updates = state.metrics.single_from_model_output(loss=loss)
@@ -106,37 +90,33 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   def validation_embedding(state):
     qs = jnp.dot(
       avg_val,
-      nn.activation.sigmoid(state.apply_fn({ "params": state.params }, X_val))
+      nn.activation.softmax(state.apply_fn({ "params": state.params }, X_val), axis=1)
     )
     M = jnp.dot(
       avg_trn,
-      nn.activation.sigmoid(state.apply_fn({ "params": state.params }, X_trn))
+      nn.activation.softmax(state.apply_fn({ "params": state.params }, X_trn), axis=1)
     ).T
     return qs, M
 
   results = []
   t_0 = time()
-  for batch_index in range(n_batches):
-    if batch_index == 1:
+  for epoch_index in range(n_epochs):
+    if epoch_index == 1:
       t_0 = time() # reset after the first batch to ignore JIT overhead
 
     # update parameters and metrics
-    p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
-    q_i = []
-    draw_indices_parallel = partial(_draw_indices_parallel, y=y_q, m=sample_size)
-    with Pool(n_jobs if n_jobs > 0 else None) as pool:
-      q_i.extend(pool.imap(draw_indices_parallel, enumerate(p_Ts)))
-    p_Ts = jnp.vstack([ n_samples_per_class(y_q[i], 28) / sample_size for i in q_i ])
-    X_q_i = jnp.vstack([ X_q[i] for i in q_i ])
-    training_state = training_step(training_state, p_Ts, X_q_i)
+    i_epoch = np.random.default_rng(epoch_index).permutation(len(y_trn))
+    for batch_index in range(len(y_trn) // batch_size):
+      i_batch = i_epoch[batch_index * batch_size:(batch_index+1) * batch_size]
+      training_state = training_step(training_state, X_trn[i_batch], y_trn[i_batch])
 
     # compute average training metrics for this epoch and reset the metric state
     for metric, value in training_state.metrics.compute().items():
       metrics_history[f"trn_{metric}"].append(value)
     training_state = training_state.replace(metrics=training_state.metrics.empty()) # reset
 
-    # evaluate every n_batches_between_evaluations
-    if (batch_index+1) % n_batches_between_evaluations == 0 or batch_index == 0:
+    # evaluate every n_epochs_between_evaluations
+    if (epoch_index+1) % n_epochs_between_evaluations == 0 or epoch_index == 0:
       qs, M = validation_embedding(training_state)
       solve_parallel = partial(_solve_parallel, M=M)
       errors = []
@@ -144,12 +124,12 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
         errors.extend(pool.imap(solve_parallel, zip(qs, p_val)))
       error = np.mean(errors)
       error_std = np.std(errors)
-      trn_loss = np.array(metrics_history["trn_loss"])[-n_batches_between_evaluations:].mean()
-      it_per_s = max(batch_index, 1) / (time() - t_0)
+      trn_loss = np.array(metrics_history["trn_loss"])[-n_epochs_between_evaluations:].mean()
+      it_per_s = max(epoch_index, 1) / (time() - t_0)
       results.append({
         "n_features": str(n_features),
         "learning_rate": learning_rate,
-        "batch_index": batch_index+1,
+        "epoch_index": epoch_index+1,
         "mae": error,
         "mae_std": error_std,
         "trn_loss": trn_loss,
@@ -157,7 +137,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       })
       print(
         f"[{i_experiment+1}/{n_experiments} |",
-        f"{batch_index+1}/{n_batches}]",
+        f"{epoch_index+1}/{n_epochs}]",
         f"MAE={error:.5f}+-{error_std:.5f},",
         f"trn_loss={trn_loss:e},",
         f"{it_per_s:.3f} it/s",
@@ -169,16 +149,16 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [64], [128], [64, 64], [128, 128], [64, 64, 64], [128, 128, 128] ]
-  learning_rates = [ 1e-2, 1e-1, 1e0, 1e1 ]
+  n_features = [ [28], [64, 28], [128, 28], [64, 64, 28], [128, 128, 28] ]
+  learning_rates = [ 1e-4, 1e-3, 1e-2, 1e-1 ]
   batch_sizes = [ 32, 64, 128 ]
   kwargs = {}
   if is_test_run:
-    n_features = [ [64], [128] ]
-    learning_rates = [ 1e0 ]
+    n_features = [ [28], [64, 28] ]
+    learning_rates = [ 1e-2 ]
     batch_sizes = [ 8 ]
-    kwargs["n_batches"] = 2
-    kwargs["n_batches_between_evaluations"] = 2
+    kwargs["n_epochs"] = 2
+    kwargs["n_epochs_between_evaluations"] = 2
     kwargs["n_val"] = 3
   kwargs["n_experiments"] = len(n_features) * len(learning_rates) * len(batch_sizes)
 
