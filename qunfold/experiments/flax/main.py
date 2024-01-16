@@ -21,6 +21,12 @@ from . import (
 
 # TODO implement a learning rate schedule with validation plateau-ing:
 # https://github.com/HDembinski/essays/blob/master/regression.ipynb
+#
+# Actually, before using an adaptive schedule, start with piecewise constant learning rates:
+# https://coderzcolumn.com/tutorials/artificial-intelligence/optax-learning-rate-schedules-for-flax-jax-networks
+
+# TODO use a magnitude-independent loss function like cosine distance
+# instead of least squares -> make up for errors of the pinv solution
 
 def _main( # one trial of the experiment; to be taken out with multiple configurations
     args,
@@ -170,9 +176,9 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [64], [128], [64, 64], [128, 128], [64, 64, 64], [128, 128, 128] ]
-  learning_rates = [ 1e-2, 1e-1, 1e0, 1e1 ]
-  batch_sizes = [ 32, 64, 128 ]
+  n_features = [ [128], [256], [512], [128, 128, 128], [256, 256, 256], [512, 512, 512] ]
+  learning_rates = [ 1e-1, 1e0, 1e1, 1e2 ] # TODO add LR scheduling
+  batch_sizes = [ 32, 128 ]
   kwargs = {}
   if is_test_run:
     n_features = [ [64], [128] ]
