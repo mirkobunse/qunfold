@@ -150,15 +150,30 @@ class Metrics(metrics.Collection):
 class TrainingState(train_state.TrainState):
   metrics: Metrics
 
-def create_training_state(module, rng, learning_rate, momentum):
-  """Create an initial `TrainingState`."""
+def create_training_state(module, lr_init, lr_steps, lr_shrinkage, momentum, rng):
+  """Create an initial `TrainingState`.
+
+  Args:
+      module: a Flax neural network module
+      lr_init: the initial learning rate of learning rate-scheduled SGD
+      lr_steps: a list of steps at which to reduce the learning rate
+      lr_shrinkage: a factor with which the learning rate is multiplied at each step
+      momentum: the SGD momentum
+      rng: controls the random initialization of the parameters
+  """
   return TrainingState.create(
     apply_fn = module.apply,
     params = module.init( # initialize parameters
       rng,
       jnp.ones((1, 300)) # a template batch with one sample, 300 dimensions
     )["params"],
-    tx = optax.sgd(learning_rate, momentum),
+    tx = optax.sgd(
+      learning_rate = optax.piecewise_constant_schedule(
+        init_value = lr_init,
+        boundaries_and_scales = { x: lr_shrinkage for x in lr_steps }
+      ),
+      momentum = momentum
+    ),
     metrics = Metrics.empty()
   )
 

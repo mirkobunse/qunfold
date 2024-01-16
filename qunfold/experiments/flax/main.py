@@ -37,7 +37,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     n_jobs = 8,
     n_val = 64,
   ):
-  i_experiment, (n_features, learning_rate, batch_size) = args
+  i_experiment, (n_features, lr_init, lr_shrinkage, batch_size) = args
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
   X_trn = jnp.array(X_trn, dtype=jnp.float32)
@@ -64,9 +64,11 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   module = SimpleModule(n_features)
   training_state = create_training_state(
     module,
-    jax.random.key(0),
-    learning_rate = learning_rate,
+    lr_init = lr_init,
+    lr_steps = [100, 200, 300, 400], # assuming n_batches = 500; TODO generalize
+    lr_shrinkage = lr_shrinkage,
     momentum = .9,
+    rng = jax.random.key(0),
   )
 
   # take out the training
@@ -154,7 +156,8 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       it_per_s = max(batch_index, 1) / (time() - t_0)
       results.append({
         "n_features": str(n_features),
-        "learning_rate": learning_rate,
+        "lr_init": lr_init,
+        "lr_shrinkage": lr_shrinkage,
         "batch_size": batch_size,
         "batch_index": batch_index+1,
         "mae": error,
@@ -176,23 +179,25 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [128], [256], [512], [128, 128, 128], [256, 256, 256], [512, 512, 512] ]
-  learning_rates = [ 1e-1, 1e0, 1e1, 1e2 ] # TODO add LR scheduling
-  batch_sizes = [ 32, 128 ]
+  n_features = [ [128], [256] ] # , [512], [128, 128, 128], [256, 256, 256], [512, 512, 512]
+  lr_init = [ 1e-1, 1e0, 1e1, 1e2 ]
+  lr_shrinkage = [ .5, .1 ]
+  batch_size = [ 32, 128 ]
   kwargs = {}
   if is_test_run:
     n_features = [ [64], [128] ]
-    learning_rates = [ 1e0 ]
-    batch_sizes = [ 8 ]
+    lr_init = [ 1e1 ]
+    lr_shrinkage = [ .1 ]
+    batch_size = [ 8 ]
     kwargs["n_batches"] = 2
     kwargs["n_batches_between_evaluations"] = 2
     kwargs["n_val"] = 3
-  kwargs["n_experiments"] = len(n_features) * len(learning_rates) * len(batch_sizes)
+  kwargs["n_experiments"] = len(n_features)*len(lr_init)*len(lr_shrinkage)*len(batch_size)
 
   # run all experiments one after another
   print(f"Starting {kwargs['n_experiments']} experiments")
   results = []
-  for args in enumerate(itertools.product(n_features, learning_rates, batch_sizes)):
+  for args in enumerate(itertools.product(n_features, lr_init, lr_shrinkage, batch_size)):
     results.extend(_main(args, **kwargs))
   results = pd.DataFrame(results)
 
