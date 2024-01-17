@@ -31,7 +31,7 @@ from . import (
 def _main( # one trial of the experiment; to be taken out with multiple configurations
     args,
     n_experiments = None,
-    n_batches = 500,
+    n_batches = 300,
     sample_size = 1000,
     n_batches_between_evaluations = 10, # how many samples to process between evaluations
     n_jobs = 8,
@@ -65,7 +65,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   training_state = create_training_state(
     module,
     lr_init = lr_init,
-    lr_steps = [100, 200, 300, 400], # assuming n_batches = 500; TODO generalize
+    lr_steps = [100, 200], # assuming n_batches = 300; TODO generalize
     lr_shrinkage = lr_shrinkage,
     momentum = .9,
     rng = jax.random.key(0),
@@ -179,10 +179,10 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [128], [256] ] # , [512], [128, 128, 128], [256, 256, 256], [512, 512, 512]
+  n_features = [ [256], [512], [256, 256, 256] ]
   lr_init = [ 1e-1, 1e0, 1e1, 1e2 ]
-  lr_shrinkage = [ .5, .1 ]
-  batch_size = [ 32, 128 ]
+  lr_shrinkage = [ 1., .1 ] # no shrinkage vs considerable shrinkage (.1 and .5 seem similar)
+  batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
   kwargs = {}
   if is_test_run:
     n_features = [ [64], [128] ]
