@@ -31,9 +31,9 @@ from . import (
 def _main( # one trial of the experiment; to be taken out with multiple configurations
     args,
     n_experiments = None,
-    n_batches = 300,
+    n_steps = 300,
     sample_size = 1000,
-    n_batches_between_evaluations = 10, # how many samples to process between evaluations
+    n_steps_between_evaluations = 10, # how many samples to process between evaluations
     n_jobs = 8,
     n_val = 64,
   ):
@@ -65,7 +65,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   training_state = create_training_state(
     module,
     lr_init = lr_init,
-    lr_steps = [100, 200], # assuming n_batches = 300; TODO generalize
+    lr_steps = [100, 200], # assuming n_steps = 300; TODO generalize
     lr_shrinkage = lr_shrinkage,
     momentum = .9,
     rng = jax.random.key(0),
@@ -114,8 +114,8 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   # take out the training
   results = []
   t_0 = time()
-  for batch_index in range(n_batches):
-    if batch_index == 1:
+  for step_index in range(n_steps):
+    if step_index == 1:
       t_0 = time() # reset after the first batch to ignore JIT overhead
 
     # draw a new (M, q) split for each step
@@ -124,7 +124,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       y_trn,
       stratify = y_trn,
       test_size = .5,
-      random_state = batch_index
+      random_state = step_index
     )
     avg_M = np.zeros((28, len(y_M))) # shape (n_classes, n_samples)
     for i in range(28):
@@ -146,8 +146,8 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       metrics_history[f"trn_{metric}"].append(value)
     training_state = training_state.replace(metrics=training_state.metrics.empty()) # reset
 
-    # evaluate every n_batches_between_evaluations
-    if (batch_index+1) % n_batches_between_evaluations == 0 or batch_index == 0:
+    # evaluate every n_steps_between_evaluations
+    if (step_index+1) % n_steps_between_evaluations == 0 or step_index == 0:
       qs, M = validation_embedding(training_state)
       solve_parallel = partial(_solve_parallel, M=M)
       errors = []
@@ -155,14 +155,14 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
         errors.extend(pool.imap(solve_parallel, zip(qs, p_val)))
       error = np.mean(errors)
       error_std = np.std(errors)
-      trn_loss = np.array(metrics_history["trn_loss"])[-n_batches_between_evaluations:].mean()
-      it_per_s = max(batch_index, 1) / (time() - t_0)
+      trn_loss = np.array(metrics_history["trn_loss"])[-n_steps_between_evaluations:].mean()
+      it_per_s = max(step_index, 1) / (time() - t_0)
       results.append({
         "n_features": str(n_features),
         "lr_init": lr_init,
         "lr_shrinkage": lr_shrinkage,
         "batch_size": batch_size,
-        "batch_index": batch_index+1,
+        "step_index": step_index+1,
         "mae": error,
         "mae_std": error_std,
         "trn_loss": trn_loss,
@@ -170,7 +170,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       })
       print(
         f"[{i_experiment+1}/{n_experiments} |",
-        f"{batch_index+1}/{n_batches}]",
+        f"{step_index+1}/{n_steps}]",
         f"MAE={error:.5f}+-{error_std:.5f},",
         f"trn_loss={trn_loss:e},",
         f"{it_per_s:.3f} it/s",
@@ -192,8 +192,8 @@ def main(
     lr_init = [ 1e1 ]
     lr_shrinkage = [ .1 ]
     batch_size = [ 8 ]
-    kwargs["n_batches"] = 2
-    kwargs["n_batches_between_evaluations"] = 2
+    kwargs["n_steps"] = 2
+    kwargs["n_steps_between_evaluations"] = 2
     kwargs["n_val"] = 3
   kwargs["n_experiments"] = len(n_features)*len(lr_init)*len(lr_shrinkage)*len(batch_size)
 
