@@ -5,7 +5,7 @@ import quapy as qp
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
 
-_CONFIG_COLS_MAIN = ["n_features", "lr_init", "lr_shrinkage", "batch_size"]
+_CONFIG_COLS_MAIN = ["n_features", "lr_init", "lr_shrinkage", "batch_size", "trial_index"]
 _CONFIG_COLS_PACC = ["n_features", "learning_rate", "batch_size"]
 
 def baseline(n_val=64, use_precomputed_value=True): # baseline performance: SLD, the winner @ LeQua2022
@@ -49,9 +49,9 @@ def main(main_path, pacc_path):
 
   fig, ax = plt.subplots() # figsize=(5, 2.7)
   for name, sdf in df_main.groupby(_CONFIG_COLS_MAIN): # plot main results
-    ax.plot(sdf["batch_index"], sdf["mae"], label=f"$\phi$ {name}")
+    ax.plot(sdf["step_index"], sdf["mae"], label=f"$\phi$ {name}")
   for name, sdf in df_pacc.groupby(_CONFIG_COLS_PACC): # plot PACC results
-    ax.plot(sdf["batch_index"] * 10, sdf["mae"], linestyle="dashed", label=f"PACC {name}")
+    ax.plot(sdf["step_index"] * 10, sdf["mae"], linestyle="dashed", label=f"PACC {name}")
   ax.axhline(baseline_mae, linestyle="dotted", color="gray", label="SLD(LR) (baseline)")
   ax.set_xlabel("n_batches")
   ax.set_ylabel("MAE")

@@ -37,7 +37,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     n_jobs = 8,
     n_val = 64,
   ):
-  i_experiment, (n_features, lr_init, lr_shrinkage, batch_size) = args
+  i_experiment, (n_features, lr_init, lr_shrinkage, batch_size, trial_index) = args
   trn_data, val_gen, tst_gen = qp.datasets.fetch_lequa2022(task="T1B")
   X_trn, y_trn = trn_data.Xy
   X_trn = jnp.array(X_trn, dtype=jnp.float32)
@@ -68,7 +68,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     lr_steps = [100, 200], # assuming n_steps = 300; TODO generalize
     lr_shrinkage = lr_shrinkage,
     momentum = .9,
-    rng = jax.random.key(0),
+    rng = jax.random.key(trial_index),
   )
 
   # instantiate training utilities
@@ -76,7 +76,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   for i in range(batch_size):
     avg_q[i,i*sample_size:(i+1)*sample_size] = 1 / sample_size
   avg_q = jnp.array(avg_q, dtype=jnp.float32)
-  sample_rng = np.random.default_rng(25)
+  sample_rng = np.random.default_rng(trial_index)
   metrics_history = {
     "trn_loss": [],
   }
@@ -124,7 +124,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
       y_trn,
       stratify = y_trn,
       test_size = .5,
-      random_state = step_index
+      random_state = 1000 * trial_index + step_index
     )
     avg_M = np.zeros((28, len(y_M))) # shape (n_classes, n_samples)
     for i in range(28):
@@ -167,6 +167,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
         "mae_std": error_std,
         "trn_loss": trn_loss,
         "it_per_s": it_per_s,
+        "trial_index": trial_index,
       })
       print(
         f"[{i_experiment+1}/{n_experiments} |",
@@ -182,10 +183,11 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [64], [512], [1024] ]
-  lr_init = [ 1e0, 1e1 ]
-  lr_shrinkage = [ 1., .1 ] # no shrinkage vs considerable shrinkage (.1 and .5 seem similar)
+  n_features = [ [512] ]
+  lr_init = [ 1e1 ]
+  lr_shrinkage = [ .5 ] # some shrinkage is better than none (but .1 and .5 seem similar)
   batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
+  n_trials = 3
   kwargs = {}
   if is_test_run:
     n_features = [ [64], [128] ]
@@ -195,12 +197,25 @@ def main(
     kwargs["n_steps"] = 2
     kwargs["n_steps_between_evaluations"] = 2
     kwargs["n_val"] = 3
-  kwargs["n_experiments"] = len(n_features)*len(lr_init)*len(lr_shrinkage)*len(batch_size)
+    n_trials = 2
+  kwargs["n_experiments"] = np.product([
+    len(n_features),
+    len(lr_init),
+    len(lr_shrinkage),
+    len(batch_size),
+    n_trials,
+  ])
 
   # run all experiments one after another
   print(f"Starting {kwargs['n_experiments']} experiments")
   results = []
-  for args in enumerate(itertools.product(n_features, lr_init, lr_shrinkage, batch_size)):
+  for args in enumerate(itertools.product(
+      n_features,
+      lr_init,
+      lr_shrinkage,
+      batch_size,
+      np.arange(n_trials),
+    )):
     results.extend(_main(args, **kwargs))
   results = pd.DataFrame(results)
 
