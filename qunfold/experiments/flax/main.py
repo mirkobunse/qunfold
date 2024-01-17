@@ -71,18 +71,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     rng = jax.random.key(0),
   )
 
-  # take out the training
-  X_M, X_q, y_M, y_q = train_test_split(
-    X_trn,
-    y_trn,
-    stratify = y_trn,
-    test_size = .5,
-    random_state = 25
-  )
-  avg_M = np.zeros((28, len(y_M))) # shape (n_classes, n_samples)
-  for i in range(28):
-    avg_M[i, y_M == i] = 1 / np.sum(y_M == i)
-  avg_M = jnp.array(avg_M, dtype=jnp.float32)
+  # instantiate training utilities
   avg_q = np.zeros((batch_size, batch_size * sample_size))
   for i in range(batch_size):
     avg_q[i,i*sample_size:(i+1)*sample_size] = 1 / sample_size
@@ -122,11 +111,25 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
     ).T
     return qs, M
 
+  # take out the training
   results = []
   t_0 = time()
   for batch_index in range(n_batches):
     if batch_index == 1:
       t_0 = time() # reset after the first batch to ignore JIT overhead
+
+    # draw a new (M, q) split for each step
+    X_M, X_q, y_M, y_q = train_test_split(
+      X_trn,
+      y_trn,
+      stratify = y_trn,
+      test_size = .5,
+      random_state = batch_index
+    )
+    avg_M = np.zeros((28, len(y_M))) # shape (n_classes, n_samples)
+    for i in range(28):
+      avg_M[i, y_M == i] = 1 / np.sum(y_M == i)
+    avg_M = jnp.array(avg_M, dtype=jnp.float32)
 
     # update parameters and metrics
     p_Ts = sample_rng.dirichlet(np.ones(28), size=batch_size)
@@ -180,7 +183,7 @@ def main(
   ):
   # configure the experiments
   n_features = [ [64], [512], [1024] ]
-  lr_init = [ 1e1 ]
+  lr_init = [ 1e0, 1e1 ]
   lr_shrinkage = [ 1., .1 ] # no shrinkage vs considerable shrinkage (.1 and .5 seem similar)
   batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
   kwargs = {}
