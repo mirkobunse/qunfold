@@ -179,8 +179,8 @@ def main(
     is_test_run = False
   ):
   # configure the experiments
-  n_features = [ [256], [512], [256, 256, 256] ]
-  lr_init = [ 1e-1, 1e0, 1e1, 1e2 ]
+  n_features = [ [64], [512], [1024] ]
+  lr_init = [ 1e1 ]
   lr_shrinkage = [ 1., .1 ] # no shrinkage vs considerable shrinkage (.1 and .5 seem similar)
   batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
   kwargs = {}
