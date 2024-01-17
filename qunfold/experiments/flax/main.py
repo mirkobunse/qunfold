@@ -185,7 +185,7 @@ def main(
   # configure the experiments
   n_features = [ [512] ]
   lr_init = [ 1e1 ]
-  lr_shrinkage = [ .5 ] # some shrinkage is better than none (but .1 and .5 seem similar)
+  lr_shrinkage = [ .1, np.sqrt(.1) ] # 2 shrinkages lead to a final learning rate factor of .1
   batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
   n_trials = 3
   kwargs = {}
