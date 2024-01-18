@@ -31,7 +31,7 @@ from . import (
 def _main( # one trial of the experiment; to be taken out with multiple configurations
     args,
     n_experiments = None,
-    n_steps = 300,
+    n_steps = 250,
     sample_size = 1000,
     n_steps_between_evaluations = 10, # how many samples to process between evaluations
     n_jobs = 8,
@@ -65,7 +65,7 @@ def _main( # one trial of the experiment; to be taken out with multiple configur
   training_state = create_training_state(
     module,
     lr_init = lr_init,
-    lr_steps = [100, 200], # assuming n_steps = 300; TODO generalize
+    lr_steps = [100, 200], # assuming n_steps = 250; TODO generalize
     lr_shrinkage = lr_shrinkage,
     momentum = .9,
     rng = jax.random.key(trial_index),
@@ -185,12 +185,12 @@ def main(
   # configure the experiments
   n_features = [ [512] ]
   lr_init = [ 1e1 ]
-  lr_shrinkage = [ .1, np.sqrt(.1) ] # 2 shrinkages lead to a final learning rate factor of .1
+  lr_shrinkage = [ .1 ] # .1 seems to be the best (also tried √.1, .5, and 1)
   batch_size = [ 64 ] # does not seem to make a big difference (also tried 32, 128)
   n_trials = 3
   kwargs = {}
   if is_test_run:
-    n_features = [ [64], [128] ]
+    n_features = [ [64] ]
     lr_init = [ 1e1 ]
     lr_shrinkage = [ .1 ]
     batch_size = [ 8 ]
