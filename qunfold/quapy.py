@@ -79,7 +79,7 @@ class QuaPyWrapper(BaseQuantifier):
     def __init__(self, generic_method):
         self.generic_method = generic_method
     def fit(self, data): # data : LabelledCollection
-        self.generic_method.fit(*data.Xy)
+        self.generic_method.fit(*data.Xy, data.n_classes)
         return self
     def quantify(self, X):
         return self.generic_method.predict(X)
