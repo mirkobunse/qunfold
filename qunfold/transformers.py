@@ -419,7 +419,16 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
   
-class KDEyMCTransformer(AbstractTransformer):
+class KDEyHDTransformer(AbstractTransformer):
+  """A kernel-based feature transformer as it is used in the approximation of Kernel Density Estimation using Monte Carlo Simulation.
+
+  Args:
+      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
+      bandwith: A smoothing parameter for the kernel-function. 
+      classifier: A classifier that implements the API of scikit-learn.
+      random_state (optional): Controls the randomness of the Monte Carlo sampling. Defaults to `0`.
+      n_trials (optional): The number of Monte Carlo samples. Defaults to `10_000`.
+  """
   def __init__(self, kernel, bandwith, classifier, random_state=0, n_trials=10_000):
     self.kernel = kernel
     self.h = bandwith
@@ -443,11 +452,17 @@ class KDEyMCTransformer(AbstractTransformer):
     return np.exp(KernelDensity(bandwidth=self.h).fit(fX).score_samples(self.samples))
   
 class KDEyCSTransformer(AbstractTransformer):
-  def __init__(self, kernel, bandwith, classifier, random_state=0):
+  """A kernel-based feature transformer as it is used in the closed-form solution of Kernel Density Estimation by González-Moreo et. al (2024).
+
+  Args:
+      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
+      bandwith: A smoothing parameter for the kernel-function. 
+      classifier: A classifier that implements the API of scikit-learn.
+  """
+  def __init__(self, kernel, bandwith, classifier):
     self.kernel = kernel
     self.h = bandwith
     self.classifier = classifier
-    self.rs = random_state
   def gram_matrix_mix_sum(self, X, Y=None):
     variance = 2 * self.h**2
     gamma = 1 / (2 * variance)
@@ -477,4 +492,31 @@ class KDEyCSTransformer(AbstractTransformer):
     q = np.zeros(n_classes)
     for i in range(n_classes):
       q[i] = self.gram_matrix_mix_sum(self.fX_trn[self.y_trn==i], fX)
+    return q
+
+class KDEyMLTransformer(AbstractTransformer):
+  """A kernel-based feature transformer as it is used in the maximum-likelihood solution of Kernel Density Estimation by González-Moreo et. al (2024).
+
+  Args:
+      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
+      bandwith: A smoothing parameter for the kernel-function. 
+      classifier: A classifier that implements the API of scikit-learn.
+  """
+  def __init__(self, kernel, bandwith, classifier):
+    self.kernel = kernel
+    self.h = bandwith
+    self.classifier = classifier
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn)
+    self.X_trn = X
+    self.y_trn = y
+    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
+    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    self.mixture_components = [KernelDensity(bandwidth=self.h, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
+    return np.ones((n_classes, n_classes))
+  def transform(self, X, average=True):
+    fX = self.preprocessor.transform(X, average=False)
+    q = np.array([np.exp(mc.score_samples(fX)) for mc in self.mixture_components])
     return q

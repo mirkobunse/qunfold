@@ -27,11 +27,18 @@ def _energy(p, q, M, N=None):
 def _hellinger_surrogate(p, q, M, N=None):
   return -jnp.sqrt(q * jnp.dot(M, p)).sum()
 
+# helper function for the loss used in the Monte Carlo approximation of Kernel Density Estimation 
 def _kde_mc_loss(p, q, M, N=None):
   r = M.T.mean(axis=0)
   iw = q / r
   fracs = M.T / q
   return jnp.mean((jnp.sqrt(jnp.dot(p, fracs))-1)**2 * iw)
+
+# helper function for the loss used in the Maximum-Likelihood solution of Kernel Density Estimation 
+# (negative log-likelihood function)
+# Parameter M is redundant
+def _kde_ml_loss(p, q, M, N=None):
+  return -jnp.sum(jnp.log(jnp.dot(p, q)))
 
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
@@ -212,11 +219,15 @@ def TikhonovRegularized(loss, tau=0.):
   """
   return CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
 
-class KDEyMCLoss(FunctionLoss):
+class KDEyHDLoss(FunctionLoss):
+  """The loss function of KDEyMC (González-Moreo et al., 2024).
+  """
   def __init__(self):
     super().__init__(_kde_mc_loss)
 
 class KDEyCSLoss(FunctionLoss):
+  """The loss function of KDEyCS (González-Moreo et al., 2024).
+  """
   def __init__(self, y_trn):
     self.y_trn = y_trn
     super().__init__(self._kde_cs_loss)
@@ -230,3 +241,11 @@ class KDEyCSLoss(FunctionLoss):
     result = -jnp.log(jnp.dot(ratio, q) / N)
     result += 0.5 * jnp.log(jnp.dot(jnp.dot(ratio, M), ratio)) 
     return result
+
+class KDEyMLLoss(FunctionLoss):
+  """The loss function of KDEyMC (González-Moreo et al., 2024).
+
+  The negative Log-Likelihood function for a give class prevalence vector p and a set of mixture-likelihoods q.
+  """
+  def __init__(self):
+    super().__init__(_kde_ml_loss)

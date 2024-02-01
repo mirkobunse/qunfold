@@ -7,8 +7,9 @@ from .losses import (
     CombinedLoss,
     TikhonovRegularization,
     TikhonovRegularized,
-    KDEyMCLoss,
+    KDEyHDLoss,
     KDEyCSLoss,
+    KDEyMLLoss,
 )
 
 from .transformers import (
@@ -20,8 +21,9 @@ from .transformers import (
     LaplacianKernelTransformer,
     GaussianKernelTransformer,
     GaussianRFFKernelTransformer,
-    KDEyMCTransformer,
+    KDEyHDTransformer,
     KDEyCSTransformer,
+    KDEyMLTransformer,
 )
 
 from .methods import (
@@ -36,4 +38,5 @@ from .methods import (
     KMM,
     KDEyHD,
     KDEyCS,
+    KDEyML,
 )

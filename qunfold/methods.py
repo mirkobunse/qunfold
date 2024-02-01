@@ -318,11 +318,21 @@ class KMM(GenericMethod):
     GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)
 
 class KDEyHD(GenericMethod):
-  def __init__(self, classifier, bandwidth, random_state, n_trials, **kwargs):
+  """The kernel-based KDE method with Monte Carlo sampling by González-Moreo et al. (2024).
+
+   This subclass of `GenericMethod` is instantiated with a `KDEyHDLoss` and a `KDEyHDTransformer`.
+
+   Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      bandwith: A smoothing parameter for the kernel-function.
+      random_state (optional): Controls the randomness of the Monte Carlo sampling. Defaults to `0`.
+      n_trials (optional): The number of Monte Carlo samples to generate. Defaults to `10_000`.
+  """
+  def __init__(self, classifier, bandwidth, random_state=0, n_trials=10_000, **kwargs):
     GenericMethod.__init__(
       self,
-      losses.KDEyMCLoss(),
-      transformers.KDEyMCTransformer(
+      losses.KDEyHDLoss(),
+      transformers.KDEyHDTransformer(
         kernel="gaussian",
         bandwith=bandwidth,
         classifier=classifier,
@@ -333,11 +343,41 @@ class KDEyHD(GenericMethod):
     )
 
 class KDEyCS(GenericMethod):
+  """A closed-form solution of the kernel-based KDE method by González-Moreo et al. (2024).
+
+   This subclass of `GenericMethod` is instantiated with a `KDEyCSLoss` and a `KDEyCSTransformer`.
+
+   Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      bandwith: A smoothing parameter for the kernel-function.
+      y_trn: The class labels of the training dataset.
+  """
   def __init__(self, classifier, bandwidth, y_trn, **kwargs):
     GenericMethod.__init__(
       self,
       losses.KDEyCSLoss(y_trn=y_trn),
       transformers.KDEyCSTransformer(
+        kernel="gaussian",
+        bandwith=bandwidth,
+        classifier=classifier
+      ),
+      **kwargs
+    )
+  
+class KDEyML(GenericMethod):
+  """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).
+
+   This subclass of `GenericMethod` is instantiated with a `KDEyMLLoss` and a `KDEyMLTransformer`.
+
+   Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      bandwith: A smoothing parameter for the kernel-function.
+  """
+  def __init__(self, classifier, bandwidth, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.KDEyMLLoss(),
+      transformers.KDEyMLTransformer(
         kernel="gaussian",
         bandwith=bandwidth,
         classifier=classifier
