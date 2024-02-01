@@ -27,6 +27,12 @@ def _energy(p, q, M, N=None):
 def _hellinger_surrogate(p, q, M, N=None):
   return -jnp.sqrt(q * jnp.dot(M, p)).sum()
 
+def _kde_mc_loss(p, q, M, N=None):
+  r = M.T.mean(axis=0)
+  iw = q / r
+  fracs = M.T / q
+  return jnp.mean((jnp.sqrt(jnp.dot(p, fracs))-1)**2 * iw)
+
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
@@ -205,3 +211,22 @@ def TikhonovRegularized(loss, tau=0.):
           >>> TikhonovRegularization(BlobelLoss(), tau)
   """
   return CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
+
+class KDEyMCLoss(FunctionLoss):
+  def __init__(self):
+    super().__init__(_kde_mc_loss)
+
+class KDEyCSLoss(FunctionLoss):
+  def __init__(self, y_trn):
+    self.y_trn = y_trn
+    super().__init__(self._kde_cs_loss)
+
+  def _kde_cs_loss(self, p, q, M, N=None):
+    n_classes = len(jnp.unique(self.y_trn))
+    cinv = []
+    for c in range(n_classes):
+      cinv.append(1 / self.y_trn[self.y_trn == c].shape[0])
+    ratio = p * jnp.asarray(cinv)
+    result = -jnp.log(jnp.dot(ratio, q) / N)
+    result += 0.5 * jnp.log(jnp.dot(jnp.dot(ratio, M), ratio)) 
+    return result

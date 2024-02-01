@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
+from sklearn.neighbors import KernelDensity
+from sklearn.metrics.pairwise import rbf_kernel
 
 def class_prevalences(y, n_classes=None):
   """Determine the prevalence of each class.
@@ -416,3 +418,63 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
+  
+class KDEyMCTransformer(AbstractTransformer):
+  def __init__(self, kernel, bandwith, classifier, random_state=0, n_trials=10_000):
+    self.kernel = kernel
+    self.h = bandwith
+    self.classifier = classifier
+    self.t = n_trials
+    self.rs = random_state
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn)
+    self.X_trn = X
+    self.y_trn = y
+    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
+    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    mixture_components = [KernelDensity(bandwidth=self.h, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
+    self.samples = np.vstack([mc.sample(self.t // n_classes, random_state=self.rs) for mc in mixture_components])
+    M = np.asarray([np.exp(mc.score_samples(self.samples)) for mc in mixture_components]).T
+    return M
+  def transform(self, X, average=True):
+    fX = self.preprocessor.transform(X, average=False)
+    return np.exp(KernelDensity(bandwidth=self.h).fit(fX).score_samples(self.samples))
+  
+class KDEyCSTransformer(AbstractTransformer):
+  def __init__(self, kernel, bandwith, classifier, random_state=0):
+    self.kernel = kernel
+    self.h = bandwith
+    self.classifier = classifier
+    self.rs = random_state
+  def gram_matrix_mix_sum(self, X, Y=None):
+    variance = 2 * self.h**2
+    gamma = 1 / (2 * variance)
+    norm = 1 / np.sqrt(((2 * np.pi)**X.shape[1]) * (variance**X.shape[1]))
+    gram = norm * rbf_kernel(X, Y, gamma=gamma)
+    return gram.sum()
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn)
+    self.X_trn = X
+    self.y_trn = y
+    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
+    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    self.fX_trn = fX
+    M = np.zeros((n_classes, n_classes))
+    for i in range(n_classes):
+      for j in range(n_classes):
+        if i > j:
+          M[i, j] = M[j, i]
+        else:
+          M[i, j] = self.gram_matrix_mix_sum(fX[y==i], fX[y==j] if i!=j else None)
+    return M
+  def transform(self, X, average=True):
+    fX = self.preprocessor.transform(X, average=False)
+    n_classes = len(self.p_trn)
+    q = np.zeros(n_classes)
+    for i in range(n_classes):
+      q[i] = self.gram_matrix_mix_sum(self.fX_trn[self.y_trn==i], fX)
+    return q

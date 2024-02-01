@@ -316,3 +316,31 @@ class KMM(GenericMethod):
     else:
       transformer = transformers.KernelTransformer(kernel)
     GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)
+
+class KDEyHD(GenericMethod):
+  def __init__(self, classifier, bandwidth, random_state, n_trials, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.KDEyMCLoss(),
+      transformers.KDEyMCTransformer(
+        kernel="gaussian",
+        bandwith=bandwidth,
+        classifier=classifier,
+        random_state=random_state,
+        n_trials=n_trials
+      ),
+      **kwargs
+    )
+
+class KDEyCS(GenericMethod):
+  def __init__(self, classifier, bandwidth, y_trn, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.KDEyCSLoss(y_trn=y_trn),
+      transformers.KDEyCSTransformer(
+        kernel="gaussian",
+        bandwith=bandwidth,
+        classifier=classifier
+      ),
+      **kwargs
+    )
