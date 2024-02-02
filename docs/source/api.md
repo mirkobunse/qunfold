@@ -1,11 +1,14 @@
 # API
 
-The `GenericMethod` defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+The `GenericMethod` is a general implementation of those quantification and unfolding algorithms that consist of a loss function and a feature transformation. The API of all quantification and unfolding algorithms consists of the `fit` and `predict` methods, as they are defined by the `AbstractMethod`.
 
 Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `GenericMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
 
 ```{eval-rst}
 .. autoclass:: qunfold.GenericMethod
+   :members:
+
+.. autoclass:: qunfold.methods.AbstractMethod
    :members:
 ```
 

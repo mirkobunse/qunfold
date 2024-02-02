@@ -1,5 +1,6 @@
 import numpy as np
 import traceback
+from abc import ABC, abstractmethod
 from scipy import optimize
 from . import (losses, transformers)
 
@@ -54,7 +55,36 @@ class _CallbackState():
   def callback(self):
     return lambda xk: self._callback(xk)
 
-class GenericMethod:
+class AbstractMethod(ABC):
+  """Abstract base class for quantification methods."""
+  @abstractmethod
+  def fit(self, X, y, n_classes=None):
+    """Fit this quantifier to data.
+
+    Args:
+        X: The feature matrix to which this quantifier will be fitted.
+        y: The labels to which this quantifier will be fitted.
+        n_classes (optional): The number of expected classes. Defaults to `None`.
+
+    Returns:
+        This fitted quantifier itself.
+    """
+    self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
+    return self
+  @abstractmethod
+  def predict(self, X):
+    """Predict the class prevalences in a data set.
+
+    Args:
+        X: The feature matrix for which this quantifier will make a prediction.
+
+    Returns:
+        A numpy array of class prevalences.
+    """
+    q = self.transformer.transform(X)
+    return self.solve(q, self.M, N=X.shape[0])
+
+class GenericMethod(AbstractMethod):
   """A generic quantification / unfolding method.
 
   This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).
@@ -85,27 +115,9 @@ class GenericMethod:
     self.solver_options = solver_options
     self.seed = seed
   def fit(self, X, y, n_classes=None):
-    """Fit this quantifier to data.
-
-    Args:
-        X: The feature matrix to which this quantifier will be fitted.
-        y: The labels to which this quantifier will be fitted.
-        n_classes (optional): The number of expected classes. Defaults to `None`.
-
-    Returns:
-        This fitted quantifier itself.
-    """
     self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
     return self
   def predict(self, X):
-    """Predict the class prevalences in a data set.
-
-    Args:
-        X: The feature matrix for which this quantifier will make a prediction.
-
-    Returns:
-        A numpy array of class prevalences.
-    """
     q = self.transformer.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
   def solve(self, q, M, N=None): # TODO add argument p_trn=self.p_trn
