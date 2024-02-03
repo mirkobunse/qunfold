@@ -7,11 +7,15 @@ import qunfold
 import matplotlib.pyplot as plt
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ClassTransformer, GenericMethod, LeastSquaresLoss
+from qunfold import ClassTransformer, FunctionLoss, GenericMethod, LeastSquaresLoss
 from qunfold.ensembles import EnsembleTransformer
 from qunfold.tests import RNG, make_problem, generate_data
 from sklearn.ensemble import RandomForestClassifier
 from time import time
+
+def avg_lsq(p, q, M, N=None):
+  v = q - jnp.dot(M, p)
+  return jnp.dot(v, v) / len(q)
 
 def trial(n_estimators, trn_data, val_gen):
 
@@ -60,6 +64,12 @@ def trial(n_estimators, trn_data, val_gen):
     generic_method.solve(q, M_dup)
     t_dup = time() - t_0
 
+    # measure time with the duplicate_transformer again, this time with a normalized loss
+    generic_method = GenericMethod(FunctionLoss(avg_lsq), duplicate_transformer, seed=0)
+    t_0 = time()
+    generic_method.solve(q, M_dup)
+    t_nrm = time() - t_0
+
     # measure time to solve q=Mp with the randomized_transformer
     q = randomized_transformer.transform(X_tst)
     if n_estimators > 1:
@@ -84,12 +94,13 @@ def trial(n_estimators, trn_data, val_gen):
     if i_trial > 0:
       print(
         f"[n={n_estimators} | {i_trial:02d}/{len(val_gen.true_prevs.df)-1}]",
-        f"t_dup={t_dup:.3f} t_rnd={t_rnd:.3f} t_app={t_app:.3f}"
+        f"t_dup={t_dup:.3f} t_nrm={t_nrm:.3f} t_rnd={t_rnd:.3f} t_app={t_app:.3f}"
       )
       results.append({
         "n_estimators": n_estimators,
         "trial": i_trial,
         "t_dup": t_dup,
+        "t_nrm": t_nrm,
         "t_rnd": t_rnd,
         "t_app": t_app,
       })
@@ -125,21 +136,29 @@ def main(
   )
   plt.fill_between(
     avg_df.index,
+    avg_df[("t_nrm", "mean")] - avg_df[("t_nrm", "std")],
+    avg_df[("t_nrm", "mean")] + avg_df[("t_nrm", "std")],
+    color = "tab:orange",
+    alpha = .2,
+  )
+  plt.fill_between(
+    avg_df.index,
     avg_df[("t_rnd", "mean")] - avg_df[("t_rnd", "std")],
     avg_df[("t_rnd", "mean")] + avg_df[("t_rnd", "std")],
-    color = "tab:orange",
+    color = "tab:green",
     alpha = .2,
   )
   plt.fill_between(
     avg_df.index,
     avg_df[("t_app", "mean")] - avg_df[("t_app", "std")],
     avg_df[("t_app", "mean")] + avg_df[("t_app", "std")],
-    color = "tab:green",
+    color = "tab:red",
     alpha = .2,
   )
   plt.loglog(avg_df.index, avg_df[("t_dup", "mean")], color="tab:blue", label="t_dup")
-  plt.loglog(avg_df.index, avg_df[("t_rnd", "mean")], color="tab:orange", label="t_rnd")
-  plt.loglog(avg_df.index, avg_df[("t_app", "mean")], color="tab:green", label="t_app")
+  plt.loglog(avg_df.index, avg_df[("t_nrm", "mean")], color="tab:orange", label="t_nrm")
+  plt.loglog(avg_df.index, avg_df[("t_rnd", "mean")], color="tab:green", label="t_rnd")
+  plt.loglog(avg_df.index, avg_df[("t_app", "mean")], color="tab:red", label="t_app")
   plt.legend()
   plt.show()
 

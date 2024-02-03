@@ -1,5 +1,6 @@
 from .losses import (
     instantiate_loss,
+    FunctionLoss,
     LeastSquaresLoss,
     BlobelLoss,
     EnergyLoss,
