@@ -25,7 +25,7 @@ def trial(n_estimators, trn_data, val_gen):
     np.testing.assert_equal(M_dup[0:28], M_dup[28:56]) # check that it's actually duplicating
     np.testing.assert_equal(M_dup[0:28], M_dup[56:84])
 
-  # train a transformer with actual random members
+  # train a transformer with differently seeded members
   randomized_transformer = EnsembleTransformer([
     ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=i))
     for i in range(n_estimators)
@@ -34,6 +34,17 @@ def trial(n_estimators, trn_data, val_gen):
   if n_estimators > 1:
     assert np.any(M_rnd[0:28] != M_rnd[28:56])
     assert np.any(M_rnd[0:28] != M_rnd[56:84])
+
+  # train a transformer with APP-randomized members
+  app_transformer = EnsembleTransformer(
+    ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=0)),
+    n_estimators,
+    training_strategy = "app"
+  )
+  M_app = app_transformer.fit_transform(*trn_data.Xy, trn_data.n_classes)
+  if n_estimators > 1:
+    assert np.any(M_app[0:28] != M_app[28:56])
+    assert np.any(M_app[0:28] != M_app[56:84])
 
   # evaluate both transformers on validation samples
   results = []
@@ -59,17 +70,28 @@ def trial(n_estimators, trn_data, val_gen):
     generic_method.solve(q, M_rnd)
     t_rnd = time() - t_0
 
+    # measure time to solve q=Mp with the app_transformer
+    q = app_transformer.transform(X_tst)
+    if n_estimators > 1:
+      assert np.any(q[0:28] != q[28:56])
+      assert np.any(q[0:28] != q[56:84])
+    generic_method = GenericMethod(LeastSquaresLoss(), app_transformer, seed=0)
+    t_0 = time()
+    generic_method.solve(q, M_app)
+    t_app = time() - t_0
+
     # store the results
     if i_trial > 0:
       print(
         f"[n={n_estimators} | {i_trial:02d}/{len(val_gen.true_prevs.df)-1}]",
-        f"t_dup={t_dup:.3f} t_rnd={t_rnd:.3f}"
+        f"t_dup={t_dup:.3f} t_rnd={t_rnd:.3f} t_app={t_app:.3f}"
       )
       results.append({
         "n_estimators": n_estimators,
         "trial": i_trial,
         "t_dup": t_dup,
         "t_rnd": t_rnd,
+        "t_app": t_app,
       })
   return results
 
@@ -108,8 +130,16 @@ def main(
     color = "tab:orange",
     alpha = .2,
   )
+  plt.fill_between(
+    avg_df.index,
+    avg_df[("t_app", "mean")] - avg_df[("t_app", "std")],
+    avg_df[("t_app", "mean")] + avg_df[("t_app", "std")],
+    color = "tab:green",
+    alpha = .2,
+  )
   plt.loglog(avg_df.index, avg_df[("t_dup", "mean")], color="tab:blue", label="t_dup")
   plt.loglog(avg_df.index, avg_df[("t_rnd", "mean")], color="tab:orange", label="t_rnd")
+  plt.loglog(avg_df.index, avg_df[("t_app", "mean")], color="tab:green", label="t_app")
   plt.legend()
   plt.show()
 
