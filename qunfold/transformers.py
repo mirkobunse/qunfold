@@ -72,7 +72,7 @@ class ClassTransformer(AbstractTransformer):
   Args:
       classifier: A classifier that implements the API of scikit-learn.
       is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to transform the data. Defaults to `False`.
-      fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      fit_classifier (optional): Whether to fit the `classifier` when this transformer is fitted. Defaults to `True`.
   """
   def __init__(self, classifier, is_probabilistic=False, fit_classifier=True):
     self.classifier = classifier
