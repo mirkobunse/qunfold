@@ -29,10 +29,11 @@ class EnsembleTransformer(AbstractTransformer):
       n_estimators (optional): The number of ensemble members. Must be specified if base_transformer is not a list. Defaults to None.
       training_strategy (optional): How to train each ensemble member. Must be either "full" to use all data or "app" to train with random class prevalences. Defaults to "full".
   """
-  def __init__(self, base_transformer, n_estimators=None, training_strategy="full"):
+  def __init__(self, base_transformer, n_estimators=None, training_strategy="full", random_state=None):
     self.base_transformer = base_transformer
     self.n_estimators = n_estimators
     self.training_strategy = training_strategy
+    self.random_state = random_state
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("EnsembleTransformer does not support average=False")
@@ -41,19 +42,20 @@ class EnsembleTransformer(AbstractTransformer):
     n_classes = len(self.p_trn) # not None anymore
     if isinstance(self.base_transformer, list):
       self.transformers_ = self.base_transformer
-    elif self.n_estimators is None:
-      raise ValueError("n_estimators must not be None if base_transformer is not a list")
-    else:
+    elif self.n_estimators is not None:
       self.transformers_ = [
         deepcopy(self.base_transformer)
         for _ in range(self.n_estimators)
       ]
+    else:
+      raise ValueError("n_estimators must not be None if base_transformer is not a list")
+    random_state = np.random.default_rng(self.random_state)
     Ms = [] # = (M_1, M_2, ...), the matrices of all ensemble members
     for transformer in self.transformers_:
       if self.training_strategy == "full":
-        X_i, y_i = X, y # use all data
+        X_i, y_i = X, y # use all data for each transformer
       elif self.training_strategy == "app":
-        X_i, y_i = subsample_app(X, y)
+        X_i, y_i = subsample_app(X, y, n_classes, random_state)
       Ms.append(transformer.fit_transform(X_i, y_i, average, n_classes))
     return np.concatenate(Ms) # M = (M_1, M_2, ...)
   def transform(self, X, average=True):
@@ -66,8 +68,8 @@ class EnsembleTransformer(AbstractTransformer):
 
 def subsample_app(X, y, n_classes=None, random_state=None):
   """Subsample (X, y) according with random class proportions."""
-  random_state = np.random.default_rng(random_state)
   n_classes = len(class_prevalences(y, n_classes)) # not None anymore
+  random_state = np.random.default_rng(random_state)
   i = draw_indices(
     y,
     random_state.dirichlet(np.ones(n_classes)),
