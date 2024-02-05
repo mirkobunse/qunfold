@@ -334,7 +334,7 @@ class KDEyHD(GenericMethod):
       losses.KDEyHDLoss(),
       transformers.KDEyHDTransformer(
         kernel="gaussian",
-        bandwith=bandwidth,
+        bandwidth=bandwidth,
         classifier=classifier,
         random_state=random_state,
         n_trials=n_trials
@@ -352,17 +352,31 @@ class KDEyCS(GenericMethod):
       bandwith: A smoothing parameter for the kernel-function.
       y_trn: The class labels of the training dataset.
   """
-  def __init__(self, classifier, bandwidth, y_trn, **kwargs):
+  def __init__(self, classifier, bandwidth, **kwargs):
     GenericMethod.__init__(
       self,
-      losses.KDEyCSLoss(y_trn=y_trn),
+      losses.KDEyCSLoss(),
       transformers.KDEyCSTransformer(
         kernel="gaussian",
-        bandwith=bandwidth,
+        bandwidth=bandwidth,
         classifier=classifier
       ),
       **kwargs
     )
+  def fit(self, X, y, n_classes=None):
+    """Fit this quantifier to data.
+
+    Args:
+        X: The feature matrix to which this quantifier will be fitted.
+        y: The labels to which this quantifier will be fitted.
+        n_classes (optional): The number of expected classes. Defaults to `None`.
+
+    Returns:
+        This fitted quantifier itself.
+    """
+    self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
+    self.loss.counts_inv = self.transformer.counts_inv
+    return self
   
 class KDEyML(GenericMethod):
   """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).
@@ -379,7 +393,7 @@ class KDEyML(GenericMethod):
       losses.KDEyMLLoss(),
       transformers.KDEyMLTransformer(
         kernel="gaussian",
-        bandwith=bandwidth,
+        bandwidth=bandwidth,
         classifier=classifier
       ),
       **kwargs

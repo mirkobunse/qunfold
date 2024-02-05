@@ -28,7 +28,7 @@ def _hellinger_surrogate(p, q, M, N=None):
   return -jnp.sqrt(q * jnp.dot(M, p)).sum()
 
 # helper function for the loss used in the Monte Carlo approximation of Kernel Density Estimation 
-def _kde_mc_loss(p, q, M, N=None):
+def _kde_hd_loss(p, q, M, N=None):
   r = M.T.mean(axis=0)
   iw = q / r
   fracs = M.T / q
@@ -223,21 +223,17 @@ class KDEyHDLoss(FunctionLoss):
   """The loss function of KDEyMC (González-Moreo et al., 2024).
   """
   def __init__(self):
-    super().__init__(_kde_mc_loss)
+    super().__init__(_kde_hd_loss)
 
 class KDEyCSLoss(FunctionLoss):
   """The loss function of KDEyCS (González-Moreo et al., 2024).
   """
-  def __init__(self, y_trn):
-    self.y_trn = y_trn
+  def __init__(self):
+    self.counts_inv = None   # needs to be set by the method using the loss 
     super().__init__(self._kde_cs_loss)
 
   def _kde_cs_loss(self, p, q, M, N=None):
-    n_classes = len(jnp.unique(self.y_trn))
-    cinv = []
-    for c in range(n_classes):
-      cinv.append(1 / self.y_trn[self.y_trn == c].shape[0])
-    ratio = p * jnp.asarray(cinv)
+    ratio = p * jnp.asarray(self.counts_inv)
     result = -jnp.log(jnp.dot(ratio, q) / N)
     result += 0.5 * jnp.log(jnp.dot(jnp.dot(ratio, M), ratio)) 
     return result

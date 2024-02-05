@@ -66,8 +66,8 @@ class TestMethods(TestCase):
       p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
       p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
       p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
-      p_kdemc = qunfold.KDEyHD(RandomForestClassifier(oob_score=True), bandwidth=0.1, random_state=0, n_trials=10_000).fit(X_trn, y_trn).predict(X_tst)
-      p_kdecs = qunfold.KDEyCS(RandomForestClassifier(oob_score=True), bandwidth=0.1, y_trn=y_trn).fit(X_trn, y_trn).predict(X_tst)
+      p_kdemc = qunfold.KDEyHD(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_kdecs = qunfold.KDEyCS(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
       p_kdeml = qunfold.KDEyML(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),

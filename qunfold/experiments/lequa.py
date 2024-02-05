@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, GenericMethod
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, GenericMethod, KDEyHD, KDEyCS, KDEyML
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -203,6 +203,24 @@ def main(
                     clf_grid["transformer__classifier__estimator__C"],
             }
         ),
+        ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, random_state=seed)), 
+            {
+                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **clf_grid,
+            }
+        ),
+        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, random_state=seed)), 
+            {
+                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **clf_grid,
+            }
+        ),
+        ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, random_state=seed)), 
+            {
+                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **clf_grid,
+            }
+        ),
     ]
 
     # load the data
@@ -268,6 +286,24 @@ def main(
                     "transformer__sigma": [ 1e-1 ],
                     "transformer__preprocessor__classifier__estimator__C":
                         clf_grid["transformer__classifier__estimator__C"],
+                }
+            ),
+            ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, random_state=seed)), 
+            {
+                "transformer__bandwidth" : [1e-1],
+                **clf_grid,
+            }
+            ),
+            ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, random_state=seed)), 
+                {
+                    "transformer__bandwidth" : [1e-1],
+                    **clf_grid,
+                }
+            ),
+            ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, random_state=seed)), 
+                {
+                    "transformer__bandwidth" : [1e-1],
+                    **clf_grid,
                 }
             ),
         ]

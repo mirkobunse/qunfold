@@ -424,17 +424,17 @@ class KDEyHDTransformer(AbstractTransformer):
 
   Args:
       kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwith: A smoothing parameter for the kernel-function. 
+      bandwidth: A smoothing parameter for the kernel-function. 
       classifier: A classifier that implements the API of scikit-learn.
       random_state (optional): Controls the randomness of the Monte Carlo sampling. Defaults to `0`.
       n_trials (optional): The number of Monte Carlo samples. Defaults to `10_000`.
   """
-  def __init__(self, kernel, bandwith, classifier, random_state=0, n_trials=10_000):
+  def __init__(self, kernel, bandwidth, classifier, random_state=0, n_trials=10_000):
     self.kernel = kernel
-    self.h = bandwith
+    self.bandwidth = bandwidth
     self.classifier = classifier
-    self.t = n_trials
-    self.rs = random_state
+    self.n_trials = n_trials
+    self.random_state = random_state
   def fit_transform(self, X, y, average=True, n_classes=None):
     _check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
@@ -443,28 +443,28 @@ class KDEyHDTransformer(AbstractTransformer):
     self.y_trn = y
     self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    mixture_components = [KernelDensity(bandwidth=self.h, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
-    self.samples = np.vstack([mc.sample(self.t // n_classes, random_state=self.rs) for mc in mixture_components])
+    mixture_components = [KernelDensity(bandwidth=self.bandwidth, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
+    self.samples = np.vstack([mc.sample(self.n_trials // n_classes, random_state=self.random_state) for mc in mixture_components])
     M = np.asarray([np.exp(mc.score_samples(self.samples)) for mc in mixture_components]).T
     return M
   def transform(self, X, average=True):
     fX = self.preprocessor.transform(X, average=False)
-    return np.exp(KernelDensity(bandwidth=self.h).fit(fX).score_samples(self.samples))
+    return np.exp(KernelDensity(bandwidth=self.bandwidth).fit(fX).score_samples(self.samples))
   
 class KDEyCSTransformer(AbstractTransformer):
   """A kernel-based feature transformer as it is used in the closed-form solution of Kernel Density Estimation by González-Moreo et. al (2024).
 
   Args:
       kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwith: A smoothing parameter for the kernel-function. 
+      bandwidth: A smoothing parameter for the kernel-function. 
       classifier: A classifier that implements the API of scikit-learn.
   """
-  def __init__(self, kernel, bandwith, classifier):
+  def __init__(self, kernel, bandwidth, classifier):
     self.kernel = kernel
-    self.h = bandwith
+    self.bandwidth = bandwidth
     self.classifier = classifier
   def gram_matrix_mix_sum(self, X, Y=None):
-    variance = 2 * self.h**2
+    variance = 2 * self.bandwidth**2
     gamma = 1 / (2 * variance)
     norm = 1 / np.sqrt(((2 * np.pi)**X.shape[1]) * (variance**X.shape[1]))
     gram = norm * rbf_kernel(X, Y, gamma=gamma)
@@ -479,7 +479,9 @@ class KDEyCSTransformer(AbstractTransformer):
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
     self.fX_trn = fX
     M = np.zeros((n_classes, n_classes))
+    self.counts_inv = []
     for i in range(n_classes):
+      self.counts_inv.append(1 / y[y == i].shape[0])
       for j in range(n_classes):
         if i > j:
           M[i, j] = M[j, i]
@@ -499,12 +501,12 @@ class KDEyMLTransformer(AbstractTransformer):
 
   Args:
       kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwith: A smoothing parameter for the kernel-function. 
+      bandwidth: A smoothing parameter for the kernel-function. 
       classifier: A classifier that implements the API of scikit-learn.
   """
-  def __init__(self, kernel, bandwith, classifier):
+  def __init__(self, kernel, bandwidth, classifier):
     self.kernel = kernel
-    self.h = bandwith
+    self.bandwidth = bandwidth
     self.classifier = classifier
   def fit_transform(self, X, y, average=True, n_classes=None):
     _check_y(y, n_classes)
@@ -514,7 +516,7 @@ class KDEyMLTransformer(AbstractTransformer):
     self.y_trn = y
     self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    self.mixture_components = [KernelDensity(bandwidth=self.h, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
+    self.mixture_components = [KernelDensity(bandwidth=self.bandwidth, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
     return np.ones((n_classes, n_classes))
   def transform(self, X, average=True):
     fX = self.preprocessor.transform(X, average=False)
