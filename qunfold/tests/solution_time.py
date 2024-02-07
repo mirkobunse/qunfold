@@ -106,6 +106,12 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
       if strategy == "dup": # check that it's actually duplicating
         np.testing.assert_equal(q[0:12], q[12:24])
         np.testing.assert_equal(q[0:12], q[24:36])
+        p_rnd = np.random.default_rng(i_trial).dirichlet(np.ones(12))
+        np.testing.assert_approx_equal(
+          qunfold.losses._lsq(p_rnd, q[0:12] * n_estimators, M[0:12] * n_estimators),
+          scaled_lsq(p_rnd, q, M, scaling=n_estimators),
+          significant = 4,
+        )
       elif strategy == "app": # check that members differ
         assert np.any(q[0:12] != q[12:24])
         assert np.any(q[0:12] != q[24:36])
