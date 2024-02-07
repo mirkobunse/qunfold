@@ -67,10 +67,10 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
     random_state = seed
   )
 
-  # configure and test the transformer
+  # configure and test the transformer; also set up the loss
   def create_classifier():
     return RandomForestClassifier(1, oob_score=True, random_state=seed)
-  if strategy == "dup": # an EnsembleTransformer that duplicates a single member
+  if strategy in [ "dup", "dup_scl" ]: # an EnsembleTransformer that duplicates a single member
     transformer = EnsembleTransformer(
       ClassTransformer(create_classifier()),
       n_estimators,
@@ -79,8 +79,7 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
     if n_estimators > 1:
       np.testing.assert_equal(M[0:12], M[12:24]) # check that it's actually duplicating
       np.testing.assert_equal(M[0:12], M[24:36])
-
-  elif strategy == "app": # a transformer with APP-randomized members
+  elif strategy in [ "app", "app_scl" ]: # a transformer with APP-randomized members
     transformer = EnsembleTransformer(
       ClassTransformer(create_classifier()),
       n_estimators,
@@ -91,9 +90,13 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
     if n_estimators > 1:
       assert np.any(M[0:12] != M[12:24])
       assert np.any(M[0:12] != M[24:36])
+  if strategy in [ "dup", "app" ]:
+    loss = LeastSquaresLoss()
+  elif strategy in [ "dup_scl", "app_scl" ]:
+    loss = FunctionLoss(partial(scaled_lsq, scaling=n_estimators))
 
   # evaluate the transformer on validation samples
-  generic_method = GenericMethod(LeastSquaresLoss(), transformer, seed=seed)
+  generic_method = GenericMethod(loss, transformer, seed=seed)
   results = []
   for i_trial, (X_tst, p_tst) in enumerate(val_gen()):
     q = transformer.transform(X_tst)
@@ -142,8 +145,24 @@ def plot(df):
     color = "tab:orange",
     alpha = .1,
   )
+  plt.fill_between(
+    df.index,
+    df[("dup_scl", "25%")],
+    df[("dup_scl", "75%")],
+    color = "tab:green",
+    alpha = .1,
+  )
+  plt.fill_between(
+    df.index,
+    df[("app_scl", "25%")],
+    df[("app_scl", "75%")],
+    color = "tab:red",
+    alpha = .1,
+  )
   plt.plot(df.index, df[("dup", "mean")], color="tab:blue", label="dup")
   plt.plot(df.index, df[("app", "mean")], color="tab:orange", label="app")
+  plt.plot(df.index, df[("dup_scl", "mean")], color="tab:green", label="dup_scl")
+  plt.plot(df.index, df[("app_scl", "mean")], color="tab:red", label="app_scl")
   plt.xscale("log")
   plt.xlabel("n_estimators")
   plt.ylabel("t_solve")
@@ -151,7 +170,7 @@ def plot(df):
   plt.show()
 
 def main(
-    strategies = [ "dup", "app" ],
+    strategies = [ "dup", "app", "dup_scl", "app_scl" ],
     n_estimators = [1, 3, 10, 31, 100, 316, 1000][::-1],
     n_trials = 100,
     n_jobs = 1,
