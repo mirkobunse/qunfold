@@ -24,6 +24,7 @@ from .transformers import (
     KDEyHDTransformer,
     KDEyCSTransformer,
     KDEyMLTransformer,
+    KDEyMLTransformerID,
 )
 
 from .methods import (
@@ -39,4 +40,5 @@ from .methods import (
     KDEyHD,
     KDEyCS,
     KDEyML,
+    KDEyMLID,
 )

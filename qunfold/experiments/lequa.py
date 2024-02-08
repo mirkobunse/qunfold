@@ -203,19 +203,19 @@ def main(
                     clf_grid["transformer__classifier__estimator__C"],
             }
         ),
-        ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, random_state=seed)), 
+        ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
             {
                 "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
                 **clf_grid,
             }
         ),
-        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, random_state=seed)), 
+        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
             {
                 "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
                 **clf_grid,
             }
         ),
-        ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, random_state=seed)), 
+        ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
             {
                 "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
                 **clf_grid,
@@ -288,19 +288,19 @@ def main(
                         clf_grid["transformer__classifier__estimator__C"],
                 }
             ),
-            ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, random_state=seed)), 
+            ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
             {
                 "transformer__bandwidth" : [1e-1],
                 **clf_grid,
             }
             ),
-            ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, random_state=seed)), 
+            ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
                 {
                     "transformer__bandwidth" : [1e-1],
                     **clf_grid,
                 }
             ),
-            ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, random_state=seed)), 
+            ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
                 {
                     "transformer__bandwidth" : [1e-1],
                     **clf_grid,

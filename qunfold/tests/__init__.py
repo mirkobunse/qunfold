@@ -69,6 +69,7 @@ class TestMethods(TestCase):
       p_kdemc = qunfold.KDEyHD(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
       p_kdecs = qunfold.KDEyCS(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
       p_kdeml = qunfold.KDEyML(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_kdeml_id = qunfold.KDEyMLID(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
       p_custom = qunfold.GenericMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
@@ -104,6 +105,8 @@ class TestMethods(TestCase):
         f"             {p_kdecs.nit} it.; {p_kdecs.message}",
         f"     p_kdeml = {p_kdeml}",
         f"             {p_kdeml.nit} it.; {p_kdeml.message}",
+        f"     p_kdeml_id = {p_kdeml_id}",
+        f"             {p_kdeml_id.nit} it.; {p_kdeml_id.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2

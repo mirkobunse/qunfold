@@ -398,3 +398,24 @@ class KDEyML(GenericMethod):
       ),
       **kwargs
     )
+
+class KDEyMLID(GenericMethod):
+  """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).
+
+   This subclass of `GenericMethod` is instantiated with a `KDEyMLLoss` and a `KDEyMLTransformer`.
+
+   Args:
+      classifier: A classifier that implements the API of scikit-learn.
+      bandwith: A smoothing parameter for the kernel-function.
+  """
+  def __init__(self, classifier, bandwidth, **kwargs):
+    GenericMethod.__init__(
+      self,
+      losses.KDEyMLLoss(),
+      transformers.KDEyMLTransformerID(
+        kernel="gaussian",
+        bandwidth=bandwidth,
+        classifier=classifier
+      ),
+      **kwargs
+    )

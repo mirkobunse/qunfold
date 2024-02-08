@@ -522,3 +522,37 @@ class KDEyMLTransformer(AbstractTransformer):
     fX = self.preprocessor.transform(X, average=False)
     q = np.array([np.exp(mc.score_samples(fX)) for mc in self.mixture_components])
     return q
+  
+class KDEyMLTransformerID(AbstractTransformer):
+  """A kernel-based feature transformer as it is used in the maximum-likelihood solution of Kernel Density Estimation by González-Moreo et. al (2024).
+
+  Args:
+      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
+      bandwidth: A smoothing parameter for the kernel-function. 
+      classifier: A classifier that implements the API of scikit-learn.
+  """
+  def __init__(self, kernel, bandwidth, classifier):
+    self.kernel = kernel
+    self.bandwidth = bandwidth
+    self.classifier = classifier
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    _check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn)
+    self.n_classes = n_classes
+    self.X_trn = X
+    self.y_trn = y
+    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
+    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    self.mixture_components = []
+    for c in range(n_classes):
+      self.mixture_components.append([KernelDensity(bandwidth=self.bandwidth, kernel=self.kernel).fit(fX[y==c][:, i].reshape(-1, 1)) for i in range(n_classes)])
+    return np.ones((n_classes, n_classes))
+  def transform(self, X, average=True):
+    fX = self.preprocessor.transform(X, average=False)
+    q = np.zeros((self.n_classes, X.shape[0]))
+    for c in range(self.n_classes):
+      for i in range(self.n_classes):
+        q[c] += self.mixture_components[c][i].score_samples(fX[:,i].reshape(-1, 1))
+      q[c] = np.exp(q[c])
+    return q
