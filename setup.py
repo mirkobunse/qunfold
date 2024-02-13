@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name="qunfold",
-    version="0.1.2",
+    version="0.1.3",
     description="Composable quantification and unfolding methods",
     long_description=readme(),
     classifiers=[
