@@ -25,7 +25,8 @@ def _energy(p, q, M, N=None):
 # helper function for the Hellinger surrogate loss, leveraging the fact that the
 # average of squared distances can be computed over a single concatenation of histograms
 def _hellinger_surrogate(p, q, M, N=None):
-  return -jnp.sqrt(q * jnp.dot(M, p)).sum()
+  i = jnp.logical_and(q > 0, jnp.any(M > 0, axis=1)) # ignore constant zeros to avoid NaNs
+  return -jnp.sqrt(q[i] * jnp.dot(M[i], p)).sum()
 
 # helper function for the loss used in the Monte Carlo approximation of Kernel Density Estimation 
 def _kde_hd_loss(p, q, M, N=None):
