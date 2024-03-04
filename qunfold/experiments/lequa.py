@@ -205,20 +205,20 @@ def main(
         ),
         ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
             {
-                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **qp_clf_grid
+                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
         ("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
             {
-                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **qp_clf_grid
+                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
         ("KDEyCS", "QuaPy", qp.method.aggregative.KDEyCS(qp_clf, val_split=5),
             {
-                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **qp_clf_grid
+                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
         #("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
