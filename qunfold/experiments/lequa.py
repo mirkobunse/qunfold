@@ -203,24 +203,42 @@ def main(
                     clf_grid["transformer__classifier__estimator__C"],
             }
         ),
-        ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
+        ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
             {
-                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **clf_grid,
+                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **qp_clf
             }
         ),
-        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
+        ("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
             {
-                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **clf_grid,
+                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **qp_clf
             }
         ),
-        ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
+        ("KDEyCS", "QuaPy", qp.method.aggregative.KDEyCS(qp_clf, val_split=5),
             {
-                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **clf_grid,
+                "classifier__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **qp_clf
             }
         ),
+        #("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
+        #    {
+        #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        **clf_grid,
+        #    }
+        #),
+        #("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
+        #    {
+        #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        **clf_grid,
+        #    }
+        #),
+        #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
+        #    {
+        #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        **clf_grid,
+        #    }
+        #),
     ]
 
     # load the data
