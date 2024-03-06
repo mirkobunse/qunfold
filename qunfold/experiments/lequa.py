@@ -63,7 +63,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
             protocol = val_gen,
             error = "m" + error_metric, # ae -> mae, rae -> mrae
             refit = False,
-            # verbose = True,
+            verbose = True,
         ).fit(trn_data)
         parameters = quapy_method.best_params_
         val_error = quapy_method.best_score_
@@ -138,101 +138,101 @@ def main(
         "classifier__C": clf_grid["transformer__classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
-        ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
-        ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=5), qp_clf_grid),
-        ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
-        ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=5), qp_clf_grid),
-        ("HDy", "qunfold",
-            QuaPyWrapper(HDy(clf, 2, seed=seed)),
-            {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
-                "transformer__n_bins": [2, 4, 6],
-            }
-        ),
-        ("HDy", "QuaPy",
-            qp.method.aggregative.DistributionMatching(
-                classifier = qp_clf,
-                divergence = 'HD',
-                cdf = False
-            ),
-            dict(qp_clf_grid, nbins = [2, 4, 6]) # extend the qp_clf_grid
-        ),
-        ("EDy", "qunfold",
-            QuaPyWrapper(EDy(clf, seed=seed)),
-            {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
-            }
-        ),
-        ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
-        ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
-        ("KMMey", "qunfold", # KMM with the energy kernel after classification
-            QuaPyWrapper(GenericMethod(
-                LeastSquaresLoss(),
-                EnergyKernelTransformer(preprocessor=ClassTransformer(
-                    clf,
-                    is_probabilistic = True,
-                )),
-                seed = seed
-            )),
-            {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
-            }
-        ),
-        ("KMMr", "qunfold",
-            QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-            { "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
-        ),
-        ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-            QuaPyWrapper(GenericMethod(
-                LeastSquaresLoss(),
-                GaussianRFFKernelTransformer(
-                    seed = seed,
-                    preprocessor = ClassTransformer(
-                        clf,
-                        is_probabilistic = True,
-                    ),
-                ),
-                seed = seed
-            )),
-            {
-                "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
-            }
-        ),
+        #("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+        #("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=5), qp_clf_grid),
+        #("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+        #("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=5), qp_clf_grid),
+        #("HDy", "qunfold",
+        #    QuaPyWrapper(HDy(clf, 2, seed=seed)),
+        #    {
+        #        "transformer__preprocessor__classifier__estimator__C":
+        #            clf_grid["transformer__classifier__estimator__C"],
+        #        "transformer__n_bins": [2, 4, 6],
+        #    }
+        #),
+        #("HDy", "QuaPy",
+        #    qp.method.aggregative.DistributionMatching(
+        #        classifier = qp_clf,
+        #        divergence = 'HD',
+        #        cdf = False
+        #    ),
+        #    dict(qp_clf_grid, nbins = [2, 4, 6]) # extend the qp_clf_grid
+        #),
+        #("EDy", "qunfold",
+        #    QuaPyWrapper(EDy(clf, seed=seed)),
+        #    {
+        #        "transformer__preprocessor__classifier__estimator__C":
+        #            clf_grid["transformer__classifier__estimator__C"],
+        #    }
+        #),
+        #("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
+        #("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
+        #("KMMey", "qunfold", # KMM with the energy kernel after classification
+        #    QuaPyWrapper(GenericMethod(
+        #        LeastSquaresLoss(),
+        #        EnergyKernelTransformer(preprocessor=ClassTransformer(
+        #            clf,
+        #            is_probabilistic = True,
+        #        )),
+        #        seed = seed
+        #    )),
+        #    {
+        #        "transformer__preprocessor__classifier__estimator__C":
+        #            clf_grid["transformer__classifier__estimator__C"],
+        #    }
+        #),
+        #("KMMr", "qunfold",
+        #    QuaPyWrapper(KMM(kernel="rff", seed=seed)),
+        #    { "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
+        #),
+        #("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
+        #    QuaPyWrapper(GenericMethod(
+        #        LeastSquaresLoss(),
+        #        GaussianRFFKernelTransformer(
+        #            seed = seed,
+        #            preprocessor = ClassTransformer(
+        #                clf,
+        #                is_probabilistic = True,
+        #            ),
+        #        ),
+        #        seed = seed
+        #    )),
+        #    {
+        #        "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        "transformer__preprocessor__classifier__estimator__C":
+        #            clf_grid["transformer__classifier__estimator__C"],
+        #    }
+        #),
         ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
             {
                 "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
                 "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
-        ("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
-            {
-                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
-            }
-        ),
-        ("KDEyCS", "QuaPy", qp.method.aggregative.KDEyCS(qp_clf, val_split=5),
-            {
-                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
-            }
-        ),
+        #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
+        #    {
+        #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
+        #    }
+        #),
+        #("KDEyCS", "QuaPy", qp.method.aggregative.KDEyCS(qp_clf, val_split=5),
+        #    {
+        #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #        "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
+        #    }
+        #),
         #("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
         #    {
         #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
         #        **clf_grid,
         #    }
         #),
-        #("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
-        #    {
-        #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-        #        **clf_grid,
-        #    }
-        #),
+        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
+            {
+                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                **clf_grid,
+            }
+        ),
         #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
         #    {
         #        "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -254,76 +254,82 @@ def main(
             "classifier__C": clf_grid["transformer__classifier__estimator__C"],
         }
         methods = [ # (method_name, package, method, param_grid)
-            ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
-            ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
-            ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
-            ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
-            ("HDy", "qunfold", QuaPyWrapper(HDy(clf, 2, seed=seed)), None),
-            ("HDy", "QuaPy",
-                qp.method.aggregative.DistributionMatching(
-                    classifier = qp_clf,
-                    divergence = 'HD',
-                    cdf = False
-                ),
-                None
-            ),
-            ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
-            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
-            ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
-            ("KMMey", "qunfold", # KMM with the energy kernel after classification
-                QuaPyWrapper(GenericMethod(
-                    LeastSquaresLoss(),
-                    EnergyKernelTransformer(preprocessor=ClassTransformer(
-                        clf,
-                        is_probabilistic = True,
-                    )),
-                    seed = seed
-                )),
-                {
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
-                }
-            ),
-            ("KMMr", "qunfold",
-                QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-                { "transformer__sigma": [ 1e-1 ] }
-            ),
-            ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-                QuaPyWrapper(GenericMethod(
-                    LeastSquaresLoss(),
-                    GaussianRFFKernelTransformer(
-                        seed = seed,
-                        preprocessor = ClassTransformer(
-                            clf,
-                            is_probabilistic = True,
-                        ),
-                    ),
-                    seed = seed
-                )),
-                {
-                    "transformer__sigma": [ 1e-1 ],
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
-                }
-            ),
-            ("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
-            {
-                "transformer__bandwidth" : [1e-1],
-                **clf_grid,
-            }
-            ),
+            #("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+            #("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
+            #("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+            #("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
+            #("HDy", "qunfold", QuaPyWrapper(HDy(clf, 2, seed=seed)), None),
+            #("HDy", "QuaPy",
+            #    qp.method.aggregative.DistributionMatching(
+            #        classifier = qp_clf,
+            #        divergence = 'HD',
+            #        cdf = False
+            #    ),
+            #    None
+            #),
+            #("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
+            #("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
+            #("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
+            #("KMMey", "qunfold", # KMM with the energy kernel after classification
+            #    QuaPyWrapper(GenericMethod(
+            #        LeastSquaresLoss(),
+            #        EnergyKernelTransformer(preprocessor=ClassTransformer(
+            #            clf,
+            #            is_probabilistic = True,
+            #        )),
+            #        seed = seed
+            #    )),
+            #    {
+            #        "transformer__preprocessor__classifier__estimator__C":
+            #            clf_grid["transformer__classifier__estimator__C"],
+            #    }
+            #),
+            #("KMMr", "qunfold",
+            #    QuaPyWrapper(KMM(kernel="rff", seed=seed)),
+            #    { "transformer__sigma": [ 1e-1 ] }
+            #),
+            #("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
+            #    QuaPyWrapper(GenericMethod(
+            #        LeastSquaresLoss(),
+            #        GaussianRFFKernelTransformer(
+            #            seed = seed,
+            #            preprocessor = ClassTransformer(
+            #                clf,
+            #                is_probabilistic = True,
+            #            ),
+            #        ),
+            #        seed = seed
+            #    )),
+            #    {
+            #        "transformer__sigma": [ 1e-1 ],
+            #        "transformer__preprocessor__classifier__estimator__C":
+            #            clf_grid["transformer__classifier__estimator__C"],
+            #    }
+            #),
+            #("KDEyHD", "qunfold", QuaPyWrapper(KDEyHD(clf, bandwidth=0.1, random_state=seed)), 
+            #{
+            #    "transformer__bandwidth" : [1e-1],
+            #    **clf_grid,
+            #}
+            #),
             ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
                 {
-                    "transformer__bandwidth" : [1e-1],
+                    "transformer__bandwidth" : [1e-1, 1e-2],
                     **clf_grid,
                 }
             ),
-            ("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
+            ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
                 {
-                    "transformer__bandwidth" : [1e-1],
-                    **clf_grid,
+                    "bandwidth" : [1e-2, 1e-1],
+                    "classifier__C" : [1e1]
                 }
             ),
+            #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
+            #    {
+            #        "transformer__bandwidth" : [1e-1],
+            #        **clf_grid,
+            #    }
+            #),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample
         val_gen.true_prevs.df = val_gen.true_prevs.df[:3] # use only 3 validation samples
