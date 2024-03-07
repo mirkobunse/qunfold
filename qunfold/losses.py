@@ -42,9 +42,9 @@ def _kde_hd_loss(p, q, M, N=None):
 # (negative log-likelihood function)
 # Parameter M is redundant
 def _kde_ml_loss(p, q, M, N=None):
-  q = q.astype(np.float32)
-  i = jnp.logical_and(jnp.any(q > 0, axis=0), jnp.all(jnp.isfinite(q), axis=0))
-  return -jnp.sum(jnp.log(jnp.dot(p, q[:, i]) + 1e-10))
+  q = q.astype(np.float32).T # shape (n_samples, n_classes)
+  i = jnp.logical_and(jnp.any(q > 0, axis=1), jnp.all(jnp.isfinite(q), axis=1))
+  return -jnp.sum(jnp.log(jnp.dot(q[i], p) + 1e-10))
 
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):

@@ -17,35 +17,6 @@ from tqdm.auto import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
-# for debugging; this variant raises exceptions instead of hiding them
-import signal
-from copy import deepcopy
-class MyGridSearchQ(qp.model_selection.GridSearchQ):
-    def _delayed_eval(self, args):
-        params, training = args
-        protocol = self.protocol
-        error = self.error
-        if self.timeout > 0:
-            def handler(signum, frame):
-                raise TimeoutError()
-            signal.signal(signal.SIGALRM, handler)
-        tinit = time()
-        if self.timeout > 0:
-            signal.alarm(self.timeout)
-        try:
-            model = deepcopy(self.model)
-            model.set_params(**params)
-            model.fit(training)
-            score = qp.evaluation.evaluate(model, protocol=protocol, error_metric=error)
-            ttime = time()-tinit
-            self._sout(f'hyperparams={params}\t got {error.__name__} score {score:.5f} [took {ttime:.4f}s]')
-            if self.timeout > 0:
-                signal.alarm(0)
-        except TimeoutError:
-            self._sout(f'timeout ({self.timeout}s) reached for config {params}')
-            score = None
-        return params, score, model
-
 def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     """A single trial of lequa.main()"""
     i_method, method_name, package, method, param_grid, error_metric = trial_config
@@ -58,13 +29,13 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
 
     # configure and train the method; select the best hyper-parameters
     if param_grid is not None:
-        # quapy_method = qp.model_selection.GridSearchQ(
-        quapy_method = MyGridSearchQ(
+        quapy_method = qp.model_selection.GridSearchQ(
             model = method,
             param_grid = param_grid,
             protocol = val_gen,
             error = "m" + error_metric, # ae -> mae, rae -> mrae
             refit = False,
+            raise_errors = True,
             verbose = True,
         ).fit(trn_data)
         parameters = quapy_method.best_params_
@@ -205,19 +176,19 @@ def main(
         #            clf_grid["transformer__classifier__estimator__C"],
         #    }
         #),
-        ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
-            {
-                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
-            }
-        ),
-        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
-            {
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
-                "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
-                "exact_train_prev" : [True, False]
-            }
-        ),
+        # ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
+        #     {
+        #         "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+        #         "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
+        #     }
+        # ),
+        # ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
+        #     {
+        #         "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
+        #         "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
+        #         "exact_train_prev" : [True, False]
+        #     }
+        # ),
         #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
         #    {
         #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -327,17 +298,17 @@ def main(
                     **clf_grid,
                 }
             ),
-            ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
-                {
-                    "bandwidth" : [1e-2, 1e-1],
-                    "classifier__C" : [1e1]
-                }
-            ),
-            ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
-                {
-                    "classifier__C" : [1e-2, 1e-1]
-                }
-            ),
+            # ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
+            #     {
+            #         "bandwidth" : [1e-2, 1e-1],
+            #         "classifier__C" : [1e1]
+            #     }
+            # ),
+            # ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
+            #     {
+            #         "classifier__C" : [1e-2, 1e-1]
+            #     }
+            # ),
             #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
             #    {
             #        "transformer__bandwidth" : [1e-1],
