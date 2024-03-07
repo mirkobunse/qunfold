@@ -211,9 +211,11 @@ def main(
                 "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
-        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf, val_split=5),
+        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
             {
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
+                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
+                "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
+                "exact_train_prev" : [True, False]
             }
         ),
         #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
@@ -331,7 +333,7 @@ def main(
                     "classifier__C" : [1e1]
                 }
             ),
-            ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf, val_split=5),
+            ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
                 {
                     "classifier__C" : [1e-2, 1e-1]
                 }
