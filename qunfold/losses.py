@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 import functools
 from abc import ABC, abstractmethod
 
@@ -41,6 +42,7 @@ def _kde_hd_loss(p, q, M, N=None):
 # (negative log-likelihood function)
 # Parameter M is redundant
 def _kde_ml_loss(p, q, M, N=None):
+  q = q.astype(np.float32)
   i = jnp.logical_and(jnp.any(q > 0, axis=0), jnp.all(jnp.isfinite(q), axis=0))
   return -jnp.sum(jnp.log(jnp.dot(p, q[:, i]) + 1e-10))
 

@@ -14,6 +14,8 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from time import time
 from tqdm.auto import tqdm
+import warnings
+warnings.filterwarnings("ignore")
 
 # for debugging; this variant raises exceptions instead of hiding them
 import signal
@@ -209,6 +211,11 @@ def main(
                 "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
             }
         ),
+        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf, val_split=5),
+            {
+                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
+            }
+        ),
         #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
         #    {
         #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -322,6 +329,11 @@ def main(
                 {
                     "bandwidth" : [1e-2, 1e-1],
                     "classifier__C" : [1e1]
+                }
+            ),
+            ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf, val_split=5),
+                {
+                    "classifier__C" : [1e-2, 1e-1]
                 }
             ),
             #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
