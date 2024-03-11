@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from scipy.optimize import OptimizeResult
 
 class AbstractMethod(ABC):
   """Abstract base class for quantification methods."""
@@ -28,6 +29,16 @@ class AbstractMethod(ABC):
     """
     pass
 
+# helper function for our softmax "trick" with l[0]=0
+def np_softmax(l):
+  exp_l = np.exp(l)
+  return np.concatenate((np.ones(1), exp_l)) / (1. + exp_l.sum())
+
+# helper function for random starting points
+def rand_x0(rng, n_classes):
+  return rng.rand(n_classes-1) * 2 - 1
+
+# the return type of quantification estimates
 class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
   """A numpy array with additional properties nit and message."""
   def __new__(cls, input_array, nit, message):
@@ -59,7 +70,7 @@ class MinimizeCallbackState():
     self._xk = x0
     self._nit = 0
   def get_state(self):
-    return optimize.OptimizeResult(
+    return OptimizeResult(
       x = self._xk,
       success = False,
       message = "Intermediate result",

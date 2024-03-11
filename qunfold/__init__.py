@@ -23,7 +23,6 @@ from .transformers import (
     GaussianRFFKernelTransformer,
     KDEyHDTransformer,
     KDEyCSTransformer,
-    KDEyMLTransformer,
     KDEyMLTransformerID,
 )
 
@@ -40,6 +39,9 @@ from .methods.linear import (
     KMM,
     KDEyHD,
     KDEyCS,
-    KDEyML,
     KDEyMLID,
+)
+
+from .methods.kernel_density import (
+    KDEyML,
 )

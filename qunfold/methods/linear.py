@@ -1,23 +1,16 @@
 import numpy as np
 import traceback
-from scipy import optimize
+from scipy.optimize import minimize
 from . import (
   AbstractMethod,
+  rand_x0,
+  np_softmax,
   Result,
   DerivativeError,
   check_derivative,
   MinimizeCallbackState
 )
 from .. import (losses, transformers)
-
-# helper function for our softmax "trick" with l[0]=0
-def _np_softmax(l):
-  exp_l = np.exp(l)
-  return np.concatenate((np.ones(1), exp_l)) / (1. + exp_l.sum())
-
-# helper function for random starting points
-def _rand_x0(rng, n_classes):
-  return rng.rand(n_classes-1) * 2 - 1
 
 class LinearMethod(AbstractMethod):
   """A generic quantification / unfolding method that solves a linear system of equations.
@@ -68,10 +61,10 @@ class LinearMethod(AbstractMethod):
     """
     loss_dict = losses.instantiate_loss(self.loss, q, M, N)
     rng = np.random.RandomState(self.seed)
-    x0 = _rand_x0(rng, M.shape[1]) # random starting point
+    x0 = rand_x0(rng, M.shape[1]) # random starting point
     state = MinimizeCallbackState(x0)
     try:
-      opt = optimize.minimize(
+      opt = minimize(
         loss_dict["fun"], # JAX function l -> loss
         x0,
         jac = check_derivative(loss_dict["jac"], "jac"),
@@ -83,7 +76,7 @@ class LinearMethod(AbstractMethod):
     except (DerivativeError, ValueError):
       traceback.print_exc()
       opt = state.get_state()
-    return Result(_np_softmax(opt.x), opt.nit, opt.message)
+    return Result(np_softmax(opt.x), opt.nit, opt.message)
   @property
   def p_trn(self):
     return self.transformer.p_trn
@@ -324,27 +317,6 @@ class KDEyCS(LinearMethod):
     self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
     self.loss.counts_inv = self.transformer.counts_inv
     return self
-  
-class KDEyML(LinearMethod):
-  """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).
-
-   This subclass of `LinearMethod` is instantiated with a `KDEyMLLoss` and a `KDEyMLTransformer`.
-
-   Args:
-      classifier: A classifier that implements the API of scikit-learn.
-      bandwith: A smoothing parameter for the kernel-function.
-  """
-  def __init__(self, classifier, bandwidth, **kwargs):
-    LinearMethod.__init__(
-      self,
-      losses.KDEyMLLoss(),
-      transformers.KDEyMLTransformer(
-        kernel="gaussian",
-        bandwidth=bandwidth,
-        classifier=classifier
-      ),
-      **kwargs
-    )
 
 class KDEyMLID(LinearMethod):
   """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).

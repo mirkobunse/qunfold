@@ -209,8 +209,8 @@ def main(
         #),
         ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
             {
-                "transformer__bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                **clf_grid,
+                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
             }
         ),
         #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
@@ -294,8 +294,8 @@ def main(
             #),
             ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
                 {
-                    "transformer__bandwidth" : [1e-1, 1e-2],
-                    **clf_grid,
+                    "bandwidth" : [1e-1, 1e-2],
+                    "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
                 }
             ),
             # ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
