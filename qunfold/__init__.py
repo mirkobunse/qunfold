@@ -27,8 +27,9 @@ from .transformers import (
     KDEyMLTransformerID,
 )
 
-from .methods import (
-    GenericMethod,
+from .methods.linear import (
+    AbstractMethod,
+    LinearMethod,
     ACC,
     PACC,
     RUN,

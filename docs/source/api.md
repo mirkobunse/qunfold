@@ -1,11 +1,16 @@
 # API
 
-The `GenericMethod` defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
-
-Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `GenericMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
+The `AbstractMethod` defines the interface for all quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
 
 ```{eval-rst}
-.. autoclass:: qunfold.GenericMethod
+.. autoclass:: qunfold.AbstractMethod
+   :members:
+```
+
+Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `LinearMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
+
+```{eval-rst}
+.. autoclass:: qunfold.LinearMethod
    :members:
 ```
 

@@ -1,7 +1,7 @@
 import inspect
 from collections import defaultdict
 from quapy.method.base import BaseQuantifier
-from . import GenericMethod
+from . import LinearMethod
 
 #
 # _get_params and _set_params use inspection to provide a functionality
@@ -62,29 +62,32 @@ class QuaPyWrapper(BaseQuantifier):
     """A thin wrapper for using qunfold methods in QuaPy.
 
     Args:
-        generic_method: A GenericMethod method to wrap.
+        qunfold_method: A LinearMethod method to wrap.
 
     Examples:
         Here, we wrap an instance of ACC to perform a grid search with QuaPy.
 
-            >>> qunfold_method = QuaPyWrapper(ACC(RandomForestClassifier(obb_score=True)))
+            >>> wrapped = QuaPyWrapper(ACC(RandomForestClassifier(obb_score=True)))
             >>> quapy.model_selection.GridSearchQ(
-            >>>     model = qunfold_method,
+            >>>     model = wrapped,
             >>>     param_grid = { # try both splitting criteria
             >>>         "transformer__classifier__estimator__criterion": ["gini", "entropy"],
             >>>     },
             >>>     # ...
             >>> )
     """
-    def __init__(self, generic_method):
-        self.generic_method = generic_method
+    def __init__(self, qunfold_method):
+        self.qunfold_method = qunfold_method
     def fit(self, data): # data : LabelledCollection
-        self.generic_method.fit(*data.Xy, data.n_classes)
+        self.qunfold_method.fit(*data.Xy, data.n_classes)
         return self
     def quantify(self, X):
-        return self.generic_method.predict(X)
+        return self.qunfold_method.predict(X)
     def set_params(self, **params):
-        _set_params(self.generic_method, self.get_params(deep=True), **params)
+        _set_params(self.qunfold_method, self.get_params(deep=True), **params)
         return self
     def get_params(self, deep=True):
-        return _get_params(self.generic_method, deep, GenericMethod)
+        if isinstance(self.qunfold_method, LinearMethod):
+            return _get_params(self.qunfold_method, deep, LinearMethod)
+        else:
+            raise NotImplementedError("QuaPyWrapper only implemented for LinearMethod")

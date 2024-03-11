@@ -66,5 +66,5 @@ loss = TikhonovRegularized(LeastSquaresLoss(), 0.01)
 transformer = ClassTransformer(CVClassifier(LogisticRegression(), 10))
 
 # the ordinal variant of ACC, ready for being used in QuaPy
-ordinal_acc = QuaPyWrapper(GenericMethod(loss, transformer))
+ordinal_acc = QuaPyWrapper(LinearMethod(loss, transformer))
 ```
