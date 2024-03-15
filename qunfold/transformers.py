@@ -89,7 +89,7 @@ class ClassTransformer(AbstractTransformer):
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
       self.classifier.fit(X, y)
-    fX = np.zeros((len(X), n_classes))
+    fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:] # drop instances that never became OOB
@@ -105,7 +105,7 @@ class ClassTransformer(AbstractTransformer):
     return fX, y
   def transform(self, X, average=True):
     n_classes = len(self.p_trn)
-    fX = np.zeros((len(X), n_classes))
+    fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.predict_proba(X)
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)

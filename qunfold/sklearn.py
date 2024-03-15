@@ -46,7 +46,7 @@ class CVClassifier(BaseEstimator, ClassifierMixin):
   def predict_proba(self, X):
     if not hasattr(self, "classes_"):
       raise NotFittedError()
-    y_pred = np.zeros((len(self.estimators_), len(X), len(self.classes_)))
+    y_pred = np.zeros((len(self.estimators_), X.shape[0], len(self.classes_)))
     for i, (estimator, i_classes) in enumerate(zip(self.estimators_, self.i_classes_)):
       y_pred[i, :, i_classes] = estimator.predict_proba(X).T
     return np.mean(y_pred, axis=0) # shape (n_samples, n_classes)
