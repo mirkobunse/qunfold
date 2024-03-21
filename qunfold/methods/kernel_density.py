@@ -22,7 +22,7 @@ class KDEyML(AbstractMethod):
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
-      bandwith: A smoothing parameter for the kernel-function.
+      bandwith: A smoothing parameter for the kernel-function. Either a single bandwidth for all classes, or a sequenz of individual values for each class.
       solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
       solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
       seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
@@ -43,6 +43,12 @@ class KDEyML(AbstractMethod):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
+    if isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
+      self.bandwidth = [self.bandwidth] * n_classes
+    assert len(self.bandwidth) == n_classes, (
+      f"bandwidth must either be a single scalar or a sequenz of length n_classes.\n"
+      f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
+    )
     self.preprocessor = ClassTransformer(
       self.classifier,
       is_probabilistic = True,
@@ -50,7 +56,7 @@ class KDEyML(AbstractMethod):
     )
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
     self.mixture_components = [
-      KernelDensity(bandwidth=self.bandwidth).fit(fX[y==c])
+      KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
       for c in range(n_classes)
     ]
     return self

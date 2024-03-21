@@ -97,6 +97,8 @@ def main(
     qp.environ["SAMPLE_SIZE"] = 1000
     qp.environ["N_JOBS"] = 1
 
+    N_CLASSES = 28
+
     # configure the quantification methods
     clf = CVClassifier(
         LogisticRegression(),
@@ -209,7 +211,7 @@ def main(
         #),
         ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
             {
-                "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "bandwidth" : itertools.combinations_with_replacement([1e-2, 1e-1, 1e0], N_CLASSES),
                 "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
             }
         ),
