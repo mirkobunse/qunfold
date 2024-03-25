@@ -17,8 +17,14 @@ from . import (
 from ..transformers import (check_y, class_prevalences, ClassTransformer)
 
 def _bw_scott(X):
-  sigma = np.std(X)
+  sigma = np.std(X, ddof=1)
   return 3.49 * sigma * X.shape[0]**(-0.333)
+
+def _bw_silverman(X):
+  norm_iqr = (scoreatpercentile(X, 75) - scoreatpercentile(X, 25)) / 1.349
+  sigma = np.std(X, ddof=1)
+  A = np.minimum(sigma, norm_iqr) if norm_iqr > 0 else sigma
+  return 0.9 * A * X.shape[0]**(-0.2)
 
 class KDEyML(AbstractMethod):
   """The Maximum-Likelihood solution of the kernel-based KDE method by González-Moreo et al. (2024).
@@ -68,7 +74,7 @@ class KDEyML(AbstractMethod):
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
     if isinstance(self.bandwidth, str) and self.bandwidth == 'silverman':
       self.mixture_components = [
-      KernelDensity(bandwidth=self.bandwidth).fit(fX[y==c])
+      KernelDensity(bandwidth=_bw_silverman(fX[y==c])).fit(fX[y==c])
       for c in range(n_classes)
       ]
     elif isinstance(self.bandwidth, str) and self.bandwidth == 'scott':
