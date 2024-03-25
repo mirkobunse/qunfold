@@ -95,7 +95,6 @@ def main(
     np.random.seed(seed)
     qp.environ["_R_SEED"] = seed
     qp.environ["SAMPLE_SIZE"] = 1000
-    qp.environ["N_JOBS"] = 5
 
     # configure the quantification methods
     clf = CVClassifier(
@@ -182,13 +181,14 @@ def main(
         #         "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
         #     }
         # ),
-        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
-            {
-                "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
-                "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
-                "exact_train_prev" : [True, False]
-            }
-        ),
+        #("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
+        #    {
+        #        "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
+        #        "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
+        #        "exact_train_prev" : [True, False],
+        #        "val_split" : [0.2]
+        #    }
+        #),
         #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
         #    {
         #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -209,8 +209,10 @@ def main(
         #),
         ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
             {
-                "bandwidth" : [1e-2, 1e-1, 1e0, 'scott', 'silverman'],
-                "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
+                #"bandwidth" : [1e-2, 1e-1, 1e0, 'scott', 'silverman'],
+                "bandwidth" : ['scott', 'silverman'],
+                #"classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
+                "classifier__estimator__C": [0.1],
             }
         ),
         #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
