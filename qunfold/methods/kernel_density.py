@@ -3,7 +3,8 @@ import jax.numpy as jnp
 import numpy as np
 import traceback
 from scipy.optimize import minimize
-from sklearn.neighbors import KernelDensity # TODO migrate to SciPy
+from scipy.stats import scoreatpercentile
+from sklearn.neighbors import KernelDensity
 from . import (
   AbstractMethod,
   rand_x0,
@@ -45,20 +46,32 @@ class KDEyML(AbstractMethod):
     n_classes = len(self.p_trn) # not None anymore
     if isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
       self.bandwidth = [self.bandwidth] * n_classes
-    assert len(self.bandwidth) == n_classes, (
-      f"bandwidth must either be a single scalar or a sequenz of length n_classes.\n"
-      f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
-    )
+    elif isinstance(self.bandwidth, str):
+      self.bandwidth = self.bandwidth.lower()
+      assert self.bandwidth == 'scott' or self.bandwidth == 'silverman', (
+        f"Valid bandwidth estimation methods are 'scott' and 'silverman', got {self.bandwidth}!"
+      )
+    else:
+      assert len(self.bandwidth) == n_classes, (
+        f"bandwidth must either be a single scalar or a sequence of length n_classes.\n"
+        f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
+      )
     self.preprocessor = ClassTransformer(
       self.classifier,
       is_probabilistic = True,
       fit_classifier = True
     )
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    self.mixture_components = [
-      KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
+    if isinstance(self.bandwidth, str):
+      self.mixture_components = [
+      KernelDensity(bandwidth=self.bandwidth).fit(fX[y==c])
       for c in range(n_classes)
-    ]
+      ]
+    else:
+      self.mixture_components = [
+        KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
+        for c in range(n_classes)
+      ]
     return self
   def predict(self, X):
     fX = self.preprocessor.transform(X, average=False)
@@ -125,3 +138,4 @@ class KDEyML(AbstractMethod):
     # exp_l = jnp.exp(jnp.concatenate((anchor, opt.x)))
     # return Result(np.array(exp_l / exp_l.sum()), opt.nit, opt.message)
     return Result(np_softmax(opt.x), opt.nit, opt.message)
+
