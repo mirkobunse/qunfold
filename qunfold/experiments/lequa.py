@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, LinearMethod, KDEyHD, KDEyCS, KDEyML
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, LinearMethod, KDEyHD, KDEyCS, KDEyML, KDEyMLQP
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -181,14 +181,12 @@ def main(
         #         "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1]
         #     }
         # ),
-        #("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
-        #    {
-        #        "classifier__C" : [1e-3, 1e-2, 1e-1, 1e0, 1e1],
-        #        "recalib" : [None, 'nbvs', 'bcts', 'ts', 'vs'],
-        #        "exact_train_prev" : [True, False],
-        #        "val_split" : [0.2]
-        #    }
-        #),
+        ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
+            {
+                "classifier__C" : np.logspace(-3, 3, 7),
+                "classifier__estimator__class_weight" : ['balanced', None],
+            }
+        ),
         #("KDEyHD", "QuaPy", qp.method.aggregative.KDEyHD(qp_clf, val_split=5),
         #    {
         #        "bandwidth" : [1e-2, 1e-1, 1e0, 1e1, 1e2],
@@ -207,12 +205,19 @@ def main(
         #        **clf_grid,
         #    }
         #),
-        ("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
+        #("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
+        #    {
+        #        #"bandwidth" : [1e-2, 1e-1, 1e0, 'scott', 'silverman'],
+        #        "bandwidth" : ['scott', 'silverman'],
+        #        #"classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
+        #        "classifier__estimator__C": [0.01, 0.1, 0.5, 1.0, 10.],
+        #    }
+        #),
+        ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1)), 
             {
-                #"bandwidth" : [1e-2, 1e-1, 1e0, 'scott', 'silverman'],
-                "bandwidth" : ['scott', 'silverman'],
-                #"classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
-                "classifier__estimator__C": [0.1],
+                "bandwidth" : np.linspace(0.01, 0.2, 20),
+                "classifier__estimator__C": np.logspace(-3, 3, 7),
+                "classifier__estimator__class_weight" : ['balanced', None],
             }
         ),
         #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 

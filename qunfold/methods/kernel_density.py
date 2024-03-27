@@ -5,6 +5,7 @@ import traceback
 from scipy.optimize import minimize
 from scipy.stats import scoreatpercentile
 from sklearn.neighbors import KernelDensity
+from qunfold.losses import KDEyMLLoss, instantiate_loss
 from . import (
   AbstractMethod,
   rand_x0,
@@ -154,3 +155,77 @@ class KDEyML(AbstractMethod):
     # return Result(np.array(exp_l / exp_l.sum()), opt.nit, opt.message)
     return Result(np_softmax(opt.x), opt.nit, opt.message)
 
+class KDEBase:
+  def __init__(self, classifier, bandwidth, random_state=None, solver='SLSQP') -> None:
+    self.classifier = classifier
+    self.bandwidth = bandwidth
+    self.random_state = random_state
+    self.solver = solver
+
+  def fit(self, X, y, n_classes=None):
+    check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    n_classes = len(self.p_trn) # not None anymore
+    self.preprocessor = ClassTransformer(classifier=self.classifier, is_probabilistic=True)
+    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    if isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
+      self.bandwidth = [self.bandwidth] * n_classes
+    elif isinstance(self.bandwidth, str):
+      self.bandwidth = self.bandwidth.lower()
+      if self.bandwidth == 'scott':
+        self.bandwidth = [_bw_scott(fX[y==c]) for c in range(n_classes)]
+      elif self.bandwidth == 'silverman':
+        self.bandwidth = [_bw_silverman(fX[y==c]) for c in range(n_classes)]
+      else:
+        raise ValueError(f"Valid bandwidth estimation methods are 'scott' and 'silverman', got {self.bandwidth}!")  
+    else:
+      assert len(self.bandwidth) == n_classes, (
+        f"bandwidth must either be a single scalar or a sequence of length n_classes.\n"
+        f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
+      )
+    self.mixture_components = [
+        KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
+        for c in range(n_classes)
+      ]
+    return self
+  
+  def predict(self, X):
+    fX = self.preprocessor.transform(X, average=False)
+    return self.solve(fX)
+  
+  def solve(self, X):
+    pass
+
+class KDEyMLQP(KDEBase):
+
+  def __init__(self, classifier, bandwidth, random_state=None, solver='SLSQP') -> None:
+    KDEBase.__init__(
+      self,
+      classifier = classifier,
+      bandwidth = bandwidth,
+      random_state = random_state,
+      solver = solver,
+    )
+
+  def solve(self, X):
+    np.random.RandomState(self.random_state)
+    epsilon = 1e-10
+    n_classes = len(self.mixture_components)
+    test_densities = [np.exp(mc.score_samples(X)) for mc in self.mixture_components]
+
+    def neg_loglikelihood(prevs):
+      test_mixture_likelihood = sum(prev_i * dens_i for prev_i, dens_i in zip(prevs, test_densities))
+      test_loglikelihood = np.log(test_mixture_likelihood + epsilon)
+      return -np.sum(test_loglikelihood)
+    
+    x0 = np.full(fill_value=1 / n_classes, shape=(n_classes,))
+    bounds = tuple((0, 1) for _ in range(n_classes))
+    constraints = ({'type': 'eq', 'fun': lambda x: 1 - sum(x)})
+    opt = minimize(
+      neg_loglikelihood,
+      x0=x0,
+      method=self.solver,
+      bounds=bounds,
+      constraints=constraints
+    )
+    return Result(opt.x, opt.nit, opt.message)

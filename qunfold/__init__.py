@@ -44,4 +44,5 @@ from .methods.linear import (
 
 from .methods.kernel_density import (
     KDEyML,
+    KDEyMLQP,
 )

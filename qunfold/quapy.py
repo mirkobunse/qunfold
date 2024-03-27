@@ -1,7 +1,7 @@
 import inspect
 from collections import defaultdict
 from quapy.method.base import BaseQuantifier
-from . import LinearMethod, KDEyML
+from . import LinearMethod, KDEyML, KDEyMLQP
 
 #
 # _get_params and _set_params use inspection to provide a functionality
@@ -91,5 +91,7 @@ class QuaPyWrapper(BaseQuantifier):
             return _get_params(self.qunfold_method, deep, LinearMethod)
         elif isinstance(self.qunfold_method, KDEyML):
             return _get_params(self.qunfold_method, deep, KDEyML)
+        elif isinstance(self.qunfold_method, KDEyMLQP):
+            return _get_params(self.qunfold_method, deep, KDEyMLQP)
         else:
             raise NotImplementedError("QuaPyWrapper only implemented for LinearMethod")
