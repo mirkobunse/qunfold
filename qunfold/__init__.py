@@ -7,6 +7,9 @@ from .losses import (
     CombinedLoss,
     TikhonovRegularization,
     TikhonovRegularized,
+    KDEyHDLoss,
+    KDEyCSLoss,
+    KDEyMLLoss,
 )
 
 from .transformers import (
@@ -18,10 +21,14 @@ from .transformers import (
     LaplacianKernelTransformer,
     GaussianKernelTransformer,
     GaussianRFFKernelTransformer,
+    KDEyHDTransformer,
+    KDEyCSTransformer,
+    KDEyMLTransformerID,
 )
 
-from .methods import (
-    GenericMethod,
+from .methods.linear import (
+    AbstractMethod,
+    LinearMethod,
     ACC,
     PACC,
     RUN,
@@ -30,4 +37,12 @@ from .methods import (
     EDx,
     EDy,
     KMM,
+    KDEyHD,
+    KDEyCS,
+    KDEyMLID,
+)
+
+from .methods.kernel_density import (
+    KDEyML,
+    KDEyMLQP,
 )
