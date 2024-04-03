@@ -165,28 +165,40 @@ class KDEBase:
   def fit(self, X, y, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
-    n_classes = len(self.p_trn) # not None anymore
+    self.n_classes = len(self.p_trn) # not None anymore
     self.preprocessor = ClassTransformer(classifier=self.classifier, is_probabilistic=True)
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    if isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
-      self.bandwidth = [self.bandwidth] * n_classes
-    elif isinstance(self.bandwidth, str):
+    if isinstance(self.bandwidth, str):
       self.bandwidth = self.bandwidth.lower()
       if self.bandwidth == 'scott':
-        self.bandwidth = [_bw_scott(fX[y==c]) for c in range(n_classes)]
+        self.mixture_components = [
+          KernelDensity(bandwidth=_bw_scott(fX[y==c])).fit(fX[y==c])
+          for c in range(self.n_classes)
+        ]
       elif self.bandwidth == 'silverman':
-        self.bandwidth = [_bw_silverman(fX[y==c]) for c in range(n_classes)]
+        self.mixture_components = [
+          KernelDensity(bandwidth=_bw_silverman(fX[y==c])).fit(fX[y==c])
+          for c in range(self.n_classes)
+        ]
       else:
         raise ValueError(f"Valid bandwidth estimation methods are 'scott' and 'silverman', got {self.bandwidth}!")  
-    else:
-      assert len(self.bandwidth) == n_classes, (
+    elif isinstance(self.bandwidth, list) or isinstance(self.bandwidth, np.ndarray):
+      assert len(self.bandwidth) == self.n_classes, (
         f"bandwidth must either be a single scalar or a sequence of length n_classes.\n"
         f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
       )
-    self.mixture_components = [
-        KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
-        for c in range(n_classes)
-      ]
+      self.mixture_components = [
+          KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
+          for c in range(self.n_classes)
+        ]
+    elif isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
+      self.mixture_components = [
+          KernelDensity(bandwidth=self.bandwidth).fit(fX[y==c])
+          for c in range(self.n_classes)
+        ]
+    else:
+      raise ValueError("bandwidth must be either scalar value, list of length n_classes or string literal 'scott' or 'silverman'")
+    
     return self
   
   def predict(self, X):
@@ -229,3 +241,70 @@ class KDEyMLQP(KDEBase):
       constraints=constraints
     )
     return Result(opt.x, opt.nit, opt.message)
+  
+# assume that bandwidth is either float/int or 'scott' or 'silverman'
+# cant handle list/array, since bandwidth is used in solve
+class KDEyHDQP(KDEBase):
+  def __init__(self, classifier, bandwidth, random_state=None, solver='SLSQP', montecarlo_trials=10_000) -> None:
+    super().__init__(
+      self,
+      classifier, 
+      bandwidth, 
+      random_state, 
+      solver
+    )
+    self.montecarlo_trials = montecarlo_trials
+
+  def fit(self, X, y, n_classes=None):
+    super().fit(self, X, y, n_classes)
+    N = self.montecarlo_trials
+    rs = self.random_state
+    self.reference_samples = np.vstack([
+      mc.sample(N//self.n_classes, random_state=rs) 
+      for mc in self.mixture_components
+    ])
+    self.reference_classwise_densities = np.asarray([
+      np.exp(mc.score_samples(self.reference_samples)) 
+      for mc in self.mixture_components
+    ])
+    self.reference_density = np.mean(self.reference_classwise_densities, axis=0)
+    return self
+
+  def solve(self, X):
+    if self.bandwidth == 'scott':
+      test_kde = KernelDensity(bandwidth=_bw_scott(X)).fit(X)
+    elif self.bandwidth == 'silverman':
+      test_kde = KernelDensity(bandwidth=_bw_silverman(X)).fit(X)
+    else:
+      test_kde = KernelDensity(bandwidth=self.bandwidth).fit(X)
+      
+    test_densities = np.exp(test_kde.score_samples(self.reference_samples))
+
+    def f_squared_hellinger(u):
+      return (np.sqrt(u) - 1)**2
+      
+    epsilon = 1e-10
+    qs = test_densities + epsilon
+    rs = self.reference_density + epsilon
+    iw = qs/rs
+    p_class = self.reference_classwise_densities + epsilon
+    fracs = p_class/qs
+
+    def divergence(prev):
+      ps_div_qs = prev @ fracs
+      return np.mean(f_squared_hellinger(ps_div_qs) * iw)
+      
+    x0 = np.full(fill_value=1 / self.n_classes, shape=(self.n_classes,))
+    bounds = tuple((0, 1) for _ in range(self.n_classes))
+    constraints = ({'type': 'eq', 'fun': lambda x: 1 - sum(x)})
+
+    opt = minimize(
+      divergence,
+      x0=x0,
+      method=self.solver,
+      bounds=bounds,
+      constraints=constraints
+    )
+      
+    return Result(opt.x, opt.nit, opt.message)
+    
