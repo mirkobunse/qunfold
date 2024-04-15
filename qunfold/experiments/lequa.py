@@ -214,14 +214,14 @@ def main(
         #        "classifier__estimator__C": [0.01, 0.1, 0.5, 1.0, 10.],
         #    }
         #),
-        ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1)), 
-            {
-                "bandwidth" : np.linspace(0.01, 0.2, 20),
-                "classifier__estimator__C": np.logspace(-3, 3, 7),
-                "classifier__estimator__class_weight" : ['balanced', None],
-            }
-        ),
-        ("KDEyMLQP", "QuaPy", KDEyML_QuaPy(qp_clf),
+        #("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1)), 
+        #    {
+        #        "bandwidth" : np.linspace(0.01, 0.2, 20),
+        #        "classifier__estimator__C": np.logspace(-3, 3, 7),
+        #        "classifier__estimator__class_weight" : ['balanced', None],
+        #    }
+        #),
+        ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf),
             {
                 "bandwidth" : np.linspace(0.01, 0.2, 20),
                 "classifier__estimator__C": np.logspace(-3, 3, 7),
