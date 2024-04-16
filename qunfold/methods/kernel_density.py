@@ -168,21 +168,9 @@ class KDEBase:
     self.n_classes = len(self.p_trn) # not None anymore
     self.preprocessor = ClassTransformer(classifier=self.classifier, is_probabilistic=True)
     fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    if isinstance(self.bandwidth, str):
-      self.bandwidth = self.bandwidth.lower()
-      if self.bandwidth == 'scott':
-        self.mixture_components = [
-          KernelDensity(bandwidth=_bw_scott(fX[y==c])).fit(fX[y==c])
-          for c in range(self.n_classes)
-        ]
-      elif self.bandwidth == 'silverman':
-        self.mixture_components = [
-          KernelDensity(bandwidth=_bw_silverman(fX[y==c])).fit(fX[y==c])
-          for c in range(self.n_classes)
-        ]
-      else:
-        raise ValueError(f"Valid bandwidth estimation methods are 'scott' and 'silverman', got {self.bandwidth}!")  
-    elif isinstance(self.bandwidth, list) or isinstance(self.bandwidth, np.ndarray):
+    #self.classifier.fit(X, y)
+    #fX = getattr(self.classifier, 'decision_function')(X)
+    if isinstance(self.bandwidth, list) or isinstance(self.bandwidth, np.ndarray):
       assert len(self.bandwidth) == self.n_classes, (
         f"bandwidth must either be a single scalar or a sequence of length n_classes.\n"
         f"Received {len(self.bandwidth)} values for bandwidth, but dataset has {n_classes} classes."
@@ -191,18 +179,17 @@ class KDEBase:
           KernelDensity(bandwidth=self.bandwidth[c]).fit(fX[y==c])
           for c in range(self.n_classes)
         ]
-    elif isinstance(self.bandwidth, float) or isinstance(self.bandwidth, int):
+    else:
       self.mixture_components = [
           KernelDensity(bandwidth=self.bandwidth).fit(fX[y==c])
           for c in range(self.n_classes)
         ]
-    else:
-      raise ValueError("bandwidth must be either scalar value, list of length n_classes or string literal 'scott' or 'silverman'")
     
     return self
   
   def predict(self, X):
     fX = self.preprocessor.transform(X, average=False)
+    #fX = getattr(self.classifier, 'decision_function')(X)
     return self.solve(fX)
   
   def solve(self, X):
