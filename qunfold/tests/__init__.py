@@ -11,7 +11,7 @@ from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
-from qunfold.methods import HDx
+from qunfold.methods.linear import HDx
 from qunfold.losses import HellingerSurrogateLoss
 
 RNG = np.random.RandomState(876) # make tests reproducible
@@ -66,7 +66,11 @@ class TestMethods(TestCase):
       p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
       p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
       p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
-      p_custom = qunfold.GenericMethod( # a custom method
+      p_kdemc = qunfold.KDEyHD(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_kdecs = qunfold.KDEyCS(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_kdeml = qunfold.KDEyMLQP(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_kdeml_id = qunfold.KDEyMLID(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
+      p_custom = qunfold.LinearMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
       ).fit(X_trn, y_trn, n_classes).predict(X_tst)
@@ -95,6 +99,14 @@ class TestMethods(TestCase):
         f"             {p_kmml.nit} it.; {p_kmml.message}",
         f"     p_rff = {p_rff}",
         f"             {p_rff.nit} it.; {p_rff.message}",
+        f"     p_kdemc = {p_kdemc}",
+        f"             {p_kdemc.nit} it.; {p_kdemc.message}",
+        f"     p_kdecs = {p_kdecs}",
+        f"             {p_kdecs.nit} it.; {p_kdecs.message}",
+        f"     p_kdeml = {p_kdeml}",
+        f"             {p_kdeml.nit} it.; {p_kdeml.message}",
+        f"     p_kdeml_id = {p_kdeml_id}",
+        f"             {p_kdeml_id.nit} it.; {p_kdeml_id.message}",
         f"     p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
@@ -165,11 +177,12 @@ class TestQuaPyWrapper(TestCase):
         protocol = SingleSampleProtocol(X_tst, p_tst),
         error = "mae",
         refit = False,
+        raise_errors = True,
         verbose = True,
       ).fit(LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
         quapy_method.best_params_["transformer__classifier__estimator__C"],
-        quapy_method.best_model_.generic_method.transformer.classifier.estimator.C
+        quapy_method.best_model_.qunfold_method.transformer.classifier.estimator.C
       )
 
 class TestDistanceTransformer(TestCase):
@@ -180,7 +193,7 @@ class TestDistanceTransformer(TestCase):
       X_trn, y_trn = generate_data(M, p_trn)
       # p_tst = RNG.permutation(p_trn)
       # X_tst, y_tst = generate_data(M, p_tst)
-      m = qunfold.GenericMethod(None, qunfold.DistanceTransformer())
+      m = qunfold.LinearMethod(None, qunfold.DistanceTransformer())
       m.fit(X_trn, y_trn, n_classes)
       M_est = m.M
       M_true = np.zeros_like(M_est)
