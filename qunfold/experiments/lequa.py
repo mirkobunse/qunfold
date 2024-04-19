@@ -214,14 +214,14 @@ def main(
         #        "classifier__estimator__C": [0.01, 0.1, 0.5, 1.0, 10.],
         #    }
         #),
-        #("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1)), 
-        #    {
-        #        "bandwidth" : np.linspace(0.01, 0.2, 20),
-        #        "classifier__estimator__C": np.logspace(-3, 3, 7),
-        #        "classifier__estimator__class_weight" : ['balanced', None],
-        #    }
-        #),
-        ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf),
+        ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1, random_state=seed)), 
+            {
+                "bandwidth" : np.linspace(0.01, 0.2, 20),
+                "classifier__estimator__C": np.logspace(-3, 3, 7),
+                "classifier__estimator__class_weight" : ['balanced', None],
+            }
+        ),
+        ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf, random_state=seed),
             {
                 "bandwidth" : np.linspace(0.01, 0.2, 20),
                 "classifier__C": np.logspace(-3, 3, 7),
@@ -307,23 +307,25 @@ def main(
             #    **clf_grid,
             #}
             #),
-            #("KDEyML", "qunfold", QuaPyWrapper(KDEyML(clf, bandwidth=0.1)), 
-            #    {
-            #        "bandwidth" : [1e-1, 1e-2],
-            #        "classifier__estimator__C": clf_grid["transformer__classifier__estimator__C"],
-            #    }
-            #),
-            # ("KDEyML", "QuaPy", qp.method.aggregative.KDEyML(qp_clf, val_split=5),
-            #     {
-            #         "bandwidth" : [1e-2, 1e-1],
-            #         "classifier__C" : [1e1]
-            #     }
-            # ),
-            # ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
-            #     {
-            #         "classifier__C" : [1e-2, 1e-1]
-            #     }
-            # ),
+            ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(qp_clf, random_state=seed)), 
+                {
+                    "bandwidth" : np.linspace(0.01, 0.2, 20),
+                    "classifier__estimator__C": np.logspace(-3, 3, 7),
+                    "classifier__estimator__class_weight" : ['balanced', None],
+                }
+            ),
+            ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf, random_state=seed),
+                {
+                    "bandwidth" : np.linspace(0.01, 0.2, 20),
+                    "classifier__C": np.logspace(-3, 3, 7),
+                    "classifier__class_weight" : ['balanced', None],
+                }
+            ),
+            ("SLD", "QuaPy", qp.method.aggregative.EMQ(qp_clf),
+                {
+                    "classifier__C" : [1e-2, 1e-1]
+                }
+            ),
             #("KDEyCS", "qunfold", QuaPyWrapper(KDEyCS(clf, bandwidth=0.1)), 
             #    {
             #        "transformer__bandwidth" : [1e-1],

@@ -5,6 +5,8 @@ import traceback
 from scipy.optimize import minimize
 from scipy.stats import scoreatpercentile
 from sklearn.neighbors import KernelDensity
+from sklearn.utils.validation import check_is_fitted, NotFittedError
+from sklearn.model_selection import cross_val_predict
 from qunfold.losses import KDEyMLLoss, instantiate_loss
 from . import (
   AbstractMethod,
@@ -156,20 +158,23 @@ class KDEyML(AbstractMethod):
     return Result(np_softmax(opt.x), opt.nit, opt.message)
 
 class KDEBase:
-  def __init__(self, classifier, bandwidth, random_state=None, solver='SLSQP') -> None:
+  def __init__(self, classifier, bandwidth=0.1, fit_classifier=True, random_state=None, solver='SLSQP', n_cross_val=10) -> None:
     self.classifier = classifier
     self.bandwidth = bandwidth
     self.random_state = random_state
     self.solver = solver
+    self.fit_classifier = fit_classifier
+    self.n_cross_val = n_cross_val
 
   def fit(self, X, y, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     self.n_classes = len(self.p_trn) # not None anymore
-    self.preprocessor = ClassTransformer(classifier=self.classifier, is_probabilistic=True)
-    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    #self.classifier.fit(X, y)
-    #fX = getattr(self.classifier, 'decision_function')(X)
+    #self.preprocessor = ClassTransformer(classifier=self.classifier, is_probabilistic=True, fit_classifier=fit_classifier)
+    #fX, _ = self.preprocessor.fit_transform(X, y, average=False)
+    fX = cross_val_predict(self.classifier, X, y, cv=self.n_cross_val, method='predict_proba')
+    if self.fit_classifier or not self.__classifier_fitted():
+      self.classifier.fit(X, y)
     if isinstance(self.bandwidth, list) or isinstance(self.bandwidth, np.ndarray):
       assert len(self.bandwidth) == self.n_classes, (
         f"bandwidth must either be a single scalar or a sequence of length n_classes.\n"
@@ -188,22 +193,31 @@ class KDEBase:
     return self
   
   def predict(self, X):
-    fX = self.preprocessor.transform(X, average=False)
-    #fX = getattr(self.classifier, 'decision_function')(X)
+    fX = self.classifier.predict_proba(X)
     return self.solve(fX)
   
   def solve(self, X):
     pass
 
+  def __classifier_fitted(self):
+    try:
+      check_is_fitted(self.classifier)
+      return True
+    except NotFittedError:
+      return False
+
+
 class KDEyMLQP(KDEBase):
 
-  def __init__(self, classifier, bandwidth, random_state=None, solver='SLSQP') -> None:
+  def __init__(self, classifier, bandwidth=0.1, fit_classifier=True, random_state=None, solver='SLSQP', n_cross_val=10) -> None:
     KDEBase.__init__(
       self,
       classifier = classifier,
       bandwidth = bandwidth,
       random_state = random_state,
       solver = solver,
+      n_cross_val=n_cross_val,
+      fit_classifier=fit_classifier,
     )
 
   def solve(self, X):
