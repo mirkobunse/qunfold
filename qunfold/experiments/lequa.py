@@ -214,11 +214,11 @@ def main(
         #        "classifier__estimator__C": [0.01, 0.1, 0.5, 1.0, 10.],
         #    }
         #),
-        ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(clf, bandwidth=0.1, random_state=seed)), 
+        ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(qp_clf, random_state=seed)), 
             {
                 "bandwidth" : np.linspace(0.01, 0.2, 20),
-                "classifier__estimator__C": np.logspace(-3, 3, 7),
-                "classifier__estimator__class_weight" : ['balanced', None],
+                "classifier__C": np.logspace(-3, 3, 7),
+                "classifier__class_weight" : ['balanced', None],
             }
         ),
         ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf, random_state=seed),
@@ -310,8 +310,8 @@ def main(
             ("KDEyMLQP", "qunfold", QuaPyWrapper(KDEyMLQP(qp_clf, random_state=seed)), 
                 {
                     "bandwidth" : np.linspace(0.01, 0.2, 20),
-                    "classifier__estimator__C": np.logspace(-3, 3, 7),
-                    "classifier__estimator__class_weight" : ['balanced', None],
+                    "classifier__C": np.logspace(-3, 3, 7),
+                    "classifier__class_weight" : ['balanced', None],
                 }
             ),
             ("KDEyML", "QuaPy", KDEyML_QuaPy(qp_clf, random_state=seed),
