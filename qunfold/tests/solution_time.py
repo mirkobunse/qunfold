@@ -93,7 +93,7 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
   if strategy in [ "dup", "app" ]:
     loss = LeastSquaresLoss()
   elif strategy in [ "dup_scl", "app_scl" ]:
-    loss = FunctionLoss(partial(scaled_lsq, scaling=n_estimators))
+    loss = FunctionLoss(partial(scaled_lsq, scaling=1 / n_estimators**2))
 
   # evaluate the transformer on validation samples
   generic_method = GenericMethod(loss, transformer, seed=seed)

@@ -57,14 +57,14 @@ class EnsembleTransformer(AbstractTransformer):
       elif self.training_strategy == "app":
         X_i, y_i = subsample_app(X, y, n_classes, random_state)
       Ms.append(transformer.fit_transform(X_i, y_i, average, n_classes))
-    return np.concatenate(Ms) / len(self.transformers_) # M = 1/n * (M_1, M_2, ...)
+    return np.concatenate(Ms) # M = 1/n * (M_1, M_2, ...)
   def transform(self, X, average=True):
     if not average:
       raise ValueError("EnsembleTransformer does not support average=False")
     qs = [] # = (q_1, q_2, ...), the representations of all ensemble members
     for transformer in self.transformers_:
       qs.append(transformer.transform(X, average))
-    return np.concatenate(qs) / len(self.transformers_) # q = 1/n * (q_1, q_2, ...)
+    return np.concatenate(qs) # q = 1/n * (q_1, q_2, ...)
 
 def subsample_app(X, y, n_classes=None, random_state=None):
   """Subsample (X, y) according with random class proportions."""
