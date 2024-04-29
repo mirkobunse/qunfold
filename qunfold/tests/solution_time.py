@@ -96,7 +96,12 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
     loss = FunctionLoss(partial(scaled_lsq, scaling=1 / n_estimators**2))
 
   # evaluate the transformer on validation samples
-  generic_method = GenericMethod(loss, transformer, seed=seed)
+  generic_method = GenericMethod(
+    loss,
+    transformer,
+    seed = seed,
+    solver_options = {"gtol": 0, "maxiter": 1000}
+  )
   results = []
   for i_trial, (X_tst, p_tst) in enumerate(val_gen()):
     q = transformer.transform(X_tst)
