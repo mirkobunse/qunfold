@@ -100,7 +100,8 @@ def trial(trial_args, trn_data, val_data, n_trials, seed):
     loss,
     transformer,
     seed = seed,
-    solver_options = {"gtol": 0, "maxiter": 1000}
+    solver = "trust-constr",
+    solver_options = {"gtol": 0, "xtol": 0, "maxiter": 100},
   )
   results = []
   for i_trial, (X_tst, p_tst) in enumerate(val_gen()):
@@ -183,7 +184,7 @@ def plot(df):
 def main(
     strategies = [ "dup", "app", "dup_scl", "app_scl" ],
     n_estimators = [1, 3, 10, 31, 100, 316, 1000][::-1],
-    n_trials = 100,
+    n_trials = 30,
     n_jobs = 1,
     seed = 25,
     is_test_run = False

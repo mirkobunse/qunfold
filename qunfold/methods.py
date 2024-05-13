@@ -53,7 +53,7 @@ class _CallbackState():
     self._xk = xk
     self._nit += 1
   def callback(self):
-    return lambda xk: self._callback(xk)
+    return lambda xk, *args: self._callback(xk)
 
 class AbstractMethod(ABC):
   """Abstract base class for quantification methods."""

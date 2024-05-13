@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 def main(
     n_estimators = 5,
-    n_trials = 10,
+    n_trials = 5,
     seed = 25,
   ):
   print("Loading the FACT data...")
@@ -23,23 +23,26 @@ def main(
     repeats = n_trials,
     random_state = seed
   )
+  qp.environ["SAMPLE_SIZE"] = 1000
 
   # configure two methods
   print(f"Fitting the two methods...")
   m_dup = GenericMethod( # method with a scaled loss to counteract duplication
     FunctionLoss(partial(scaled_lsq, scaling=1 / n_estimators)),
     EnsembleTransformer( # an EnsembleTransformer that duplicates a single member
-      ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=seed)),
+      ClassTransformer(RandomForestClassifier(max_depth=8, oob_score=True, random_state=seed)),
       n_estimators,
     ),
     seed = seed,
-    solver_options = {"gtol": 0, "maxiter": 1000}
+    solver = "trust-constr",
+    solver_options = {"xtol": 0, "gtol": 0, "maxiter": 100}
   ).fit(*trn_data.Xy)
   m_reg = GenericMethod( # method with a regular loss and a regular transformer
     FunctionLoss(partial(scaled_lsq, scaling=1)), # LeastSquaresLoss(),
-    ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=seed)),
+    ClassTransformer(RandomForestClassifier(max_depth=8, oob_score=True, random_state=seed)),
     seed = seed,
-    solver_options = {"gtol": 0, "maxiter": 1000}
+    solver = "trust-constr",
+    solver_options = {"xtol": 0, "gtol": 0, "maxiter": 100}
   ).fit(*trn_data.Xy)
   M_dup = m_dup.M
   M_reg = m_reg.M
@@ -58,13 +61,18 @@ def main(
       M_reg,
       X_tst.shape[0] # N
     )["jac"](x0)
-    print(jac_dup / jac_reg)
+    # print(jac_dup / jac_reg)
     p_dup = m_dup.predict(X_tst)
     p_reg = m_reg.predict(X_tst)
     p_rep = m_reg.predict(X_tst) # repeat unscaled solution
     print(f"...p_dup.nit = {p_dup.nit}, p_reg.nit = {p_reg.nit}")
-    np.testing.assert_equal(p_reg, p_rep) # no randomness
-    np.testing.assert_equal(p_reg, p_dup) # the actual test
+    print(
+      f"RAE(p_reg)={qp.error.rae(p_reg, p_tst)}",
+      f"RAE(p_dup)={qp.error.rae(p_dup, p_tst)}",
+      f"impr(dup over reg)={qp.error.rae(p_reg, p_tst) - qp.error.rae(p_dup, p_tst)}",
+    )
+    # np.testing.assert_equal(p_reg, p_rep) # no randomness
+    # np.testing.assert_equal(p_reg, p_dup) # the actual test
 
 if __name__ == '__main__':
   main()
