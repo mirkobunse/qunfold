@@ -10,8 +10,11 @@ def _np_softmax(l):
   return np.concatenate((np.ones(1), exp_l)) / (1. + exp_l.sum())
 
 # helper function for random starting points
-def _rand_x0(rng, n_classes):
-  return rng.rand(n_classes-1) * 2 - 1
+def _rand_x0(rng, n_classes, use_logodds=True):
+  if use_logodds:
+    return rng.rand(n_classes-1) * 2 - 1 # initial log-odds
+  else:
+    return rng.dirichlet(np.ones(n_classes)) # initial class probabilities
 
 class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
   """A numpy array with additional properties nit and message."""
@@ -92,7 +95,8 @@ class GenericMethod(AbstractMethod):
   Args:
       loss: An instance from `qunfold.losses`.
       transformer: An instance from `qunfold.transformers`.
-      solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
+      optimization: Which optimization task to set up. Can be either "softmax" (optimize over log-odds and use the soft-max operator to project them to the probability simplex) or "constrained" (optimize directly over class probabilities and use constraints to keep them within the probability simplex). Defaults to "softmax".
+      solver (optional): The `method` argument in `scipy.optimize.minimize` or `None` to automatically select either `"trust-ncg"` if `optimization=="softmax"` or `"trust-constr"` of `optimization=="constrained"`. Defaults to `None`.
       solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
       seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
 
@@ -105,12 +109,14 @@ class GenericMethod(AbstractMethod):
           >>> )
   """
   def __init__(self, loss, transformer,
-      solver = "trust-ncg",
+      optimization = "softmax",
+      solver = None,
       solver_options = {"gtol": 1e-8, "maxiter": 1000},
       seed = None,
       ):
     self.loss = loss
     self.transformer = transformer
+    self.optimization = optimization
     self.solver = solver
     self.solver_options = solver_options
     self.seed = seed
@@ -131,9 +137,26 @@ class GenericMethod(AbstractMethod):
     Returns:
         The solution vector `p`.
     """
-    loss_dict = losses.instantiate_loss(self.loss, q, M, N)
+    n_classes = M.shape[1]
+    solver = self.solver
+    if self.optimization == "softmax":
+      use_logodds = True
+      constrained_args = {}
+      if solver is None:
+        solver = "trust-ncg"
+    elif self.optimization == "constrained":
+      use_logodds = False
+      constrained_args = {
+        "bounds": optimize.Bounds(lb=np.zeros(n_classes)), # p[i] >= 0
+        "constraints": optimize.LinearConstraint(np.ones(n_classes), lb=1, ub=1), # sum(p)=1
+      }
+      if solver is None:
+        solver = "trust-constr"
+    else:
+      raise ValueError("optimization not in {\"softmax\", \"constrained\"}")
+    loss_dict = losses.instantiate_loss(self.loss, q, M, N, use_logodds)
     rng = np.random.RandomState(self.seed)
-    x0 = _rand_x0(rng, M.shape[1]) # random starting point
+    x0 = _rand_x0(rng, n_classes, use_logodds) # random starting point
     state = _CallbackState(x0)
     try:
       opt = optimize.minimize(
@@ -141,14 +164,19 @@ class GenericMethod(AbstractMethod):
         x0,
         jac = _check_derivative(loss_dict["jac"], "jac"),
         hess = _check_derivative(loss_dict["hess"], "hess"),
-        method = self.solver,
+        method = solver,
         options = self.solver_options,
-        callback = state.callback()
+        callback = state.callback(),
+        **constrained_args,
       )
     except (DerivativeError, ValueError):
       traceback.print_exc()
       opt = state.get_state()
-    return Result(_np_softmax(opt.x), opt.nit, opt.message)
+    if use_logodds:
+      p_est = _np_softmax(opt.x)
+    else:
+      p_est = opt.x
+    return Result(p_est, opt.nit, opt.message)
   @property
   def p_trn(self):
     return self.transformer.p_trn

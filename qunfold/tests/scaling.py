@@ -8,6 +8,7 @@ from qunfold.ensembles import EnsembleTransformer
 from sklearn.ensemble import RandomForestClassifier
 
 def main(
+    optimization = "softmax",
     n_estimators = 5,
     n_trials = 5,
     seed = 25,
@@ -25,54 +26,65 @@ def main(
   )
   qp.environ["SAMPLE_SIZE"] = 1000
 
-  # configure two methods
-  print(f"Fitting the two methods...")
-  m_dup = GenericMethod( # method with a scaled loss to counteract duplication
-    FunctionLoss(partial(scaled_lsq, scaling=1 / n_estimators)),
-    EnsembleTransformer( # an EnsembleTransformer that duplicates a single member
-      ClassTransformer(RandomForestClassifier(max_depth=8, oob_score=True, random_state=seed)),
-      n_estimators,
-    ),
-    seed = seed,
-    solver = "trust-constr",
-    solver_options = {"xtol": 0, "gtol": 0, "maxiter": 100}
-  ).fit(*trn_data.Xy)
-  m_reg = GenericMethod( # method with a regular loss and a regular transformer
-    FunctionLoss(partial(scaled_lsq, scaling=1)), # LeastSquaresLoss(),
-    ClassTransformer(RandomForestClassifier(max_depth=8, oob_score=True, random_state=seed)),
-    seed = seed,
-    solver = "trust-constr",
-    solver_options = {"xtol": 0, "gtol": 0, "maxiter": 100}
-  ).fit(*trn_data.Xy)
-  M_dup = m_dup.M
-  M_reg = m_reg.M
-  for i_trial, (X_tst, p_tst) in enumerate(val_gen()):
-    print(f"Testing with sample {i_trial+1}/{n_trials}...")
-    x0 = qunfold.methods._rand_x0(np.random.RandomState(seed), 12)
-    jac_dup = qunfold.losses.instantiate_loss(
-      m_dup.loss,
-      m_dup.transformer.transform(X_tst), # q
-      M_dup,
-      X_tst.shape[0] # N
-    )["jac"](x0)
-    jac_reg = qunfold.losses.instantiate_loss(
-      m_reg.loss,
-      m_reg.transformer.transform(X_tst), # q
-      M_reg,
-      X_tst.shape[0] # N
-    )["jac"](x0)
-    # print(jac_dup / jac_reg)
-    p_dup = m_dup.predict(X_tst)
-    p_reg = m_reg.predict(X_tst)
-    p_rep = m_reg.predict(X_tst) # repeat unscaled solution
-    print(f"...p_dup.nit = {p_dup.nit}, p_reg.nit = {p_reg.nit}")
-    print(
-      f"RAE(p_reg)={qp.error.rae(p_reg, p_tst)}",
-      f"RAE(p_dup)={qp.error.rae(p_dup, p_tst)}",
-      f"impr(dup over reg)={qp.error.rae(p_reg, p_tst) - qp.error.rae(p_dup, p_tst)}",
-    )
-    # np.testing.assert_equal(p_reg, p_rep) # no randomness
-    # np.testing.assert_equal(p_reg, p_dup) # the actual test
+  # for each optimization, configure two methods
+  for optimization in ["softmax", "constrained"]:
+    print(f"Fitting the two methods for optimization={optimization}...")
+    m_dup = GenericMethod( # method with a scaled loss to counteract duplication
+      FunctionLoss(partial(scaled_lsq, scaling=1 / n_estimators)),
+      EnsembleTransformer( # an EnsembleTransformer that duplicates a single member
+        ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=seed)),
+        n_estimators,
+      ),
+      optimization = optimization,
+      seed = seed,
+      solver = "trust-constr",
+      solver_options = {"gtol": 0, "xtol": 0, "maxiter": 100}
+    ).fit(*trn_data.Xy)
+    m_reg = GenericMethod( # method with a regular loss and a regular transformer
+      FunctionLoss(partial(scaled_lsq, scaling=1)), # LeastSquaresLoss(),
+      ClassTransformer(RandomForestClassifier(1, oob_score=True, random_state=seed)),
+      optimization = optimization,
+      seed = seed,
+      solver = "trust-constr",
+      solver_options = {"gtol": 0, "xtol": 0, "maxiter": 100}
+    ).fit(*trn_data.Xy)
+    M_dup = m_dup.M
+    M_reg = m_reg.M
+    for i_trial, (X_tst, p_tst) in enumerate(val_gen()):
+      print(f"Testing optimization={optimization} sample {i_trial+1}/{n_trials}...")
+      x0 = qunfold.methods._rand_x0(
+        np.random.RandomState(seed),
+        n_classes = 12,
+        use_logodds = optimization == "softmax",
+      )
+      jac_dup = qunfold.losses.instantiate_loss(
+        m_dup.loss,
+        m_dup.transformer.transform(X_tst), # q
+        M_dup,
+        X_tst.shape[0], # N
+        use_logodds = optimization == "softmax",
+      )["jac"](x0)
+      jac_reg = qunfold.losses.instantiate_loss(
+        m_reg.loss,
+        m_reg.transformer.transform(X_tst), # q
+        M_reg,
+        X_tst.shape[0], # N
+        use_logodds = optimization == "softmax",
+      )["jac"](x0)
+      # print(jac_dup / jac_reg)
+      p_dup = m_dup.predict(X_tst)
+      p_reg = m_reg.predict(X_tst)
+      p_rep = m_reg.predict(X_tst) # repeat unscaled solution
+      # print(f"p_dup.nit = {p_dup.nit}, p_reg.nit = {p_reg.nit}")
+      np.testing.assert_equal(p_reg, p_rep) # no randomness
+      print(
+        f"RAE(p_reg)={qp.error.rae(p_reg, p_tst)}",
+        f"RAE(p_dup)={qp.error.rae(p_dup, p_tst)}",
+        f"impr(dup over reg)={qp.error.rae(p_reg, p_tst) - qp.error.rae(p_dup, p_tst)}",
+      )
+      # print(f"Max absolute difference: {np.max(np.abs(p_reg - p_dup))}")
+      # print(f"Max relative difference: {np.max(np.abs(p_reg - p_dup) / p_reg)}")
+      # np.testing.assert_equal(p_reg, p_dup) # the actual test
 
 if __name__ == '__main__':
   main()

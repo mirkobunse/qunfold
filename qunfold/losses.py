@@ -31,11 +31,14 @@ def _hellinger_surrogate(p, q, M, N=None):
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
 
-def instantiate_loss(loss, q, M, N):
+def instantiate_loss(loss, q, M, N, use_logodds=True):
   """Create a dict of JAX functions "fun", "jac", and "hess" of the loss."""
   q = jnp.array(q)
   M = jnp.array(M)
-  fun = lambda l: loss._instantiate(q, M, N)(_jnp_softmax(l)) # loss function
+  if use_logodds: # instantiate the loss function
+    fun = lambda l: loss._instantiate(q, M, N)(_jnp_softmax(l)) # l = log-odds
+  else:
+    fun = lambda p: loss._instantiate(q, M, N)(p) # p = class probabilities
   jac = jax.grad(fun)
   hess = jax.jacfwd(jac) # forward-mode AD
   return {"fun": fun, "jac": jac, "hess": hess}
