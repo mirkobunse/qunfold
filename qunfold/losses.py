@@ -157,10 +157,11 @@ class CombinedLoss(AbstractLoss):
   """
   def __init__(self, *losses, weights=None):
     self.losses = losses
-    if weights is None:
-      weights = jnp.ones(len(losses))
     self.weights = weights
   def _instantiate(self, q, M, N):
+    weights = self.weights
+    if weights is None:
+      weights = jnp.ones(len(self.losses))
     return lambda p: _combine_losses(self.losses, self.weights, q, M, p, N)
 
 # helpers for TikhonovRegularization
