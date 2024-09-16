@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f6245a2f"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -83,13 +83,13 @@
            <div itemprop="articleBody">
              
   <section id="experiments">
-<h1>Experiments<a class="headerlink" href="#experiments" title="Permalink to this heading"></a></h1>
+<h1>Experiments<a class="headerlink" href="#experiments" title="Link to this heading"></a></h1>
 <p>We validate the performance of <code class="docutils literal notranslate"><span class="pre">qunfold</span></code>, in comparison to <a class="reference external" href="https://github.com/HLT-ISTI/QuaPy">QuaPy</a>, through experiments with the <a class="reference external" href="https://lequa2022.github.io/">LeQua2022 data</a>. We document these experiments for transparency and to facilitate implementations of similar experiments.</p>
 <section id="setup">
-<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
 <p>You can install the dependencies either in an isolated <a class="reference external" href="https://docs.docker.com/">Docker</a> environment or locally with <code class="docutils literal notranslate"><span class="pre">venv</span></code>.</p>
 <section id="docker-setup-optional">
-<h3>Docker setup (optional)<a class="headerlink" href="#docker-setup-optional" title="Permalink to this heading"></a></h3>
+<h3>Docker setup (optional)<a class="headerlink" href="#docker-setup-optional" title="Link to this heading"></a></h3>
 <p>We provide an isolated Docker environment for conveniently running the experiments. To create the image and start a container from it, call</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docker/
 make
@@ -103,7 +103,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</sp
 </div>
 </section>
 <section id="local-setup-alternative">
-<h3>Local setup (alternative)<a class="headerlink" href="#local-setup-alternative" title="Permalink to this heading"></a></h3>
+<h3>Local setup (alternative)<a class="headerlink" href="#local-setup-alternative" title="Link to this heading"></a></h3>
 <p>Without Docker, use <code class="docutils literal notranslate"><span class="pre">venv</span></code> to install the dependencies</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
 venv/bin/pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>experiments<span class="o">]</span>
@@ -112,7 +112,7 @@ venv/bin/pip<span class="w"> </span>install<span class="w"> </span>-e<span class
 </section>
 </section>
 <section id="running-the-experiments">
-<h2>Running the experiments<a class="headerlink" href="#running-the-experiments" title="Permalink to this heading"></a></h2>
+<h2>Running the experiments<a class="headerlink" href="#running-the-experiments" title="Link to this heading"></a></h2>
 <p>The experiments are implemented through a main function that you can call as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>venv/bin/python<span class="w"> </span>-m<span class="w"> </span>qunfold.experiments.lequa<span class="w"> </span>--is_full_run<span class="w"> </span>--n_jobs<span class="w"> </span><span class="m">0</span><span class="w"> </span>lequa_results.csv
 </pre></div>
