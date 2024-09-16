@@ -1,3 +1,5 @@
+__version__ = "0.1.5"
+
 from .losses import (
     instantiate_loss,
     LeastSquaresLoss,
