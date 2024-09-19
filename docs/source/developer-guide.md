@@ -48,7 +48,7 @@ If you require more freedom in implementing a custom loss, you can also create a
 
 ```{eval-rst}
 .. autoclass:: qunfold.methods.linear.losses.AbstractLoss
-   :members: _instantiate
+   :members: instantiate
 ```
 
 

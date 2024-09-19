@@ -1,7 +1,6 @@
 __version__ = "0.1.5-rc"
 
 from .methods.linear.losses import (
-    instantiate_loss,
     LeastSquaresLoss,
     BlobelLoss,
     EnergyLoss,

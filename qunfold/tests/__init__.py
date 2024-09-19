@@ -242,7 +242,7 @@ class TestHellingerSurrogateLoss(TestCase):
       # draw a random p uniformly from the unit simplex, so the distance isn't just 0
       p_tst = RNG.dirichlet(np.ones(len(m_hl.p_trn)))
 
-      new_loss = HellingerSurrogateLoss()._instantiate(q_hl, M_hl)
+      new_loss = HellingerSurrogateLoss().instantiate(q_hl, M_hl)
       old_loss = self._old_instantiate(q_hl, M_hl, n_bins=n_bins)
 
       # make sure both loss functions return roughly 0 for the true distribution

@@ -3,11 +3,6 @@ import jax.numpy as jnp
 import functools
 from abc import ABC, abstractmethod
 
-# helper function for our softmax "trick" with l[0]=0
-def _jnp_softmax(l):
-  exp_l = jnp.exp(l)
-  return jnp.concatenate((jnp.ones(1), exp_l)) / (1. + exp_l.sum())
-
 # helper function for least squares
 def _lsq(p, q, M, N=None):
   v = q - jnp.dot(M, p)
@@ -32,19 +27,10 @@ def _hellinger_surrogate(p, q, M, N=None):
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
 
-def instantiate_loss(loss, q, M, N):
-  """Create a dict of JAX functions "fun", "jac", and "hess" of the loss."""
-  q = jnp.array(q)
-  M = jnp.array(M)
-  fun = lambda l: loss._instantiate(q, M, N)(_jnp_softmax(l)) # loss function
-  jac = jax.grad(fun)
-  hess = jax.jacfwd(jac) # forward-mode AD
-  return {"fun": fun, "jac": jac, "hess": hess}
-
 class AbstractLoss(ABC):
   """Abstract base class for loss functions and for regularization terms."""
   @abstractmethod
-  def _instantiate(self, q, M, N):
+  def instantiate(self, q, M, N):
     """This abstract method has to create a lambda expression `p -> loss` with JAX.
 
     In particular, your implementation of this abstract method should return a lambda expression
@@ -102,10 +88,10 @@ class FunctionLoss(AbstractLoss):
   """
   def __init__(self, loss_function):
     self.loss_function = loss_function
-  def _instantiate(self, q, M, N=None):
+  def instantiate(self, q, M, N=None):
     nonzero = _nonzero_features(M)
-    M = M[nonzero,:]
-    q = q[nonzero]
+    M = jnp.array(M)[nonzero,:]
+    q = jnp.array(q)[nonzero]
     return lambda p: self.loss_function(p, q, M, N)
 
 class LeastSquaresLoss(FunctionLoss):
@@ -145,7 +131,7 @@ class HellingerSurrogateLoss(FunctionLoss):
 def _combine_losses(losses, weights, q, M, p, N):
   combined_loss = 0
   for (loss, weight) in zip(losses, weights):
-    combined_loss += weight * loss._instantiate(q, M, N)(p)
+    combined_loss += weight * loss.instantiate(q, M, N)(p)
   return combined_loss
 
 class CombinedLoss(AbstractLoss):
@@ -158,7 +144,7 @@ class CombinedLoss(AbstractLoss):
   def __init__(self, *losses, weights=None):
     self.losses = losses
     self.weights = weights
-  def _instantiate(self, q, M, N):
+  def instantiate(self, q, M, N):
     weights = self.weights
     if weights is None:
       weights = jnp.ones(len(self.losses))
@@ -180,7 +166,7 @@ class TikhonovRegularization(AbstractLoss):
 
   This regularization promotes smooth solutions. This behavior is often required in ordinal quantification and in unfolding problems.
   """
-  def _instantiate(self, q, M, N):
+  def instantiate(self, q, M, N):
     T = _tikhonov_matrix(M.shape[1])
     return lambda p: _tikhonov(p, T)
 
