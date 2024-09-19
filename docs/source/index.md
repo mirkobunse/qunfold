@@ -15,6 +15,7 @@ The Python package [qunfold](https://github.com/mirkobunse/qunfold) implements o
 ## Installation
 
 ```
+pip install --upgrade pip setuptools wheel
 pip install 'qunfold @ git+https://github.com/mirkobunse/qunfold'
 ```
 
@@ -30,14 +31,6 @@ To upgrade an existing installation of `qunfold`, run
 
 ```
 pip install --force-reinstall --no-deps 'qunfold @ git+https://github.com/mirkobunse/qunfold@main'
-```
-
-### Troubleshooting
-
-Starting from `pip 23.1.2`, you have to install `setuptools` and `wheel` explicitly. If you receive a "NameError: name 'setuptools' is not defined", you need to execute the following command before installing `qunfold`.
-
-```
-pip install --upgrade pip setuptools wheel
 ```
 
 
