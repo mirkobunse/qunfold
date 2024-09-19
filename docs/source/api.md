@@ -51,6 +51,17 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 ```
 
 
+### Methods beyond systems of linear equations
+
+Not all quantification algorithms make predictions by solving systems of linear equations. Instead, the following methods maximize the likelihood of the prediction directly.
+
+```{eval-rst}
+.. autoclass:: qunfold.LikelihoodMaximizer
+
+.. autoclass:: qunfold.ExpectationMaximizer
+```
+
+
 ## Losses
 
 ```{eval-rst}

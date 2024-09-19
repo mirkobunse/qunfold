@@ -4,29 +4,7 @@ from abc import ABC, abstractmethod
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
-
-def class_prevalences(y, n_classes=None):
-  """Determine the prevalence of each class.
-
-  Args:
-      y: An array of labels, shape (n_samples,).
-      n_classes (optional): The number of classes. Defaults to `None`, which corresponds to `np.max(y)+1`.
-
-  Returns:
-      An array of class prevalences that sums to one, shape (n_classes,).
-  """
-  if n_classes is None:
-    n_classes = np.max(y)+1
-  n_samples_per_class = np.zeros(n_classes, dtype=int)
-  i, n = np.unique(y, return_counts=True)
-  n_samples_per_class[i] = n # non-existing classes maintain a zero entry
-  return n_samples_per_class / n_samples_per_class.sum() # normalize to prevalences
-
-# helper function for ensuring sane labels
-def _check_y(y, n_classes=None):
-  if n_classes is not None:
-    if n_classes != np.max(y)+1:
-      warnings.warn(f"Classes are missing: n_classes != np.max(y)+1 = {np.max(y)+1}")
+from .. import class_prevalences, check_y
 
 class AbstractRepresentation(ABC):
   """Abstract base class for representations."""
@@ -35,7 +13,7 @@ class AbstractRepresentation(ABC):
     """This abstract method has to fit the representation and to return the transformed input data.
 
     Note:
-        Implementations of this abstract method should check the sanity of labels by calling `_check_y(y, n_classes)` and they must set the property `self.p_trn = class_prevalences(y, n_classes)`.
+        Implementations of this abstract method should check the sanity of labels by calling `check_y(y, n_classes)` and they must set the property `self.p_trn = class_prevalences(y, n_classes)`.
 
     Args:
         X: The feature matrix to which this representation will be fitted.
@@ -84,7 +62,7 @@ class ClassRepresentation(AbstractRepresentation):
         "The ClassRepresentation either requires a bagging classifier with oob_score=True",
         "or an instance of qunfold.sklearn.CVClassifier"
       )
-    _check_y(y, n_classes)
+    check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
@@ -128,7 +106,7 @@ class DistanceRepresentation(AbstractRepresentation):
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      _check_y(y, n_classes)
+      check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
@@ -172,7 +150,7 @@ class HistogramRepresentation(AbstractRepresentation):
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      _check_y(y, n_classes)
+      check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.edges = []
@@ -238,7 +216,7 @@ class EnergyKernelRepresentation(AbstractRepresentation):
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      _check_y(y, n_classes)
+      check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
@@ -286,7 +264,7 @@ class GaussianKernelRepresentation(AbstractRepresentation):
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      _check_y(y, n_classes)
+      check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
@@ -324,7 +302,7 @@ class KernelRepresentation(AbstractRepresentation):
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("KernelRepresentation does not support average=False")
-    _check_y(y, n_classes)
+    check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X
@@ -390,7 +368,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
-      _check_y(y, n_classes)
+      check_y(y, n_classes)
       self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     self.X_trn = X

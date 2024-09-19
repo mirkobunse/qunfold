@@ -33,4 +33,9 @@ from .methods.linear import (
     KMM,
 )
 
+from .methods.likelihood import (
+    LikelihoodMaximizer,
+    ExpectationMaximizer,
+)
+
 from .methods import AbstractMethod

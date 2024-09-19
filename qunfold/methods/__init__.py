@@ -66,6 +66,29 @@ def minimize(fun, n_classes, rng, solver, solver_options):
     opt = state.get_state()
   return Result(_np_softmax(opt.x), opt.nit, opt.message)
 
+def class_prevalences(y, n_classes=None):
+  """Determine the prevalence of each class.
+
+  Args:
+      y: An array of labels, shape (n_samples,).
+      n_classes (optional): The number of classes. Defaults to `None`, which corresponds to `np.max(y)+1`.
+
+  Returns:
+      An array of class prevalences that sums to one, shape (n_classes,).
+  """
+  if n_classes is None:
+    n_classes = np.max(y)+1
+  n_samples_per_class = np.zeros(n_classes, dtype=int)
+  i, n = np.unique(y, return_counts=True)
+  n_samples_per_class[i] = n # non-existing classes maintain a zero entry
+  return n_samples_per_class / n_samples_per_class.sum() # normalize to prevalences
+
+def check_y(y, n_classes=None):
+  """Emit a warning if the given labels are not sane."""
+  if n_classes is not None:
+    if n_classes != np.max(y)+1:
+      warnings.warn(f"Classes are missing: n_classes != np.max(y)+1 = {np.max(y)+1}")
+
 # helper function for our softmax "trick" with l[0]=0
 def _jnp_softmax(l):
   exp_l = jnp.exp(l)
