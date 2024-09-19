@@ -114,11 +114,8 @@ venv/bin/python<span class="w"> </span>-m<span class="w"> </span>unittest
 <section id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
 <p>After locally building the documentation, open <code class="docutils literal notranslate"><span class="pre">docs/build/html/index.html</span></code> in your browser.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.<span class="w"> </span>venv/bin/activate
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
-<span class="nb">cd</span><span class="w"> </span>docs/
-sphinx-apidoc<span class="w"> </span>--force<span class="w"> </span>--output-dir<span class="w"> </span>source/<span class="w"> </span>../qunfold
-make<span class="w"> </span>html
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>venv/bin/pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
+venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span class="w"> </span>docs/source<span class="w"> </span>docs/build
 </pre></div>
 </div>
 <p>As soon as you push to the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch, GitHub Actions will build the documentation, push it to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch, and publish the result on GitHub Pages: <a class="reference external" href="https://mirkobunse.github.io/qunfold">https://mirkobunse.github.io/qunfold</a></p>
