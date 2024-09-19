@@ -55,13 +55,13 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#custom-implementations">Custom implementations</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#losses">Losses</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#qunfold.losses.FunctionLoss"><code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#qunfold.losses.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.methods.linear.losses.FunctionLoss"><code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.methods.linear.losses.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#feature-transformations">Feature transformations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#qunfold.transformers.AbstractTransformer"><code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#qunfold.KernelTransformer"><code class="docutils literal notranslate"><span class="pre">KernelTransformer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-representations">Data representations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.methods.linear.representations.AbstractRepresentation"><code class="docutils literal notranslate"><span class="pre">AbstractRepresentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.KernelRepresentation"><code class="docutils literal notranslate"><span class="pre">KernelRepresentation</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -123,13 +123,13 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 </section>
 <section id="custom-implementations">
 <h2>Custom implementations<a class="headerlink" href="#custom-implementations" title="Link to this heading"></a></h2>
-<p>Custom <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-ref">Feature transformations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>. Use the already existing implementations as examples.</p>
+<p>Custom <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a> and <a class="reference internal" href="#data-representations"><span class="std std-ref">Data representations</span></a> can be used in any instance of <code class="docutils literal notranslate"><span class="pre">LinearMethod</span></code>. Use the already existing implementations as examples.</p>
 <section id="losses">
 <h3>Losses<a class="headerlink" href="#losses" title="Link to this heading"></a></h3>
-<p>The most convenient way of implementing a custom loss is to create a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a>-powered function <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">q,</span> <span class="pre">M,</span> <span class="pre">N)</span> <span class="pre">-&gt;</span> <span class="pre">loss_value</span></code>. From this function, you can create a <em>FunctionLoss</em> object to be used in any instance of <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code>.</p>
+<p>The most convenient way of implementing a custom loss is to create a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a>-powered function <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">q,</span> <span class="pre">M,</span> <span class="pre">N)</span> <span class="pre">-&gt;</span> <span class="pre">loss_value</span></code>. From this function, you can create a <em>FunctionLoss</em> object to be used in any instance of <code class="docutils literal notranslate"><span class="pre">LinearMethod</span></code>.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.losses.FunctionLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.FunctionLoss" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.methods.linear.losses.FunctionLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.FunctionLoss" title="Link to this definition"></a></dt>
 <dd><p>Create a loss object from a JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
 <p>Using this class is likely more convenient than subtyping <em>AbstractLoss</em>. In both cases, the <cite>loss_value</cite> has to be the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
@@ -159,12 +159,12 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 
 <p>If you require more freedom in implementing a custom loss, you can also create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code>.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.losses.AbstractLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.losses.AbstractLoss" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.methods.linear.losses.AbstractLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss" title="Link to this definition"></a></dt>
 <dd><p>Abstract base class for loss functions and for regularization terms.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.losses.AbstractLoss._instantiate">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.losses.AbstractLoss._instantiate" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.methods.linear.losses.AbstractLoss.instantiate">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss.instantiate" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to create a lambda expression <cite>p -&gt; loss</cite> with JAX.</p>
 <p>In particular, your implementation of this abstract method should return a lambda expression</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">loss_value</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
@@ -201,26 +201,26 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 </dd></dl>
 
 </section>
-<section id="feature-transformations">
-<h3>Feature transformations<a class="headerlink" href="#feature-transformations" title="Link to this heading"></a></h3>
-<p>To implement a custom feature transformation, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractTransformer</span></code>.</p>
+<section id="data-representations">
+<h3>Data representations<a class="headerlink" href="#data-representations" title="Link to this heading"></a></h3>
+<p>To implement a custom data representation, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractRepresentation</span></code>.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.transformers.</span></span><span class="sig-name descname"><span class="pre">AbstractTransformer</span></span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer" title="Link to this definition"></a></dt>
-<dd><p>Abstract base class for transformers.</p>
+<dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.representations.</span></span><span class="sig-name descname"><span class="pre">AbstractRepresentation</span></span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation" title="Link to this definition"></a></dt>
+<dd><p>Abstract base class for representations.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.fit_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.fit_transform" title="Link to this definition"></a></dt>
-<dd><p>This abstract method has to fit the transformer and to return the transformation of the input data.</p>
+<dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation.fit_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.fit_transform" title="Link to this definition"></a></dt>
+<dd><p>This abstract method has to fit the representation and to return the transformed input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Implementations of this abstract method should check the sanity of labels by calling <cite>_check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> – The feature matrix to which this transformer will be fitted.</p></li>
-<li><p><strong>y</strong> – The labels to which this transformer will be fitted.</p></li>
+<li><p><strong>X</strong> – The feature matrix to which this representation will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this representation will be fitted.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
 <li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
@@ -232,8 +232,8 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.transformers.AbstractTransformer.transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.transformers.AbstractTransformer.transform" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation.transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -250,14 +250,14 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 
 </dd></dl>
 
-<p>For those transformations that use a kernel embedding, you can provide a <code class="docutils literal notranslate"><span class="pre">KernelTransformer</span></code> with your kernel function.</p>
+<p>For those representations that use a kernel embedding, you can provide a <code class="docutils literal notranslate"><span class="pre">KernelRepresentation</span></code> with your kernel function.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.KernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KernelTransformer" title="Link to this definition"></a></dt>
-<dd><p>A general kernel-based feature transformation, as it is used in <cite>KMM</cite>. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.</p>
+<dt class="sig sig-object py" id="qunfold.KernelRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KernelRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KernelRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A general kernel-based data representation, as it is used in <cite>KMM</cite>. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The methods of this transformer do not support setting <cite>average=False</cite>.</p>
+<p>The methods of this representation do not support setting <cite>average=False</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

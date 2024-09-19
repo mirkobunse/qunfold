@@ -75,8 +75,7 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#_"><strong>_</strong></a>
- | <a href="#A"><strong>A</strong></a>
+ <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
@@ -84,6 +83,7 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -93,22 +93,16 @@
  | <a href="#T"><strong>T</strong></a>
  
 </div>
-<h2 id="_">_</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer-guide.html#qunfold.losses.AbstractLoss._instantiate">_instantiate() (qunfold.losses.AbstractLoss method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer-guide.html#qunfold.losses.AbstractLoss">AbstractLoss (class in qunfold.losses)</a>
+      <li><a href="developer-guide.html#qunfold.methods.linear.losses.AbstractLoss">AbstractLoss (class in qunfold.methods.linear.losses)</a>
+</li>
+      <li><a href="api.html#qunfold.AbstractMethod">AbstractMethod (class in qunfold)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer-guide.html#qunfold.transformers.AbstractTransformer">AbstractTransformer (class in qunfold.transformers)</a>
+      <li><a href="developer-guide.html#qunfold.methods.linear.representations.AbstractRepresentation">AbstractRepresentation (class in qunfold.methods.linear.representations)</a>
 </li>
       <li><a href="api.html#qunfold.ACC">ACC (class in qunfold)</a>
 </li>
@@ -126,7 +120,7 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.ClassTransformer">ClassTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.ClassRepresentation">ClassRepresentation (class in qunfold)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -140,7 +134,7 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.DistanceTransformer">DistanceTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.DistanceRepresentation">DistanceRepresentation (class in qunfold)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -154,9 +148,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.EnergyKernelTransformer">EnergyKernelTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.EnergyKernelRepresentation">EnergyKernelRepresentation (class in qunfold)</a>
 </li>
       <li><a href="api.html#qunfold.EnergyLoss">EnergyLoss (class in qunfold)</a>
+</li>
+      <li><a href="api.html#qunfold.ExpectationMaximizer">ExpectationMaximizer (class in qunfold)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -164,13 +160,17 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.GenericMethod.fit">fit() (qunfold.GenericMethod method)</a>
+      <li><a href="api.html#qunfold.AbstractMethod.fit">fit() (qunfold.AbstractMethod method)</a>
+
+      <ul>
+        <li><a href="api.html#qunfold.LinearMethod.fit">(qunfold.LinearMethod method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer-guide.html#qunfold.transformers.AbstractTransformer.fit_transform">fit_transform() (qunfold.transformers.AbstractTransformer method)</a>
+      <li><a href="developer-guide.html#qunfold.methods.linear.representations.AbstractRepresentation.fit_transform">fit_transform() (qunfold.methods.linear.representations.AbstractRepresentation method)</a>
 </li>
-      <li><a href="developer-guide.html#qunfold.losses.FunctionLoss">FunctionLoss (class in qunfold.losses)</a>
+      <li><a href="developer-guide.html#qunfold.methods.linear.losses.FunctionLoss">FunctionLoss (class in qunfold.methods.linear.losses)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -178,13 +178,11 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.GaussianKernelTransformer">GaussianKernelTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.GaussianKernelRepresentation">GaussianKernelRepresentation (class in qunfold)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.GaussianRFFKernelTransformer">GaussianRFFKernelTransformer (class in qunfold)</a>
-</li>
-      <li><a href="api.html#qunfold.GenericMethod">GenericMethod (class in qunfold)</a>
+      <li><a href="api.html#qunfold.GaussianRFFKernelRepresentation">GaussianRFFKernelRepresentation (class in qunfold)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -200,7 +198,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#qunfold.HellingerSurrogateLoss">HellingerSurrogateLoss (class in qunfold)</a>
 </li>
-      <li><a href="api.html#qunfold.HistogramTransformer">HistogramTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.HistogramRepresentation">HistogramRepresentation (class in qunfold)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="developer-guide.html#qunfold.methods.linear.losses.AbstractLoss.instantiate">instantiate() (qunfold.methods.linear.losses.AbstractLoss method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -208,7 +214,7 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer-guide.html#qunfold.KernelTransformer">KernelTransformer (class in qunfold)</a>
+      <li><a href="developer-guide.html#qunfold.KernelRepresentation">KernelRepresentation (class in qunfold)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -220,11 +226,15 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.LaplacianKernelTransformer">LaplacianKernelTransformer (class in qunfold)</a>
+      <li><a href="api.html#qunfold.LaplacianKernelRepresentation">LaplacianKernelRepresentation (class in qunfold)</a>
+</li>
+      <li><a href="api.html#qunfold.LeastSquaresLoss">LeastSquaresLoss (class in qunfold)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.LeastSquaresLoss">LeastSquaresLoss (class in qunfold)</a>
+      <li><a href="api.html#qunfold.LikelihoodMaximizer">LikelihoodMaximizer (class in qunfold)</a>
+</li>
+      <li><a href="api.html#qunfold.LinearMethod">LinearMethod (class in qunfold)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -236,8 +246,12 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.GenericMethod.predict">predict() (qunfold.GenericMethod method)</a>
+      <li><a href="api.html#qunfold.AbstractMethod.predict">predict() (qunfold.AbstractMethod method)</a>
+
+      <ul>
+        <li><a href="api.html#qunfold.LinearMethod.predict">(qunfold.LinearMethod method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -260,7 +274,7 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#qunfold.GenericMethod.solve">solve() (qunfold.GenericMethod method)</a>
+      <li><a href="api.html#qunfold.LinearMethod.solve">solve() (qunfold.LinearMethod method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -274,7 +288,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#qunfold.TikhonovRegularized">TikhonovRegularized() (in module qunfold)</a>
 </li>
-      <li><a href="developer-guide.html#qunfold.transformers.AbstractTransformer.transform">transform() (qunfold.transformers.AbstractTransformer method)</a>
+      <li><a href="developer-guide.html#qunfold.methods.linear.representations.AbstractRepresentation.transform">transform() (qunfold.methods.linear.representations.AbstractRepresentation method)</a>
 </li>
   </ul></td>
 </tr></table>

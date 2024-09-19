@@ -47,10 +47,15 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#qunfold.GenericMethod"><code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.fit"><code class="docutils literal notranslate"><span class="pre">GenericMethod.fit()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.predict"><code class="docutils literal notranslate"><span class="pre">GenericMethod.predict()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.GenericMethod.solve"><code class="docutils literal notranslate"><span class="pre">GenericMethod.solve()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#qunfold.AbstractMethod"><code class="docutils literal notranslate"><span class="pre">AbstractMethod</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.AbstractMethod.fit"><code class="docutils literal notranslate"><span class="pre">AbstractMethod.fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.AbstractMethod.predict"><code class="docutils literal notranslate"><span class="pre">AbstractMethod.predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#qunfold.LinearMethod"><code class="docutils literal notranslate"><span class="pre">LinearMethod</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LinearMethod.fit"><code class="docutils literal notranslate"><span class="pre">LinearMethod.fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LinearMethod.predict"><code class="docutils literal notranslate"><span class="pre">LinearMethod.predict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LinearMethod.solve"><code class="docutils literal notranslate"><span class="pre">LinearMethod.solve()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#popular-algorithms">Popular algorithms</a><ul>
@@ -71,6 +76,11 @@
 <li class="toctree-l4"><a class="reference internal" href="#qunfold.RUN"><code class="docutils literal notranslate"><span class="pre">RUN</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#methods-beyond-systems-of-linear-equations">Methods beyond systems of linear equations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.LikelihoodMaximizer"><code class="docutils literal notranslate"><span class="pre">LikelihoodMaximizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.ExpectationMaximizer"><code class="docutils literal notranslate"><span class="pre">ExpectationMaximizer</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#losses">Losses</a><ul>
@@ -86,14 +96,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.TikhonovRegularization"><code class="docutils literal notranslate"><span class="pre">TikhonovRegularization</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#feature-transformations">Feature transformations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.ClassTransformer"><code class="docutils literal notranslate"><span class="pre">ClassTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.DistanceTransformer"><code class="docutils literal notranslate"><span class="pre">DistanceTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.HistogramTransformer"><code class="docutils literal notranslate"><span class="pre">HistogramTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.EnergyKernelTransformer"><code class="docutils literal notranslate"><span class="pre">EnergyKernelTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">GaussianKernelTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.LaplacianKernelTransformer"><code class="docutils literal notranslate"><span class="pre">LaplacianKernelTransformer</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianRFFKernelTransformer"><code class="docutils literal notranslate"><span class="pre">GaussianRFFKernelTransformer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-representations">Data representations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.ClassRepresentation"><code class="docutils literal notranslate"><span class="pre">ClassRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.DistanceRepresentation"><code class="docutils literal notranslate"><span class="pre">DistanceRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.HistogramRepresentation"><code class="docutils literal notranslate"><span class="pre">HistogramRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.EnergyKernelRepresentation"><code class="docutils literal notranslate"><span class="pre">EnergyKernelRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianKernelRepresentation"><code class="docutils literal notranslate"><span class="pre">GaussianKernelRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.LaplacianKernelRepresentation"><code class="docutils literal notranslate"><span class="pre">LaplacianKernelRepresentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.GaussianRFFKernelRepresentation"><code class="docutils literal notranslate"><span class="pre">GaussianRFFKernelRepresentation</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
@@ -139,35 +149,14 @@
              
   <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> defines the interface for many common quantification and unfolding algorithms. Most importantly, this interface consists of their <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> methods.</p>
-<p>Instances of <a class="reference internal" href="#popular-algorithms"><span class="std std-ref">Popular algorithms</span></a> for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a <code class="docutils literal notranslate"><span class="pre">GenericMethod</span></code> that combines an arbitrary choice of <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-ref">Regularizers</span></a> and <a class="reference internal" href="#feature-transformations"><span class="std std-ref">Feature transformations</span></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">AbstractMethod</span></code> defines the interface of all quantification and unfolding algorithms. Most importantly, this interface consists of their <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> methods.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.GenericMethod">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GenericMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod" title="Link to this definition"></a></dt>
-<dd><p>A generic quantification / unfolding method.</p>
-<p>This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loss</strong> – An instance from <cite>qunfold.losses</cite>.</p></li>
-<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
-<li><p><strong>solver</strong> (<em>optional</em>) – The <cite>method</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>“trust-ncg”</cite>.</p></li>
-<li><p><strong>solver_options</strong> (<em>optional</em>) – The <cite>options</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>{“gtol”: 1e-8, “maxiter”: 1000}</cite>.</p></li>
-<li><p><strong>seed</strong> (<em>optional</em>) – A random number generator seed from which a numpy RandomState is created. Defaults to <cite>None</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<p>Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original feature transformation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">GenericMethod</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">TikhonovRegularized</span><span class="p">(</span><span class="n">LeastSquaresLoss</span><span class="p">(),</span> <span class="mf">0.01</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ClassTransformer</span><span class="p">(</span><span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">oob_score</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
-</pre></div>
-</div>
+<dt class="sig sig-object py" id="qunfold.AbstractMethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">AbstractMethod</span></span><a class="headerlink" href="#qunfold.AbstractMethod" title="Link to this definition"></a></dt>
+<dd><p>Abstract base class for quantification methods.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.GenericMethod.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.fit" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.AbstractMethod.fit">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractMethod.fit" title="Link to this definition"></a></dt>
 <dd><p>Fit this quantifier to data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -184,8 +173,67 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.GenericMethod.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.predict" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.AbstractMethod.predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractMethod.predict" title="Link to this definition"></a></dt>
+<dd><p>Predict the class prevalences in a data set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> – The feature matrix for which this quantifier will make a prediction.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy array of class prevalences.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p>Instances of many <a class="reference internal" href="#popular-algorithms"><span class="std std-ref">Popular algorithms</span></a> for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification method as a <code class="docutils literal notranslate"><span class="pre">LinearMethod</span></code> that combines an arbitrary choice of <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-ref">Regularizers</span></a> and <a class="reference internal" href="#data-representations"><span class="std std-ref">Data representations</span></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.LinearMethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LinearMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">representation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LinearMethod" title="Link to this definition"></a></dt>
+<dd><p>A generic quantification / unfolding method that predicts class prevalences by solving a system of linear equations.</p>
+<p>This class represents any method that consists of a loss function, a data representation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> – An instance from <cite>qunfold.methods.linear.losses</cite>.</p></li>
+<li><p><strong>representation</strong> – An instance from <cite>qunfold.methods.linear.representations</cite>.</p></li>
+<li><p><strong>solver</strong> (<em>optional</em>) – The <cite>method</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>“trust-ncg”</cite>.</p></li>
+<li><p><strong>solver_options</strong> (<em>optional</em>) – The <cite>options</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>{“gtol”: 1e-8, “maxiter”: 1000}</cite>.</p></li>
+<li><p><strong>seed</strong> (<em>optional</em>) – A random number generator seed from which a numpy RandomState is created. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original data representation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">LinearMethod</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">TikhonovRegularized</span><span class="p">(</span><span class="n">LeastSquaresLoss</span><span class="p">(),</span> <span class="mf">0.01</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ClassRepresentation</span><span class="p">(</span><span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">oob_score</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.LinearMethod.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LinearMethod.fit" title="Link to this definition"></a></dt>
+<dd><p>Fit this quantifier to data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this quantifier will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this quantifier will be fitted.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>This fitted quantifier itself.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.LinearMethod.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LinearMethod.predict" title="Link to this definition"></a></dt>
 <dd><p>Predict the class prevalences in a data set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -198,8 +246,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qunfold.GenericMethod.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GenericMethod.solve" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qunfold.LinearMethod.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LinearMethod.solve" title="Link to this definition"></a></dt>
 <dd><p>Solve the linear system of equations <cite>q=M*p</cite> for <cite>p</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -219,20 +267,20 @@
 
 <section id="popular-algorithms">
 <h2>Popular algorithms<a class="headerlink" href="#popular-algorithms" title="Link to this heading"></a></h2>
-<p>We categorize existing, well-known quantification and unfolding algorithms into <a class="reference internal" href="#classify-and-count"><span class="std std-ref">Classify and count</span></a> methods, <a class="reference internal" href="#distribution-matching"><span class="std std-ref">Distribution matching</span></a> methods, and <a class="reference internal" href="#unfolding"><span class="std std-ref">Unfolding</span></a> methods. Each of these methods consists of a fixed combination of <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-ref">Regularizers</span></a>, and <a class="reference internal" href="#feature-transformations"><span class="std std-ref">Feature transformations</span></a>.</p>
+<p>We categorize existing, well-known quantification and unfolding algorithms into <a class="reference internal" href="#classify-and-count"><span class="std std-ref">Classify and count</span></a> methods, <a class="reference internal" href="#distribution-matching"><span class="std std-ref">Distribution matching</span></a> methods, and <a class="reference internal" href="#unfolding"><span class="std std-ref">Unfolding</span></a> methods. Each of these methods consists of a fixed combination of <a class="reference internal" href="#losses"><span class="std std-ref">Losses</span></a>, <a class="reference internal" href="#regularizers"><span class="std std-ref">Regularizers</span></a>, and <a class="reference internal" href="#data-representations"><span class="std std-ref">Data representations</span></a>.</p>
 <section id="classify-and-count">
 <h3>Classify and count<a class="headerlink" href="#classify-and-count" title="Link to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.ACC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ACC" title="Link to this definition"></a></dt>
 <dd><p>Adjusted Classify &amp; Count by Forman (2008).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassRepresentation</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -242,13 +290,13 @@
 <dt class="sig sig-object py" id="qunfold.PACC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">PACC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.PACC" title="Link to this definition"></a></dt>
 <dd><p>Probabilistic Adjusted Classify &amp; Count by Bella et al. (2010).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassTransformer</cite>.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and a <cite>ClassRepresentation</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -261,12 +309,12 @@
 <dt class="sig sig-object py" id="qunfold.EDx">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">EDx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.EDx" title="Link to this definition"></a></dt>
 <dd><p>The energy distance-based EDx method by Kawakubo et al. (2016).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with an <cite>EnergyLoss</cite> and a <cite>DistanceTransformer</cite>.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with an <cite>EnergyLoss</cite> and a <cite>DistanceRepresentation</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Can take any value that is accepted by <cite>scipy.spatial.distance.cdist</cite>. Defaults to <cite>“euclidean”</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -276,14 +324,14 @@
 <dt class="sig sig-object py" id="qunfold.EDy">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">EDy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.EDy" title="Link to this definition"></a></dt>
 <dd><p>The energy distance-based EDy method by Castaño et al. (2022).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with an <cite>EnergyLoss</cite> and a <cite>DistanceTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with an <cite>EnergyLoss</cite> and a <cite>DistanceRepresentation</cite>, the latter of which uses a <cite>ClassRepresentation</cite> as a preprocessor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Can take any value that is accepted by <cite>scipy.spatial.distance.cdist</cite>. Defaults to <cite>“euclidean”</cite>.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -293,12 +341,12 @@
 <dt class="sig sig-object py" id="qunfold.HDx">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">HDx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.HDx" title="Link to this definition"></a></dt>
 <dd><p>The Hellinger distance-based HDx method by González-Castro et al. (2013).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramTransformer</cite>.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramRepresentation</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_bins</strong> – The number of bins in each feature.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -308,14 +356,14 @@
 <dt class="sig sig-object py" id="qunfold.HDy">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">HDy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.HDy" title="Link to this definition"></a></dt>
 <dd><p>The Hellinger distance-based HDy method by González-Castro et al. (2013).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramTransformer</cite>, the latter of which uses a <cite>ClassTransformer</cite> as a preprocessor.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>HellingerSurrogateLoss</cite> and a <cite>HistogramRepresentation</cite>, the latter of which uses a <cite>ClassRepresentation</cite> as a preprocessor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
 <li><p><strong>n_bins</strong> – The number of bins in each class.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -325,14 +373,14 @@
 <dt class="sig sig-object py" id="qunfold.KMM">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KMM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'energy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.KMM" title="Link to this definition"></a></dt>
 <dd><p>The kernel-based KMM method with random Fourier features by Dussap et al. (2023).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and an instance of a <cite>KernelTransformer</cite> sub-class that corresponds to the <cite>kernel</cite> argument.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>LeastSquaresLoss</cite> and an instance of a <cite>KernelRepresentation</cite> sub-class that corresponds to the <cite>kernel</cite> argument.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>kernel</strong> (<em>optional</em>) – Which kernel to use. Can be a callable with the signature <cite>(X[y==i], X[y==j]) -&gt; scalar</cite> or one of “energy”, “gaussian”, “laplacian” and “rff”. Defaults to “energy”.</p></li>
 <li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter that is used if <cite>kernel in [“gaussian”, “laplacian”, “rff”]</cite>. Defaults to <cite>1</cite>.</p></li>
 <li><p><strong>n_rff</strong> (<em>optional</em>) – The number of random Fourier features if <cite>kernel == “rff”</cite>. Defaults to <cite>1000</cite>.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>. The <cite>seed</cite> argument also controls the randomness of the random Fourier features if <cite>kernel == “rff”</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>. The <cite>seed</cite> argument also controls the randomness of the random Fourier features if <cite>kernel == “rff”</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -343,15 +391,56 @@
 <h3>Unfolding<a class="headerlink" href="#unfolding" title="Link to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.RUN">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">RUN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.RUN" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">RUN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">representation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.RUN" title="Link to this definition"></a></dt>
 <dd><p>Regularized Unfolding by Blobel (1985).</p>
-<p>This subclass of <cite>GenericMethod</cite> is instantiated with a <cite>TikhonovRegularized(BlobelLoss)</cite>.</p>
+<p>This subclass of <cite>LinearMethod</cite> is instantiated with a <cite>TikhonovRegularized(BlobelLoss)</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>transformer</strong> – An instance from <cite>qunfold.transformers</cite>.</p></li>
+<li><p><strong>representation</strong> – An instance from <cite>qunfold.methods.linear.representations</cite>.</p></li>
 <li><p><strong>tau</strong> (<em>optional</em>) – The regularization strength. Defaults to 0.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>GenericMethod</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments accepted by <cite>LinearMethod</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="methods-beyond-systems-of-linear-equations">
+<h3>Methods beyond systems of linear equations<a class="headerlink" href="#methods-beyond-systems-of-linear-equations" title="Link to this heading"></a></h3>
+<p>Not all quantification algorithms make predictions by solving systems of linear equations. Instead, the following methods maximize the likelihood of the prediction directly.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.LikelihoodMaximizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LikelihoodMaximizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trust-ncg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'gtol':</span> <span class="pre">1e-08,</span> <span class="pre">'maxiter':</span> <span class="pre">1000}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LikelihoodMaximizer" title="Link to this definition"></a></dt>
+<dd><p>The maximum likelihood method, as studied by Alexandari et al. (2020).</p>
+<p>This method is proven to be asymptotically equivalent to the <cite>ExpectationMaximizer</cite> by Saerens et al. (2002).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>solver</strong> (<em>optional</em>) – The <cite>method</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>“trust-ncg”</cite>.</p></li>
+<li><p><strong>solver_options</strong> (<em>optional</em>) – The <cite>options</cite> argument in <cite>scipy.optimize.minimize</cite>. Defaults to <cite>{“gtol”: 1e-8, “maxiter”: 1000}</cite>.</p></li>
+<li><p><strong>tau_0</strong> (<em>optional</em>) – The regularization strength for penalizing deviations from uniform predictions. Defaults to <cite>0</cite>.</p></li>
+<li><p><strong>tau_1</strong> (<em>optional</em>) – The regularization strength for penalizing deviations from non-ordinal predictions. Defaults to <cite>0</cite>.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>seed</strong> (<em>optional</em>) – A random number generator seed from which a numpy RandomState is created. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.ExpectationMaximizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ExpectationMaximizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ExpectationMaximizer" title="Link to this definition"></a></dt>
+<dd><p>The expectation maximization-based method  by Saerens et al. (2002).</p>
+<p>This method is proven to be asymptotically equivalent to the <cite>LikelihoodMaximizer</cite> by Alexandari et al. (2020).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
+<li><p><strong>max_iter</strong> (<em>optional</em>) – The maximum number of iterations. Defaults to <cite>100</cite>.</p></li>
+<li><p><strong>tol</strong> (<em>optional</em>) – The convergence tolerance for the L2 norm between iterations. Defaults to <cite>1e-8</cite>.</p></li>
+<li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -444,18 +533,18 @@
 </dd></dl>
 
 </section>
-<section id="feature-transformations">
-<h2>Feature transformations<a class="headerlink" href="#feature-transformations" title="Link to this heading"></a></h2>
+<section id="data-representations">
+<h2>Data representations<a class="headerlink" href="#data-representations" title="Link to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.ClassTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ClassTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ClassTransformer" title="Link to this definition"></a></dt>
-<dd><p>A classification-based feature transformation.</p>
-<p>This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.</p>
+<dt class="sig sig-object py" id="qunfold.ClassRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ClassRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ClassRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A classification-based data representation.</p>
+<p>This representation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>classifier</strong> – A classifier that implements the API of scikit-learn.</p></li>
-<li><p><strong>is_probabilistic</strong> (<em>optional</em>) – Whether probabilistic or crisp predictions of the <cite>classifier</cite> are used to transform the data. Defaults to <cite>False</cite>.</p></li>
+<li><p><strong>is_probabilistic</strong> (<em>optional</em>) – Whether probabilistic or crisp predictions of the <cite>classifier</cite> are used to represent the data. Defaults to <cite>False</cite>.</p></li>
 <li><p><strong>fit_classifier</strong> (<em>optional</em>) – Whether to fit the <cite>classifier</cite> when this quantifier is fitted. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
@@ -463,28 +552,28 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.DistanceTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">DistanceTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.DistanceTransformer" title="Link to this definition"></a></dt>
-<dd><p>A distance-based feature transformation, as it is used in <cite>EDx</cite> and <cite>EDy</cite>.</p>
+<dt class="sig sig-object py" id="qunfold.DistanceRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">DistanceRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.DistanceRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A distance-based data representation, as it is used in <cite>EDx</cite> and <cite>EDy</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>metric</strong> (<em>optional</em>) – The metric with which the distance between data items is measured. Can take any value that is accepted by <cite>scipy.spatial.distance.cdist</cite>. Defaults to <cite>“euclidean”</cite>.</p></li>
-<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractRepresentation</cite> that is called before this representation. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.HistogramTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">HistogramTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.HistogramTransformer" title="Link to this definition"></a></dt>
-<dd><p>A histogram-based feature transformation, as it is used in <cite>HDx</cite> and <cite>HDy</cite>.</p>
+<dt class="sig sig-object py" id="qunfold.HistogramRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">HistogramRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.HistogramRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A histogram-based data representation, as it is used in <cite>HDx</cite> and <cite>HDy</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_bins</strong> – The number of bins in each feature.</p></li>
-<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractRepresentation</cite> that is called before this representation. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>unit_scale</strong> (<em>optional</em>) – Whether or not to scale each output to a sum of one. A value of <cite>False</cite> indicates that the sum of each output is the number of features. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
@@ -492,27 +581,27 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.EnergyKernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">EnergyKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.EnergyKernelTransformer" title="Link to this definition"></a></dt>
-<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>energy</cite> kernel:</p>
+<dt class="sig sig-object py" id="qunfold.EnergyKernelRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">EnergyKernelRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.EnergyKernelRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A kernel-based data representation, as it is used in <cite>KMM</cite>, that uses the <cite>energy</cite> kernel:</p>
 <blockquote>
 <div><p>k(x_1, x_2) = ||x_1|| + ||x_2|| - ||x_1 - x_2||</p>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The methods of this transformer do not support setting <cite>average=False</cite>.</p>
+<p>The methods of this representation do not support setting <cite>average=False</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p>
+<dd class="field-odd"><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractRepresentation</cite> that is called before this representation. Defaults to <cite>None</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.GaussianKernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianKernelTransformer" title="Link to this definition"></a></dt>
-<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>gaussian</cite> kernel:</p>
+<dt class="sig sig-object py" id="qunfold.GaussianKernelRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianKernelRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianKernelRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A kernel-based data representation, as it is used in <cite>KMM</cite>, that uses the <cite>gaussian</cite> kernel:</p>
 <blockquote>
 <div><p>k(x, y) = exp(-||x - y||^2 / (2σ^2))</p>
 </div></blockquote>
@@ -520,16 +609,16 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p></li>
-<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractRepresentation</cite> that is called before this representation. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.LaplacianKernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LaplacianKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LaplacianKernelTransformer" title="Link to this definition"></a></dt>
-<dd><p>A kernel-based feature transformation, as it is used in <cite>KMM</cite>, that uses the <cite>laplacian</cite> kernel.</p>
+<dt class="sig sig-object py" id="qunfold.LaplacianKernelRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LaplacianKernelRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.LaplacianKernelRepresentation" title="Link to this definition"></a></dt>
+<dd><p>A kernel-based data representation, as it is used in <cite>KMM</cite>, that uses the <cite>laplacian</cite> kernel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p>
@@ -538,15 +627,15 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qunfold.GaussianRFFKernelTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianRFFKernelTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianRFFKernelTransformer" title="Link to this definition"></a></dt>
-<dd><p>An efficient approximation of the <cite>GaussianKernelTransformer</cite>, as it is used in <cite>KMM</cite>, using random Fourier features.</p>
+<dt class="sig sig-object py" id="qunfold.GaussianRFFKernelRepresentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">GaussianRFFKernelRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.GaussianRFFKernelRepresentation" title="Link to this definition"></a></dt>
+<dd><p>An efficient approximation of the <cite>GaussianKernelRepresentation</cite>, as it is used in <cite>KMM</cite>, using random Fourier features.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sigma</strong> (<em>optional</em>) – A smoothing parameter of the kernel function. Defaults to <cite>1</cite>.</p></li>
 <li><p><strong>n_rff</strong> (<em>optional</em>) – The number of random Fourier features. Defaults to <cite>1000</cite>.</p></li>
-<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractTransformer</cite> that is called before this transformer. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>preprocessor</strong> (<em>optional</em>) – Another <cite>AbstractRepresentation</cite> that is called before this representation. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>seed</strong> (<em>optional</em>) – Controls the randomness of the random Fourier features. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
@@ -566,7 +655,7 @@
 <dd><p>A thin wrapper for using qunfold methods in QuaPy.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>generic_method</strong> – A GenericMethod method to wrap.</p>
+<dd class="field-odd"><p><strong>generic_method</strong> – A LinearMethod method to wrap.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -575,7 +664,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">quapy</span><span class="o">.</span><span class="n">model_selection</span><span class="o">.</span><span class="n">GridSearchQ</span><span class="p">(</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">model</span> <span class="o">=</span> <span class="n">qunfold_method</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">param_grid</span> <span class="o">=</span> <span class="p">{</span> <span class="c1"># try both splitting criteria</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;transformer__classifier__estimator__criterion&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;gini&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s2">&quot;representation__classifier__estimator__criterion&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;gini&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">],</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="p">},</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># ...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>

@@ -110,15 +110,15 @@
 <span class="n">p_hat</span> <span class="o">=</span> <span class="n">acc</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_tst</span><span class="p">)</span> <span class="c1"># estimate a prevalence vector</span>
 </pre></div>
 </div>
-<p>You can easily compose new quantification methods from existing loss functions and feature transformations. In the following example, we compose the ordinal variant of ACC and prepare it for being used in <a class="reference external" href="https://github.com/HLT-ISTI/QuaPy">QuaPy</a>.</p>
+<p>You can easily compose new quantification methods from existing loss functions and data representations. In the following example, we compose the ordinal variant of ACC and prepare it for being used in <a class="reference external" href="https://github.com/HLT-ISTI/QuaPy">QuaPy</a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the ACC loss, regularized with strength 0.01 for ordinal quantification</span>
 <span class="n">loss</span> <span class="o">=</span> <span class="n">TikhonovRegularized</span><span class="p">(</span><span class="n">LeastSquaresLoss</span><span class="p">(),</span> <span class="mf">0.01</span><span class="p">)</span>
 
 <span class="c1"># the original data representation of ACC with 10-fold cross-validation</span>
-<span class="n">transformer</span> <span class="o">=</span> <span class="n">ClassTransformer</span><span class="p">(</span><span class="n">CVClassifier</span><span class="p">(</span><span class="n">LogisticRegression</span><span class="p">(),</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">representation</span> <span class="o">=</span> <span class="n">ClassRepresentation</span><span class="p">(</span><span class="n">CVClassifier</span><span class="p">(</span><span class="n">LogisticRegression</span><span class="p">(),</span> <span class="mi">10</span><span class="p">))</span>
 
 <span class="c1"># the ordinal variant of ACC, ready for being used in QuaPy</span>
-<span class="n">ordinal_acc</span> <span class="o">=</span> <span class="n">QuaPyWrapper</span><span class="p">(</span><span class="n">GenericMethod</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">transformer</span><span class="p">))</span>
+<span class="n">ordinal_acc</span> <span class="o">=</span> <span class="n">QuaPyWrapper</span><span class="p">(</span><span class="n">LinearMethod</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">representation</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
