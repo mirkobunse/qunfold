@@ -1,7 +1,7 @@
 import inspect
 from collections import defaultdict
 from quapy.method.base import BaseQuantifier
-from . import GenericMethod
+from . import LinearMethod
 
 #
 # _get_params and _set_params use inspection to provide a functionality
@@ -62,7 +62,7 @@ class QuaPyWrapper(BaseQuantifier):
     """A thin wrapper for using qunfold methods in QuaPy.
 
     Args:
-        generic_method: A GenericMethod method to wrap.
+        generic_method: A LinearMethod method to wrap.
 
     Examples:
         Here, we wrap an instance of ACC to perform a grid search with QuaPy.
@@ -87,4 +87,4 @@ class QuaPyWrapper(BaseQuantifier):
         _set_params(self.generic_method, self.get_params(deep=True), **params)
         return self
     def get_params(self, deep=True):
-        return _get_params(self.generic_method, deep, GenericMethod)
+        return _get_params(self.generic_method, deep, LinearMethod)

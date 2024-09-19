@@ -35,9 +35,9 @@ authors = [
 dynamic = [ "version" ]
 
 [project.optional-dependencies]
-tests = [ "jax[cpu]", "nose", "quapy", "scikit-learn" ]
-experiments = [ "jax[cpu]", "pandas", "quapy", "scikit-learn", "tqdm" ]
-docs = [ "jax[cpu]", "myst-parser", "quapy", "scikit-learn", "sphinx-rtd-theme" ]
+tests = [ "jax[cpu]", "nose", "quapy==0.1.8", "scikit-learn" ]
+experiments = [ "jax[cpu]", "pandas", "quapy==0.1.8", "scikit-learn", "tqdm" ]
+docs = [ "jax[cpu]", "myst-parser", "quapy==0.1.8", "scikit-learn", "sphinx-rtd-theme" ]
 
 [tool.setuptools.dynamic]
 version = { attr = "qunfold.__version__" }

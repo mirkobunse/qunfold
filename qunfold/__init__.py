@@ -1,6 +1,6 @@
 __version__ = "0.1.5-rc"
 
-from .losses import (
+from .methods.linear.losses import (
     instantiate_loss,
     LeastSquaresLoss,
     BlobelLoss,
@@ -11,7 +11,7 @@ from .losses import (
     TikhonovRegularized,
 )
 
-from .transformers import (
+from .methods.linear.transformers import (
     ClassTransformer,
     HistogramTransformer,
     DistanceTransformer,
@@ -22,8 +22,8 @@ from .transformers import (
     GaussianRFFKernelTransformer,
 )
 
-from .methods import (
-    GenericMethod,
+from .methods.linear import (
+    LinearMethod,
     ACC,
     PACC,
     RUN,
@@ -33,3 +33,5 @@ from .methods import (
     EDy,
     KMM,
 )
+
+from .methods import AbstractMethod

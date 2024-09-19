@@ -11,8 +11,7 @@ from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
-from qunfold.methods import HDx
-from qunfold.losses import HellingerSurrogateLoss
+from qunfold import HDx, HellingerSurrogateLoss
 
 RNG = np.random.RandomState(876) # make tests reproducible
 
@@ -57,7 +56,7 @@ class TestMethods(TestCase):
       )
       p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
-      p_run = qunfold.RUN(qunfold.transformers.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
+      p_run = qunfold.RUN(qunfold.ClassTransformer(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
       p_hdx = qunfold.HDx(3).fit(X_trn, y_trn).predict(X_tst)
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
       p_edx = qunfold.EDx().fit(X_trn, y_trn).predict(X_tst)
@@ -66,7 +65,7 @@ class TestMethods(TestCase):
       p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
       p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
       p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
-      p_custom = qunfold.GenericMethod( # a custom method
+      p_custom = qunfold.LinearMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramTransformer(3)
       ).fit(X_trn, y_trn, n_classes).predict(X_tst)
@@ -180,7 +179,7 @@ class TestDistanceTransformer(TestCase):
       X_trn, y_trn = generate_data(M, p_trn)
       # p_tst = RNG.permutation(p_trn)
       # X_tst, y_tst = generate_data(M, p_tst)
-      m = qunfold.GenericMethod(None, qunfold.DistanceTransformer())
+      m = qunfold.LinearMethod(None, qunfold.DistanceTransformer())
       m.fit(X_trn, y_trn, n_classes)
       M_est = m.M
       M_true = np.zeros_like(M_est)

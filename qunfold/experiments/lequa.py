@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, GenericMethod
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, LinearMethod
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -151,7 +151,7 @@ def main(
             }
         ),
         ("HDy", "QuaPy",
-            qp.method.aggregative.DistributionMatching(
+            qp.method.aggregative.DistributionMatchingY(
                 classifier = qp_clf,
                 divergence = 'HD',
                 cdf = False
@@ -168,7 +168,7 @@ def main(
         ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
         ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
         ("KMMey", "qunfold", # KMM with the energy kernel after classification
-            QuaPyWrapper(GenericMethod(
+            QuaPyWrapper(LinearMethod(
                 LeastSquaresLoss(),
                 EnergyKernelTransformer(preprocessor=ClassTransformer(
                     clf,
@@ -186,7 +186,7 @@ def main(
             { "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
         ),
         ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-            QuaPyWrapper(GenericMethod(
+            QuaPyWrapper(LinearMethod(
                 LeastSquaresLoss(),
                 GaussianRFFKernelTransformer(
                     seed = seed,
@@ -224,7 +224,7 @@ def main(
             ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
             ("HDy", "qunfold", QuaPyWrapper(HDy(clf, 2, seed=seed)), None),
             ("HDy", "QuaPy",
-                qp.method.aggregative.DistributionMatching(
+                qp.method.aggregative.DistributionMatchingY(
                     classifier = qp_clf,
                     divergence = 'HD',
                     cdf = False
@@ -235,7 +235,7 @@ def main(
             ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
             ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
             ("KMMey", "qunfold", # KMM with the energy kernel after classification
-                QuaPyWrapper(GenericMethod(
+                QuaPyWrapper(LinearMethod(
                     LeastSquaresLoss(),
                     EnergyKernelTransformer(preprocessor=ClassTransformer(
                         clf,
@@ -253,7 +253,7 @@ def main(
                 { "transformer__sigma": [ 1e-1 ] }
             ),
             ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-                QuaPyWrapper(GenericMethod(
+                QuaPyWrapper(LinearMethod(
                     LeastSquaresLoss(),
                     GaussianRFFKernelTransformer(
                         seed = seed,

@@ -33,21 +33,21 @@ As soon as you push to the `main` branch, GitHub Actions will build the document
 
 ## Custom implementations
 
-Custom [](#losses) and [](#feature-transformations) can be used in any instance of `GenericMethod`. Use the already existing implementations as examples.
+Custom [](#losses) and [](#feature-transformations) can be used in any instance of `LinearMethod`. Use the already existing implementations as examples.
 
 
 ### Losses
 
-The most convenient way of implementing a custom loss is to create a [JAX](https://jax.readthedocs.io/)-powered function `(p, q, M, N) -> loss_value`. From this function, you can create a *FunctionLoss* object to be used in any instance of `GenericMethod`.
+The most convenient way of implementing a custom loss is to create a [JAX](https://jax.readthedocs.io/)-powered function `(p, q, M, N) -> loss_value`. From this function, you can create a *FunctionLoss* object to be used in any instance of `LinearMethod`.
 
 ```{eval-rst}
-.. autoclass:: qunfold.losses.FunctionLoss
+.. autoclass:: qunfold.methods.linear.losses.FunctionLoss
 ```
 
 If you require more freedom in implementing a custom loss, you can also create a sub-class of `AbstractLoss`.
 
 ```{eval-rst}
-.. autoclass:: qunfold.losses.AbstractLoss
+.. autoclass:: qunfold.methods.linear.losses.AbstractLoss
    :members: _instantiate
 ```
 
@@ -57,7 +57,7 @@ If you require more freedom in implementing a custom loss, you can also create a
 To implement a custom feature transformation, you have to create a sub-class of `AbstractTransformer`.
 
 ```{eval-rst}
-.. autoclass:: qunfold.transformers.AbstractTransformer
+.. autoclass:: qunfold.methods.linear.transformers.AbstractTransformer
    :members:
 ```
 

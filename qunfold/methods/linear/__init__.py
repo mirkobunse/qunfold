@@ -2,6 +2,7 @@ import numpy as np
 import traceback
 from scipy import optimize
 from . import (losses, transformers)
+from .. import AbstractMethod
 
 # helper function for our softmax "trick" with l[0]=0
 def _np_softmax(l):
@@ -54,8 +55,8 @@ class _CallbackState():
   def callback(self):
     return lambda xk, *args: self._callback(xk)
 
-class GenericMethod:
-  """A generic quantification / unfolding method.
+class LinearMethod(AbstractMethod):
+  """A generic quantification / unfolding method that predicts class prevalences by solving a system of linear equations.
 
   This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).
 
@@ -69,7 +70,7 @@ class GenericMethod:
   Examples:
       Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original feature transformation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.
 
-          >>> GenericMethod(
+          >>> LinearMethod(
           >>>     TikhonovRegularized(LeastSquaresLoss(), 0.01),
           >>>     ClassTransformer(RandomForestClassifier(oob_score=True))
           >>> )
@@ -85,27 +86,9 @@ class GenericMethod:
     self.solver_options = solver_options
     self.seed = seed
   def fit(self, X, y, n_classes=None):
-    """Fit this quantifier to data.
-
-    Args:
-        X: The feature matrix to which this quantifier will be fitted.
-        y: The labels to which this quantifier will be fitted.
-        n_classes (optional): The number of expected classes. Defaults to `None`.
-
-    Returns:
-        This fitted quantifier itself.
-    """
     self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
     return self
   def predict(self, X):
-    """Predict the class prevalences in a data set.
-
-    Args:
-        X: The feature matrix for which this quantifier will make a prediction.
-
-    Returns:
-        A numpy array of class prevalences.
-    """
     q = self.transformer.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
   def solve(self, q, M, N=None): # TODO add argument p_trn=self.p_trn
@@ -141,18 +124,18 @@ class GenericMethod:
   def p_trn(self):
     return self.transformer.p_trn
 
-class ACC(GenericMethod):
+class ACC(LinearMethod):
   """Adjusted Classify & Count by Forman (2008).
 
-  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, classifier, fit_classifier=True, **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.LeastSquaresLoss(),
       transformers.ClassTransformer(
@@ -162,18 +145,18 @@ class ACC(GenericMethod):
       **kwargs
     )
 
-class PACC(GenericMethod):
+class PACC(LinearMethod):
   """Probabilistic Adjusted Classify & Count by Bella et al. (2010).
 
-  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, classifier, fit_classifier=True, **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.LeastSquaresLoss(),
       transformers.ClassTransformer(
@@ -184,54 +167,54 @@ class PACC(GenericMethod):
       **kwargs
     )
 
-class RUN(GenericMethod):
+class RUN(LinearMethod):
   """Regularized Unfolding by Blobel (1985).
 
-  This subclass of `GenericMethod` is instantiated with a `TikhonovRegularized(BlobelLoss)`.
+  This subclass of `LinearMethod` is instantiated with a `TikhonovRegularized(BlobelLoss)`.
 
   Args:
       transformer: An instance from `qunfold.transformers`.
       tau (optional): The regularization strength. Defaults to 0.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, transformer, *, tau=0., **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.TikhonovRegularized(losses.BlobelLoss(), tau),
       transformer,
       **kwargs
     )
 
-class EDx(GenericMethod):
+class EDx(LinearMethod):
   """The energy distance-based EDx method by Kawakubo et al. (2016).
 
-  This subclass of `GenericMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`.
+  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`.
 
   Args:
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, metric="euclidean", **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.EnergyLoss(),
       transformers.DistanceTransformer(metric),
       **kwargs
     )
 
-class EDy(GenericMethod):
+class EDy(LinearMethod):
   """The energy distance-based EDy method by Castaño et al. (2022).
 
-  This subclass of `GenericMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, classifier, metric="euclidean", fit_classifier=True, **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.EnergyLoss(),
       transformers.DistanceTransformer(
@@ -245,36 +228,36 @@ class EDy(GenericMethod):
       **kwargs
     )
 
-class HDx(GenericMethod):
+class HDx(LinearMethod):
   """The Hellinger distance-based HDx method by González-Castro et al. (2013).
 
-  This subclass of `GenericMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`.
 
   Args:
       n_bins: The number of bins in each feature.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, n_bins, **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.HellingerSurrogateLoss(),
       transformers.HistogramTransformer(n_bins, unit_scale=False),
       **kwargs
     )
 
-class HDy(GenericMethod):
+class HDy(LinearMethod):
   """The Hellinger distance-based HDy method by González-Castro et al. (2013).
 
-  This subclass of `GenericMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
       n_bins: The number of bins in each class.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
   def __init__(self, classifier, n_bins, *, fit_classifier=True, **kwargs):
-    GenericMethod.__init__(
+    LinearMethod.__init__(
       self,
       losses.HellingerSurrogateLoss(),
       transformers.HistogramTransformer(
@@ -289,16 +272,16 @@ class HDy(GenericMethod):
       **kwargs
     )
 
-class KMM(GenericMethod):
+class KMM(LinearMethod):
   """The kernel-based KMM method with random Fourier features by Dussap et al. (2023).
 
-  This subclass of `GenericMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelTransformer` sub-class that corresponds to the `kernel` argument.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelTransformer` sub-class that corresponds to the `kernel` argument.
 
   Args:
       kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", "laplacian" and "rff". Defaults to "energy".
       sigma (optional): A smoothing parameter that is used if `kernel in ["gaussian", "laplacian", "rff"]`. Defaults to `1`.
       n_rff (optional): The number of random Fourier features if `kernel == "rff"`. Defaults to `1000`.
-      **kwargs: Keyword arguments accepted by `GenericMethod`. The `seed` argument also controls the randomness of the random Fourier features if `kernel == "rff"`.
+      **kwargs: Keyword arguments accepted by `LinearMethod`. The `seed` argument also controls the randomness of the random Fourier features if `kernel == "rff"`.
   """
   def __init__(self, kernel="energy", sigma=1, n_rff=1000, seed=None, **kwargs):
     if kernel == "energy":
@@ -315,4 +298,4 @@ class KMM(GenericMethod):
       )
     else:
       transformer = transformers.KernelTransformer(kernel)
-    GenericMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)
+    LinearMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)
