@@ -11,15 +11,15 @@ from .methods.linear.losses import (
     TikhonovRegularized,
 )
 
-from .methods.linear.transformers import (
-    ClassTransformer,
-    HistogramTransformer,
-    DistanceTransformer,
-    KernelTransformer,
-    EnergyKernelTransformer,
-    LaplacianKernelTransformer,
-    GaussianKernelTransformer,
-    GaussianRFFKernelTransformer,
+from .methods.linear.representations import (
+    ClassRepresentation,
+    HistogramRepresentation,
+    DistanceRepresentation,
+    KernelRepresentation,
+    EnergyKernelRepresentation,
+    LaplacianKernelRepresentation,
+    GaussianKernelRepresentation,
+    GaussianRFFKernelRepresentation,
 )
 
 from .methods.linear import (

@@ -1,7 +1,7 @@
 import numpy as np
 import traceback
 from scipy import optimize
-from . import (losses, transformers)
+from . import (losses, representations)
 from .. import AbstractMethod
 
 # helper function for our softmax "trick" with l[0]=0
@@ -58,38 +58,38 @@ class _CallbackState():
 class LinearMethod(AbstractMethod):
   """A generic quantification / unfolding method that predicts class prevalences by solving a system of linear equations.
 
-  This class represents any method that consists of a loss function, a feature transformation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).
+  This class represents any method that consists of a loss function, a data representation, and a regularization term. In this implementation, any regularized loss is minimized through unconstrained second-order minimization. Valid probability estimates are ensured through a soft-max trick by Bunse (2022).
 
   Args:
-      loss: An instance from `qunfold.losses`.
-      transformer: An instance from `qunfold.transformers`.
+      loss: An instance from `qunfold.methods.linear.losses`.
+      representation: An instance from `qunfold.methods.linear.representations`.
       solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
       solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
       seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
 
   Examples:
-      Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original feature transformation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.
+      Here, we create the ordinal variant of ACC (Bunse et al., 2023). This variant consists of the original data representation of ACC and of the original loss of ACC, the latter of which is regularized towards smooth solutions.
 
           >>> LinearMethod(
           >>>     TikhonovRegularized(LeastSquaresLoss(), 0.01),
-          >>>     ClassTransformer(RandomForestClassifier(oob_score=True))
+          >>>     ClassRepresentation(RandomForestClassifier(oob_score=True))
           >>> )
   """
-  def __init__(self, loss, transformer,
+  def __init__(self, loss, representation,
       solver = "trust-ncg",
       solver_options = {"gtol": 1e-8, "maxiter": 1000},
       seed = None,
       ):
     self.loss = loss
-    self.transformer = transformer
+    self.representation = representation
     self.solver = solver
     self.solver_options = solver_options
     self.seed = seed
   def fit(self, X, y, n_classes=None):
-    self.M = self.transformer.fit_transform(X, y, n_classes=n_classes)
+    self.M = self.representation.fit_transform(X, y, n_classes=n_classes)
     return self
   def predict(self, X):
-    q = self.transformer.transform(X)
+    q = self.representation.transform(X)
     return self.solve(q, self.M, N=X.shape[0])
   def solve(self, q, M, N=None): # TODO add argument p_trn=self.p_trn
     """Solve the linear system of equations `q=M*p` for `p`.
@@ -122,12 +122,12 @@ class LinearMethod(AbstractMethod):
     return Result(_np_softmax(opt.x), opt.nit, opt.message)
   @property
   def p_trn(self):
-    return self.transformer.p_trn
+    return self.representation.p_trn
 
 class ACC(LinearMethod):
   """Adjusted Classify & Count by Forman (2008).
 
-  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassRepresentation`.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
@@ -138,7 +138,7 @@ class ACC(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.LeastSquaresLoss(),
-      transformers.ClassTransformer(
+      representations.ClassRepresentation(
         classifier,
         fit_classifier = fit_classifier
       ),
@@ -148,7 +148,7 @@ class ACC(LinearMethod):
 class PACC(LinearMethod):
   """Probabilistic Adjusted Classify & Count by Bella et al. (2010).
 
-  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassRepresentation`.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
@@ -159,7 +159,7 @@ class PACC(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.LeastSquaresLoss(),
-      transformers.ClassTransformer(
+      representations.ClassRepresentation(
         classifier,
         fit_classifier = fit_classifier,
         is_probabilistic = True
@@ -173,22 +173,22 @@ class RUN(LinearMethod):
   This subclass of `LinearMethod` is instantiated with a `TikhonovRegularized(BlobelLoss)`.
 
   Args:
-      transformer: An instance from `qunfold.transformers`.
+      representation: An instance from `qunfold.methods.linear.representations`.
       tau (optional): The regularization strength. Defaults to 0.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, transformer, *, tau=0., **kwargs):
+  def __init__(self, representation, *, tau=0., **kwargs):
     LinearMethod.__init__(
       self,
       losses.TikhonovRegularized(losses.BlobelLoss(), tau),
-      transformer,
+      representation,
       **kwargs
     )
 
 class EDx(LinearMethod):
   """The energy distance-based EDx method by Kawakubo et al. (2016).
 
-  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`.
+  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceRepresentation`.
 
   Args:
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
@@ -198,14 +198,14 @@ class EDx(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.EnergyLoss(),
-      transformers.DistanceTransformer(metric),
+      representations.DistanceRepresentation(metric),
       **kwargs
     )
 
 class EDy(LinearMethod):
   """The energy distance-based EDy method by Castaño et al. (2022).
 
-  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceRepresentation`, the latter of which uses a `ClassRepresentation` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
@@ -217,9 +217,9 @@ class EDy(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.EnergyLoss(),
-      transformers.DistanceTransformer(
+      representations.DistanceRepresentation(
         metric,
-        preprocessor = transformers.ClassTransformer(
+        preprocessor = representations.ClassRepresentation(
           classifier,
           fit_classifier = fit_classifier,
           is_probabilistic = True,
@@ -231,7 +231,7 @@ class EDy(LinearMethod):
 class HDx(LinearMethod):
   """The Hellinger distance-based HDx method by González-Castro et al. (2013).
 
-  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`.
+  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramRepresentation`.
 
   Args:
       n_bins: The number of bins in each feature.
@@ -241,14 +241,14 @@ class HDx(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.HellingerSurrogateLoss(),
-      transformers.HistogramTransformer(n_bins, unit_scale=False),
+      representations.HistogramRepresentation(n_bins, unit_scale=False),
       **kwargs
     )
 
 class HDy(LinearMethod):
   """The Hellinger distance-based HDy method by González-Castro et al. (2013).
 
-  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramTransformer`, the latter of which uses a `ClassTransformer` as a preprocessor.
+  This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramRepresentation`, the latter of which uses a `ClassRepresentation` as a preprocessor.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
@@ -260,9 +260,9 @@ class HDy(LinearMethod):
     LinearMethod.__init__(
       self,
       losses.HellingerSurrogateLoss(),
-      transformers.HistogramTransformer(
+      representations.HistogramRepresentation(
         n_bins,
-        preprocessor = transformers.ClassTransformer(
+        preprocessor = representations.ClassRepresentation(
           classifier,
           fit_classifier = fit_classifier,
           is_probabilistic = True,
@@ -275,7 +275,7 @@ class HDy(LinearMethod):
 class KMM(LinearMethod):
   """The kernel-based KMM method with random Fourier features by Dussap et al. (2023).
 
-  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelTransformer` sub-class that corresponds to the `kernel` argument.
+  This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelRepresentation` sub-class that corresponds to the `kernel` argument.
 
   Args:
       kernel (optional): Which kernel to use. Can be a callable with the signature `(X[y==i], X[y==j]) -> scalar` or one of "energy", "gaussian", "laplacian" and "rff". Defaults to "energy".
@@ -285,17 +285,17 @@ class KMM(LinearMethod):
   """
   def __init__(self, kernel="energy", sigma=1, n_rff=1000, seed=None, **kwargs):
     if kernel == "energy":
-      transformer = transformers.EnergyKernelTransformer()
+      representation = representations.EnergyKernelRepresentation()
     elif kernel == "gaussian":
-      transformer = transformers.GaussianKernelTransformer(sigma=sigma)
+      representation = representations.GaussianKernelRepresentation(sigma=sigma)
     elif kernel == "laplacian":
-      transformer = transformers.LaplacianKernelTransformer(sigma=sigma)
+      representation = representations.LaplacianKernelRepresentation(sigma=sigma)
     elif kernel == "rff":
-      transformer = transformers.GaussianRFFKernelTransformer(
+      representation = representations.GaussianRFFKernelRepresentation(
         sigma = sigma,
         n_rff = n_rff,
         seed = seed,
       )
     else:
-      transformer = transformers.KernelTransformer(kernel)
-    LinearMethod.__init__(self, losses.LeastSquaresLoss(), transformer, seed=seed, **kwargs)
+      representation = representations.KernelRepresentation(kernel)
+    LinearMethod.__init__(self, losses.LeastSquaresLoss(), representation, seed=seed, **kwargs)

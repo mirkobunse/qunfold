@@ -71,7 +71,7 @@ class QuaPyWrapper(BaseQuantifier):
             >>> quapy.model_selection.GridSearchQ(
             >>>     model = qunfold_method,
             >>>     param_grid = { # try both splitting criteria
-            >>>         "transformer__classifier__estimator__criterion": ["gini", "entropy"],
+            >>>         "representation__classifier__estimator__criterion": ["gini", "entropy"],
             >>>     },
             >>>     # ...
             >>> )

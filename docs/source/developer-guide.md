@@ -33,7 +33,7 @@ As soon as you push to the `main` branch, GitHub Actions will build the document
 
 ## Custom implementations
 
-Custom [](#losses) and [](#feature-transformations) can be used in any instance of `LinearMethod`. Use the already existing implementations as examples.
+Custom [](#losses) and [](#data-representations) can be used in any instance of `LinearMethod`. Use the already existing implementations as examples.
 
 
 ### Losses
@@ -52,17 +52,17 @@ If you require more freedom in implementing a custom loss, you can also create a
 ```
 
 
-### Feature transformations
+### Data representations
 
-To implement a custom feature transformation, you have to create a sub-class of `AbstractTransformer`.
+To implement a custom data representation, you have to create a sub-class of `AbstractRepresentation`.
 
 ```{eval-rst}
-.. autoclass:: qunfold.methods.linear.transformers.AbstractTransformer
+.. autoclass:: qunfold.methods.linear.representations.AbstractRepresentation
    :members:
 ```
 
-For those transformations that use a kernel embedding, you can provide a `KernelTransformer` with your kernel function.
+For those representations that use a kernel embedding, you can provide a `KernelRepresentation` with your kernel function.
 
 ```{eval-rst}
-.. autoclass:: qunfold.KernelTransformer
+.. autoclass:: qunfold.KernelRepresentation
 ```

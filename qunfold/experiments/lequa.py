@@ -7,7 +7,7 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
-from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassTransformer, GaussianRFFKernelTransformer, LeastSquaresLoss, EnergyKernelTransformer, LinearMethod
+from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassRepresentation, GaussianRFFKernelRepresentation, LeastSquaresLoss, EnergyKernelRepresentation, LinearMethod
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
@@ -131,11 +131,11 @@ def main(
         random_state = seed,
     )
     clf_grid = {
-        "transformer__classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
+        "representation__classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
     }
     qp_clf = clf.estimator
     qp_clf_grid = {
-        "classifier__C": clf_grid["transformer__classifier__estimator__C"],
+        "classifier__C": clf_grid["representation__classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
         ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
@@ -145,9 +145,9 @@ def main(
         ("HDy", "qunfold",
             QuaPyWrapper(HDy(clf, 2, seed=seed)),
             {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
-                "transformer__n_bins": [2, 4, 6],
+                "representation__preprocessor__classifier__estimator__C":
+                    clf_grid["representation__classifier__estimator__C"],
+                "representation__n_bins": [2, 4, 6],
             }
         ),
         ("HDy", "QuaPy",
@@ -161,36 +161,36 @@ def main(
         ("EDy", "qunfold",
             QuaPyWrapper(EDy(clf, seed=seed)),
             {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
+                "representation__preprocessor__classifier__estimator__C":
+                    clf_grid["representation__classifier__estimator__C"],
             }
         ),
-        ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), clf_grid),
+        ("RUN", "qunfold", QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)), clf_grid),
         ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
         ("KMMey", "qunfold", # KMM with the energy kernel after classification
             QuaPyWrapper(LinearMethod(
                 LeastSquaresLoss(),
-                EnergyKernelTransformer(preprocessor=ClassTransformer(
+                EnergyKernelRepresentation(preprocessor=ClassRepresentation(
                     clf,
                     is_probabilistic = True,
                 )),
                 seed = seed
             )),
             {
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
+                "representation__preprocessor__classifier__estimator__C":
+                    clf_grid["representation__classifier__estimator__C"],
             }
         ),
         ("KMMr", "qunfold",
             QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-            { "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
+            { "representation__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
         ),
         ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
             QuaPyWrapper(LinearMethod(
                 LeastSquaresLoss(),
-                GaussianRFFKernelTransformer(
+                GaussianRFFKernelRepresentation(
                     seed = seed,
-                    preprocessor = ClassTransformer(
+                    preprocessor = ClassRepresentation(
                         clf,
                         is_probabilistic = True,
                     ),
@@ -198,9 +198,9 @@ def main(
                 seed = seed
             )),
             {
-                "transformer__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "transformer__preprocessor__classifier__estimator__C":
-                    clf_grid["transformer__classifier__estimator__C"],
+                "representation__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
+                "representation__preprocessor__classifier__estimator__C":
+                    clf_grid["representation__classifier__estimator__C"],
             }
         ),
     ]
@@ -211,11 +211,11 @@ def main(
     if is_test_run: # use a minimal testing configuration
         clf.set_params(n_estimators = 3, estimator__max_iter = 3)
         clf_grid = {
-            "transformer__classifier__estimator__C": [1e1],
+            "representation__classifier__estimator__C": [1e1],
         }
         qp_clf = clf.estimator
         qp_clf_grid = {
-            "classifier__C": clf_grid["transformer__classifier__estimator__C"],
+            "classifier__C": clf_grid["representation__classifier__estimator__C"],
         }
         methods = [ # (method_name, package, method, param_grid)
             ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
@@ -232,32 +232,32 @@ def main(
                 None
             ),
             ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
-            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassTransformer(clf), seed=seed)), None),
+            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)), None),
             ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
             ("KMMey", "qunfold", # KMM with the energy kernel after classification
                 QuaPyWrapper(LinearMethod(
                     LeastSquaresLoss(),
-                    EnergyKernelTransformer(preprocessor=ClassTransformer(
+                    EnergyKernelRepresentation(preprocessor=ClassRepresentation(
                         clf,
                         is_probabilistic = True,
                     )),
                     seed = seed
                 )),
                 {
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
+                    "representation__preprocessor__classifier__estimator__C":
+                        clf_grid["representation__classifier__estimator__C"],
                 }
             ),
             ("KMMr", "qunfold",
                 QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-                { "transformer__sigma": [ 1e-1 ] }
+                { "representation__sigma": [ 1e-1 ] }
             ),
             ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
                 QuaPyWrapper(LinearMethod(
                     LeastSquaresLoss(),
-                    GaussianRFFKernelTransformer(
+                    GaussianRFFKernelRepresentation(
                         seed = seed,
-                        preprocessor = ClassTransformer(
+                        preprocessor = ClassRepresentation(
                             clf,
                             is_probabilistic = True,
                         ),
@@ -265,9 +265,9 @@ def main(
                     seed = seed
                 )),
                 {
-                    "transformer__sigma": [ 1e-1 ],
-                    "transformer__preprocessor__classifier__estimator__C":
-                        clf_grid["transformer__classifier__estimator__C"],
+                    "representation__sigma": [ 1e-1 ],
+                    "representation__preprocessor__classifier__estimator__C":
+                        clf_grid["representation__classifier__estimator__C"],
                 }
             ),
         ]
