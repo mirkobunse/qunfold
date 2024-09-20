@@ -53,9 +53,9 @@ class LinearMethod(AbstractMethod):
     return minimize(
       self.loss.instantiate(q, M, N),
       M.shape[1], # = n_classes
-      np.random.RandomState(self.seed), # = rng
       self.solver,
-      self.solver_options
+      self.solver_options,
+      self.seed,
     )
   @property
   def p_trn(self):

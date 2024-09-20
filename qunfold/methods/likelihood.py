@@ -41,12 +41,12 @@ class LikelihoodMaximizer(AbstractMethod):
       self.classifier.fit(X, y)
     return self
   def predict(self, X):
-    pXY = classifier.predict_proba(X) / self.p_trn # proportional to P(X|Y)
+    pXY = self.classifier.predict_proba(X) / self.p_trn # proportional to P(X|Y)
     pXY = pXY / pXY.sum(axis=1, keepdims=True) # normalize to P(X|Y)
 
     # TODO 1) filter out all rows from pXY that contain zeros or ones, or values close to zero or one up to some self.epsilon. Goal: to reduce thrown errors / warnings and to replace the corresponding estimates with proper ones.
-    #epsilon_filtered_rows = pXY[np.any(pXY <= self.epsilon, axis=1), :]
-    #pXY = pXY[np.all(pXY > self.epsilon, axis=1),:]
+    # epsilon_filtered_rows = pXY[jnp.any(pXY <= self.epsilon, axis=1), :]
+    # pXY = pXY[jnp.all(pXY > self.epsilon, axis=1),:]
 
     # TODO 2) "side-chain" those rows that have contained values close to one, by setting up a classify-and-count estimate that is later added to opt.x. Appropriately weight both the CC estimate and opt.x by the fraction of rows that has lead to each of these estimates. Goal: to further improve the estimation (see also the todo 3).
     
@@ -54,15 +54,16 @@ class LikelihoodMaximizer(AbstractMethod):
 
     # minimize the negative log-likelihood loss
     def loss(p):
-      xi_0 = jnp.sum((p[1:] - p[:-1])**2) / 2 # deviation from a uniform prediction
-      xi_1 = jnp.sum((-p[:-2] + 2 * p[1:-1] - p[2:])**2) / 2 # deviation from non-ordinal
-      return -jnp.log(pXY @ p).mean() + self.tau_0 * xi_0 + self.tau_1 * xi_1
+      # xi_0 = jnp.sum((p[1:] - p[:-1])**2) / 2 # deviation from a uniform prediction
+      # xi_1 = jnp.sum((-p[:-2] + 2 * p[1:-1] - p[2:])**2) / 2 # deviation from non-ordinal
+      # return -jnp.log(pXY @ p).mean() + self.tau_0 * xi_0 + self.tau_1 * xi_1
+      return -jnp.log(pXY @ p).mean()
     return minimize(
       loss,
       len(self.p_trn),
-      np.random.RandomState(self.seed), # = rng
       self.solver,
-      self.solver_options
+      self.solver_options,
+      self.seed,
     )
 
 class ExpectationMaximizer(AbstractMethod):

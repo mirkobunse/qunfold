@@ -1,10 +1,8 @@
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
+import quapy as qp
 import qunfold
 import time
-from quapy.data import LabelledCollection
-from quapy.model_selection import GridSearchQ
-from quapy.protocol import AbstractProtocol
 from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from scipy.spatial.distance import cdist
@@ -54,47 +52,36 @@ class TestMethods(TestCase):
         oob_score = True,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = qunfold.ACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_pacc = qunfold.PACC(rf).fit(X_trn, y_trn).predict(X_tst)
       p_run = qunfold.RUN(qunfold.ClassRepresentation(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
-      p_hdx = qunfold.HDx(3).fit(X_trn, y_trn).predict(X_tst)
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
-      p_edx = qunfold.EDx().fit(X_trn, y_trn).predict(X_tst)
       p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
-      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
-      p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
-      p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
-      p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
-      p_custom = qunfold.LinearMethod( # a custom method
+      p_cstm = qunfold.LinearMethod( # a custom method
         qunfold.LeastSquaresLoss(),
         qunfold.HistogramRepresentation(3)
       ).fit(X_trn, y_trn, n_classes).predict(X_tst)
+      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
+      p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
+      p_maxl = qunfold.LikelihoodMaximizer(rf).fit(X_trn, y_trn).predict(X_tst)
+      qp.environ["SAMPLE_SIZE"] = len(X_tst) # needed to compute the RAE
       print(
-        f"LSq: p_acc = {p_acc}",
-        f"             {p_acc.nit} it.; {p_acc.message}",
-        f"    p_pacc = {p_pacc}",
-        f"             {p_pacc.nit} it.; {p_pacc.message}",
-        f"     p_run = {p_run}",
-        f"             {p_run.nit} it.; {p_run.message}",
-        f"     p_hdx = {p_hdx}",
-        f"             {p_hdx.nit} it.; {p_hdx.message}",
-        f"     p_hdy = {p_hdy}",
-        f"             {p_hdy.nit} it.; {p_hdy.message}",
-        f"     p_edx = {p_edx}",
-        f"             {p_edx.nit} it.; {p_edx.message}",
-        f"     p_edy = {p_edy}",
-        f"             {p_edy.nit} it.; {p_edy.message}",
-        f"     p_custom = {p_custom}",
-        f"             {p_custom.nit} it.; {p_custom.message}",
-        f"     p_kmme = {p_kmme}",
-        f"             {p_kmme.nit} it.; {p_kmme.message}",
-        f"     p_kmmg = {p_kmmg}",
-        f"             {p_kmmg.nit} it.; {p_kmmg.message}",
-        f"     p_kmml = {p_kmml}",
-        f"             {p_kmml.nit} it.; {p_kmml.message}",
-        f"     p_rff = {p_rff}",
-        f"             {p_rff.nit} it.; {p_rff.message}",
-        f"     p_tst = {p_tst}",
+        f"  p_pacc = {p_pacc} (RAE {qp.error.rae(p_pacc, p_tst):.4f})",
+        f"           {p_pacc.nit} it.; {p_pacc.message}",
+        f"   p_run = {p_run} (RAE {qp.error.rae(p_run, p_tst):.4f})",
+        f"           {p_run.nit} it.; {p_run.message}",
+        f"   p_hdy = {p_hdy} (RAE {qp.error.rae(p_hdy, p_tst):.4f})",
+        f"           {p_hdy.nit} it.; {p_hdy.message}",
+        f"   p_edy = {p_edy} (RAE {qp.error.rae(p_edy, p_tst):.4f})",
+        f"           {p_edy.nit} it.; {p_edy.message}",
+        f"  p_cstm = {p_cstm} (RAE {qp.error.rae(p_cstm, p_tst):.4f})",
+        f"           {p_cstm.nit} it.; {p_cstm.message}",
+        f"  p_kmme = {p_kmme} (RAE {qp.error.rae(p_kmme, p_tst):.4f})",
+        f"           {p_kmme.nit} it.; {p_kmme.message}",
+        f"   p_rff = {p_rff} (RAE {qp.error.rae(p_rff, p_tst):.4f})",
+        f"           {p_rff.nit} it.; {p_rff.message}",
+        f"  p_maxl = {p_maxl} (RAE {qp.error.rae(p_maxl, p_tst):.4f})",
+        f"           {p_maxl.nit} it.; {p_maxl.message}",
+        f"   p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
       )
@@ -132,7 +119,7 @@ class TestCVClassifier(TestCase):
       # self.assertTrue(...)
     print(f"Spent {time.time() - start}s")
 
-class SingleSampleProtocol(AbstractProtocol):
+class SingleSampleProtocol(qp.protocol.AbstractProtocol):
     def __init__(self, X, p):
       self.X = X
       self.p = p
@@ -156,7 +143,7 @@ class TestQuaPyWrapper(TestCase):
         p_acc.get_params(deep=True)["representation__classifier__estimator__C"],
         1e-2
       )
-      quapy_method = GridSearchQ(
+      quapy_method = qp.model_selection.GridSearchQ(
         model = p_acc,
         param_grid = {
           "representation__classifier__estimator__C": [1e-1, 1e0, 1e1, 1e2],
@@ -165,7 +152,7 @@ class TestQuaPyWrapper(TestCase):
         error = "mae",
         refit = False,
         verbose = True,
-      ).fit(LabelledCollection(X_trn, y_trn))
+      ).fit(qp.data.LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
         quapy_method.best_params_["representation__classifier__estimator__C"],
         quapy_method.best_model_.generic_method.representation.classifier.estimator.C

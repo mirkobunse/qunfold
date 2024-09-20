@@ -31,7 +31,13 @@ class AbstractMethod(ABC):
     """
     pass
 
-def minimize(fun, n_classes, rng, solver, solver_options):
+def minimize(
+    fun,
+    n_classes,
+    solver = "trust-ncg",
+    solver_options = {"gtol": 1e-8, "maxiter": 1000},
+    seed = None,
+  ):
   """Numerically minimize a function to predict the most likely class prevalences.
 
   This implementation makes use of a soft-max "trick" by Bunse (2022) and uses the auto-differentiation of JAX for second-order optimization.
@@ -39,9 +45,9 @@ def minimize(fun, n_classes, rng, solver, solver_options):
   Args:
       fun: The function to minimize. Has to be implemented in JAX and has to have the signature `p -> loss`.
       n_classes: The number of classes.
-      rng: A random number generator.
-      solver: The `method` argument in `scipy.optimize.minimize`.
-      solver_options: The `options` argument in `scipy.optimize.minimize`.
+      solver (optional): The `method` argument in `scipy.optimize.minimize`. Defaults to `"trust-ncg"`.
+      solver_options (optional): The `options` argument in `scipy.optimize.minimize`. Defaults to `{"gtol": 1e-8, "maxiter": 1000}`.
+      seed (optional): A seed for random number generation. Defaults to `None`.
 
   Returns:
       A solution vector `p`.
@@ -49,7 +55,7 @@ def minimize(fun, n_classes, rng, solver, solver_options):
   fun_l = lambda l: fun(_jnp_softmax(l))
   jac = jax.grad(fun_l) # Jacobian
   hess = jax.jacfwd(jac) # Hessian through forward-mode AD
-  x0 = _rand_x0(rng, n_classes) # random starting point
+  x0 = _rand_x0(np.random.RandomState(seed), n_classes) # random starting point
   state = _CallbackState(x0)
   try:
     opt = optimize.minimize(
@@ -59,7 +65,7 @@ def minimize(fun, n_classes, rng, solver, solver_options):
       hess = _check_derivative(hess, "hess"),
       method = solver,
       options = solver_options,
-      callback = state.callback()
+      callback = state.callback(),
     )
   except (DerivativeError, ValueError):
     traceback.print_exc()
