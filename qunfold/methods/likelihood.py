@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from . import AbstractMethod, check_y, class_prevalences, minimize
+from . import AbstractMethod, check_y, class_prevalences, minimize, Result
 
 class LikelihoodMaximizer(AbstractMethod):
   """The maximum likelihood method, as studied by Alexandari et al. (2020).
@@ -41,7 +41,7 @@ class LikelihoodMaximizer(AbstractMethod):
       self.classifier.fit(X, y)
     return self
   def predict(self, X):
-    pXY = self.classifier.predict_proba(X) / self.p_trn # proportional to P(X|Y)
+    pXY = jnp.array(self.classifier.predict_proba(X) / self.p_trn) # proportional to P(X|Y)
     pXY = pXY / pXY.sum(axis=1, keepdims=True) # normalize to P(X|Y)
 
     # TODO 1) filter out all rows from pXY that contain zeros or ones, or values close to zero or one up to some self.epsilon. Goal: to reduce thrown errors / warnings and to replace the corresponding estimates with proper ones.
@@ -95,6 +95,13 @@ class ExpectationMaximizer(AbstractMethod):
       self.classifier.fit(X, y)
     return self
   def predict(self, X):
-    pXY = classifier.predict_proba(X) / self.p_trn # proportional to P(X|Y)
-    pXY = pXY / pXY.sum(axis=1, keepdims=True) # normalize to P(X|Y)
-    raise NotImplementedError("TODO")
+    pYX_pY = jnp.array(self.classifier.predict_proba(X) / self.p_trn) # P(Y|X) / P_trn(Y)
+    p_prev = jnp.array(self.p_trn) # the current estimate
+    for n_iter in range(self.max_iter):
+      pYX = pYX_pY * p_prev
+      pYX = pYX / pYX.sum(axis=1, keepdims=True)
+      p_next = pYX.mean(axis=0)
+      if jnp.linalg.norm(p_next - p_prev) < self.tol:
+        return Result(p_next, n_iter+1, "Optimization terminated successfully.")
+      p_prev = p_next
+    return Result(p_prev, self.max_iter, "Maximum number of iterations reached.")

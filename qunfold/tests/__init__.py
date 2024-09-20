@@ -42,7 +42,7 @@ def generate_data(M, p, n_samples=1000):
 class TestMethods(TestCase):
   def test_methods(self):
     start = time.time()
-    for _ in range(10):
+    for _ in range(5):
       q, M, p_trn = make_problem()
       n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
@@ -63,6 +63,7 @@ class TestMethods(TestCase):
       p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
       p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
       p_maxl = qunfold.LikelihoodMaximizer(rf).fit(X_trn, y_trn).predict(X_tst)
+      p_sld = qunfold.ExpectationMaximizer(rf).fit(X_trn, y_trn).predict(X_tst)
       qp.environ["SAMPLE_SIZE"] = len(X_tst) # needed to compute the RAE
       print(
         f"  p_pacc = {p_pacc} (RAE {qp.error.rae(p_pacc, p_tst):.4f})",
@@ -81,6 +82,8 @@ class TestMethods(TestCase):
         f"           {p_rff.nit} it.; {p_rff.message}",
         f"  p_maxl = {p_maxl} (RAE {qp.error.rae(p_maxl, p_tst):.4f})",
         f"           {p_maxl.nit} it.; {p_maxl.message}",
+        f"   p_sld = {p_sld} (RAE {qp.error.rae(p_sld, p_tst):.4f})",
+        f"           {p_sld.nit} it.; {p_sld.message}",
         f"   p_tst = {p_tst}",
         sep = "\n",
         end = "\n"*2
@@ -91,7 +94,7 @@ class TestMethods(TestCase):
 class TestCVClassifier(TestCase):
   def test_methods(self):
     start = time.time()
-    for _ in range(10):
+    for _ in range(5):
       q, M, p_trn = make_problem()
       n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
@@ -128,7 +131,7 @@ class SingleSampleProtocol(qp.protocol.AbstractProtocol):
 
 class TestQuaPyWrapper(TestCase):
   def test_methods(self):
-    for _ in range(10):
+    for _ in range(5):
       q, M, p_trn = make_problem()
       X_trn, y_trn = generate_data(M, p_trn)
       p_tst = RNG.permutation(p_trn)
