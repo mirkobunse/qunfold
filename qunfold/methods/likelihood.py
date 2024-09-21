@@ -89,7 +89,7 @@ class ExpectationMaximizer(AbstractMethod):
       self.tol,
     )
 
-def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8):
+def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8, omit_result_conversion=False):
   """The expectation maximization routine that is part of the `ExpectationMaximizer` by Saerens et al. (2002).
 
   Args:
@@ -97,6 +97,7 @@ def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8):
       p_trn: A JAX array of prior probabilities of the classifier. This array has to have the shape `(n_classes,)`.
       max_iter (optional): The maximum number of iterations. Defaults to `100`.
       tol (optional): The convergence tolerance for the L2 norm between iterations or None to disable convergence checks. Defaults to `1e-8`.
+      omit_result_conversion (optional): Whether to omit the conversion into a `Result` type.
   """
   pYX_pY = pYX / p_trn # P(Y|X) / P_trn(Y)
   p_prev = p_trn
@@ -106,12 +107,16 @@ def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8):
     p_next = pYX.mean(axis=-2, keepdims=True) # shape (n_bags, [1], n_classes)
     if tol is not None:
       if jnp.all(jnp.linalg.norm(p_next - p_prev, axis=-1) < tol):
+        if omit_result_conversion:
+          return jnp.squeeze(p_next, axis=-2)
         return Result(
           jnp.squeeze(p_next, axis=-2),
           n_iter+1,
           "Optimization terminated successfully."
         )
     p_prev = p_next
+  if omit_result_conversion:
+    return jnp.squeeze(p_prev, axis=-2)
   return Result(
     jnp.squeeze(p_prev, axis=-2),
     max_iter,
