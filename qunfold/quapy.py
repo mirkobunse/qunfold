@@ -62,7 +62,7 @@ class QuaPyWrapper(BaseQuantifier):
     """A thin wrapper for using qunfold methods in QuaPy.
 
     Args:
-        generic_method: A LinearMethod method to wrap.
+        generic_method: An instance of `qunfold.methods.AbstractMethod` to wrap.
 
     Examples:
         Here, we wrap an instance of ACC to perform a grid search with QuaPy.
@@ -87,4 +87,6 @@ class QuaPyWrapper(BaseQuantifier):
         _set_params(self.generic_method, self.get_params(deep=True), **params)
         return self
     def get_params(self, deep=True):
-        return _get_params(self.generic_method, deep, LinearMethod)
+        if isinstance(self.generic_method, LinearMethod): # use super-class constructor?
+            return _get_params(self.generic_method, deep, LinearMethod)
+        return _get_params(self.generic_method, deep)

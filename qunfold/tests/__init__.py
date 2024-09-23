@@ -141,13 +141,18 @@ class TestQuaPyWrapper(TestCase):
         n_estimators = 10,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      p_acc = QuaPyWrapper(qunfold.ACC(lr))
+      wrapped_acc = QuaPyWrapper(qunfold.ACC(lr))
+      wrapped_sld = QuaPyWrapper(qunfold.ExpectationMaximizer(lr.estimator))
       self.assertEqual( # check that get_params returns the correct settings
-        p_acc.get_params(deep=True)["representation__classifier__estimator__C"],
+        wrapped_acc.get_params(deep=True)["representation__classifier__estimator__C"],
         1e-2
       )
-      quapy_method = qp.model_selection.GridSearchQ(
-        model = p_acc,
+      self.assertEqual(
+        wrapped_sld.get_params(deep=True)["classifier__C"],
+        1e-2
+      )
+      cv_acc = qp.model_selection.GridSearchQ(
+        model = wrapped_acc,
         param_grid = {
           "representation__classifier__estimator__C": [1e-1, 1e0, 1e1, 1e2],
         },
@@ -157,8 +162,22 @@ class TestQuaPyWrapper(TestCase):
         verbose = True,
       ).fit(qp.data.LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
-        quapy_method.best_params_["representation__classifier__estimator__C"],
-        quapy_method.best_model_.generic_method.representation.classifier.estimator.C
+        cv_acc.best_params_["representation__classifier__estimator__C"],
+        cv_acc.best_model_.generic_method.representation.classifier.estimator.C
+      )
+      cv_sld = qp.model_selection.GridSearchQ(
+        model = wrapped_sld,
+        param_grid = {
+          "classifier__C": [1e-1, 1e0, 1e1, 1e2],
+        },
+        protocol = SingleSampleProtocol(X_tst, p_tst),
+        error = "mae",
+        refit = False,
+        verbose = True,
+      ).fit(qp.data.LabelledCollection(X_trn, y_trn))
+      self.assertEqual( # check that best parameters are actually used
+        cv_sld.best_params_["classifier__C"],
+        cv_sld.best_model_.generic_method.classifier.C
       )
 
 class TestDistanceRepresentation(TestCase):
