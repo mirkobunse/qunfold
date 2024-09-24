@@ -123,11 +123,39 @@ class TestCVClassifier(TestCase):
     print(f"Spent {time.time() - start}s")
 
 class SingleSampleProtocol(qp.protocol.AbstractProtocol):
-    def __init__(self, X, p):
-      self.X = X
-      self.p = p
-    def __call__(self):
-      yield self.X, self.p
+  def __init__(self, X, p):
+    self.X = X
+    self.p = p
+  def __call__(self):
+    yield self.X, self.p
+
+class TestExpectationMaximizer(TestCase):
+  def test_maximize_expectation(self):
+    for _ in range(5):
+      q, M, p_trn = make_problem()
+      n_classes = len(p_trn)
+      X_trn, y_trn = generate_data(M, p_trn)
+      p_tst_a = RNG.permutation(p_trn)
+      X_tst_a, y_tst_a = generate_data(M, p_tst_a)
+      p_tst_b = RNG.permutation(p_trn)
+      X_tst_b, y_tst_b = generate_data(M, p_tst_b)
+      rf = RandomForestClassifier(
+        oob_score = True,
+        random_state = RNG.randint(np.iinfo("uint16").max),
+      ).fit(X_trn, y_trn)
+      pYX_a = rf.predict_proba(X_tst_a)
+      pYX_b = rf.predict_proba(X_tst_b)
+      params = { "max_iter": 10, "tol": None }
+      p_est_sep = np.array([ # separate optimization
+        qunfold.methods.likelihood.maximize_expectation(pYX_a, p_trn, **params),
+        qunfold.methods.likelihood.maximize_expectation(pYX_b, p_trn, **params)
+      ])
+      p_est_jnt = qunfold.methods.likelihood.maximize_expectation( # joint optimization
+        np.array([pYX_a, pYX_b]),
+        p_trn,
+        **params
+      )
+      np.testing.assert_array_equal(p_est_jnt, p_est_sep)
 
 class TestQuaPyWrapper(TestCase):
   def test_methods(self):
