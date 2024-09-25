@@ -658,6 +658,8 @@
 <dd class="field-odd"><p><strong>generic_method</strong> – An instance of <cite>qunfold.methods.AbstractMethod</cite> to wrap.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>If the <cite>generic_method</cite> defines a <cite>get_params</cite> and / or <cite>set_params</cite> function, this wrapper will forward any calls that it receives for these functions to the <cite>generic_method</cite>. If, otherwise, the <cite>generic_method</cite> instance is a <cite>LinearMethod</cite>, this wrapper will infer the <cite>get_params</cite> and <cite>set_params</cite> from the generic <cite>LinearMethod</cite> constructor. Else, it will infer the functions from the constructor of the class of the <cite>generic_method</cite>.</p>
 <p class="rubric">Examples</p>
 <p>Here, we wrap an instance of ACC to perform a grid search with QuaPy.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qunfold_method</span> <span class="o">=</span> <span class="n">QuaPyWrapper</span><span class="p">(</span><span class="n">ACC</span><span class="p">(</span><span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">obb_score</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
