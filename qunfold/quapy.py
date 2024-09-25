@@ -64,6 +64,9 @@ class QuaPyWrapper(BaseQuantifier):
   Args:
     generic_method: An instance of `qunfold.methods.AbstractMethod` to wrap.
 
+  Notes:
+    If the `generic_method` defines a `get_params` and / or `set_params` function, this wrapper will forward any calls that it receives for these functions to the `generic_method`. If, otherwise, the `generic_method` instance is a `LinearMethod`, this wrapper will infer the `get_params` and `set_params` from the generic `LinearMethod` constructor. Else, it will infer the functions from the constructor of the class of the `generic_method`.
+
   Examples:
     Here, we wrap an instance of ACC to perform a grid search with QuaPy.
 
