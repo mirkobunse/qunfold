@@ -84,9 +84,17 @@ class QuaPyWrapper(BaseQuantifier):
     def quantify(self, X):
         return self.generic_method.predict(X)
     def set_params(self, **params):
+        if callable(getattr(self.generic_method, "set_params", None)):
+            return self.generic_method.set_params(**params) # use custom implementation
         _set_params(self.generic_method, self.get_params(deep=True), **params)
         return self
     def get_params(self, deep=True):
-        if isinstance(self.generic_method, LinearMethod): # use super-class constructor?
-            return _get_params(self.generic_method, deep, LinearMethod)
+        if callable(getattr(self.generic_method, "get_params", None)):
+            return self.generic_method.get_params(deep) # use custom implementation
+        elif isinstance(self.generic_method, LinearMethod):
+            return _get_params( # use the LinearMethod constructor
+                self.generic_method,
+                deep,
+                LinearMethod
+            )
         return _get_params(self.generic_method, deep)
