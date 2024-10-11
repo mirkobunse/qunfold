@@ -394,3 +394,17 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
+
+class OriginalRepresentation(AbstractRepresentation):
+  """A dummy representation that simply returns the data as it is."""
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    if average:
+      return np.array([ X[y==c].mean(axis=0) for c in range(len(self.p_trn)) ]).T # = M
+    return X, y
+  def transform(self, X, average=True):
+    n_classes = len(self.p_trn)
+    if average:
+      return X.mean(axis=0) # = q
+    return X

@@ -56,9 +56,9 @@ class TestMethods(TestCase):
       p_run = qunfold.RUN(qunfold.ClassRepresentation(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
       p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
-      p_cstm = qunfold.LinearMethod( # a custom method
+      p_orig = qunfold.LinearMethod( # a custom method
         qunfold.LeastSquaresLoss(),
-        qunfold.HistogramRepresentation(3)
+        qunfold.OriginalRepresentation()
       ).fit(X_trn, y_trn, n_classes).predict(X_tst)
       p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
       p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
@@ -74,8 +74,8 @@ class TestMethods(TestCase):
         f"           {p_hdy.nit} it.; {p_hdy.message}",
         f"   p_edy = {p_edy} (RAE {qp.error.rae(p_edy, p_tst):.4f})",
         f"           {p_edy.nit} it.; {p_edy.message}",
-        f"  p_cstm = {p_cstm} (RAE {qp.error.rae(p_cstm, p_tst):.4f})",
-        f"           {p_cstm.nit} it.; {p_cstm.message}",
+        f"  p_orig = {p_orig} (RAE {qp.error.rae(p_orig, p_tst):.4f})",
+        f"           {p_orig.nit} it.; {p_orig.message}",
         f"  p_kmme = {p_kmme} (RAE {qp.error.rae(p_kmme, p_tst):.4f})",
         f"           {p_kmme.nit} it.; {p_kmme.message}",
         f"   p_rff = {p_rff} (RAE {qp.error.rae(p_rff, p_tst):.4f})",

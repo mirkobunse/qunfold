@@ -1,4 +1,4 @@
-__version__ = "0.1.5-rc4"
+__version__ = "0.1.5-rc5"
 
 from .methods.linear.losses import (
     LeastSquaresLoss,
@@ -19,6 +19,7 @@ from .methods.linear.representations import (
     LaplacianKernelRepresentation,
     GaussianKernelRepresentation,
     GaussianRFFKernelRepresentation,
+    OriginalRepresentation,
 )
 
 from .methods.linear import (
