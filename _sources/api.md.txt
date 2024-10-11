@@ -106,6 +106,8 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 .. autoclass:: qunfold.LaplacianKernelRepresentation
 
 .. autoclass:: qunfold.GaussianRFFKernelRepresentation
+
+.. autoclass:: qunfold.OriginalRepresentation
 ```
 
 
