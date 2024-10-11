@@ -60,6 +60,8 @@ class LinearMethod(AbstractMethod):
   @property
   def p_trn(self):
     return self.representation.p_trn
+  def __str__(self): # logging sugar: a concise string representation
+    return f"LinearMethod({self.loss}, {self.representation})"
 
 class ACC(LinearMethod):
   """Adjusted Classify & Count by Forman (2008).

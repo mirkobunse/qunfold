@@ -1,4 +1,4 @@
-__version__ = "0.1.5-rc5"
+__version__ = "0.1.5-rc6"
 
 from .methods.linear.losses import (
     LeastSquaresLoss,

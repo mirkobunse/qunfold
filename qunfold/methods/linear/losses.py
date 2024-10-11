@@ -60,6 +60,8 @@ class AbstractLoss(ABC):
             >>> jnp.dot(q - jnp.dot(M, p), q - jnp.dot(M, p))
     """
     pass
+  def __str__(self):
+    return f"{self.__class__.__name__}()" # print the name of the concrete sub-class
 
 class FunctionLoss(AbstractLoss):
   """Create a loss object from a JAX function `(p, q, M, N) -> loss_value`.
