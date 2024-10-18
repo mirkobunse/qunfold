@@ -1,5 +1,4 @@
 import numpy as np
-import traceback
 from . import (losses, representations)
 from .. import AbstractMethod, minimize
 

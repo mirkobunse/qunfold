@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
+import traceback
 from abc import ABC, abstractmethod
 from scipy import optimize
 
