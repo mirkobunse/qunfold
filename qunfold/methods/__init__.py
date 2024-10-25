@@ -110,16 +110,18 @@ def _rand_x0(rng, n_classes):
 
 class Result(np.ndarray): # https://stackoverflow.com/a/67510022/20580159
   """A numpy array with additional properties nit and message."""
-  def __new__(cls, input_array, nit, message):
+  def __new__(cls, input_array, nit, message, trace=None):
     obj = np.asarray(input_array).view(cls)
     obj.nit = nit
     obj.message = message
+    obj.trace = trace
     return obj
   def __array_finalize__(self, obj):
     if obj is None:
       return
     self.nit = getattr(obj, "nit", None)
     self.message = getattr(obj, "message", None)
+    self.trace = getattr(obj, "trace", None)
 
 # helpers for maintaining the last result in case of an error
 class DerivativeError(Exception):

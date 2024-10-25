@@ -101,10 +101,12 @@ def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8, omit_result_convers
   """
   pYX_pY = pYX / p_trn # P(Y|X) / P_trn(Y)
   p_prev = p_trn
+  trace = [ p_trn ]
   for n_iter in range(max_iter):
     pYX = pYX_pY * p_prev
     pYX = pYX / pYX.sum(axis=-1, keepdims=True) # normalize to posterior probabilities
     p_next = pYX.mean(axis=-2, keepdims=True) # shape (n_bags, [1], n_classes)
+    trace.append(jnp.squeeze(p_next, axis=-2))
     if tol is not None:
       if jnp.all(jnp.linalg.norm(p_next - p_prev, axis=-1) < tol):
         if omit_result_conversion:
@@ -112,7 +114,8 @@ def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8, omit_result_convers
         return Result(
           jnp.squeeze(p_next, axis=-2),
           n_iter+1,
-          "Optimization terminated successfully."
+          "Optimization terminated successfully.",
+          jnp.array(trace)
         )
     p_prev = p_next
   if omit_result_conversion:
@@ -120,5 +123,6 @@ def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8, omit_result_convers
   return Result(
     jnp.squeeze(p_prev, axis=-2),
     max_iter,
-    "Maximum number of iterations reached."
+    "Maximum number of iterations reached.",
+    jnp.array(trace)
   )
