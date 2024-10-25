@@ -60,15 +60,15 @@ class ExpectationMaximizer(AbstractMethod):
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
-      max_iter (optional): The maximum number of iterations. Defaults to `100`.
-      tol (optional): The convergence tolerance for the L2 norm between iterations. Defaults to `1e-8`.
+      max_iter (optional): The maximum number of iterations. Defaults to `100`, which is hardly ever reached with the default value of `tol`.
+      tol (optional): The convergence tolerance for the L2 norm between iterations. Defaults to `1e-6`, the `float32` resolution.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
   """
   def __init__(
       self,
       classifier,
       max_iter = 100,
-      tol = 1e-8,
+      tol = 1e-6,
       fit_classifier = True,
       ):
     self.classifier = classifier
@@ -89,14 +89,14 @@ class ExpectationMaximizer(AbstractMethod):
       self.tol,
     )
 
-def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-8, omit_result_conversion=False):
+def maximize_expectation(pYX, p_trn, max_iter=100, tol=1e-6, omit_result_conversion=False):
   """The expectation maximization routine that is part of the `ExpectationMaximizer` by Saerens et al. (2002).
 
   Args:
       pYX: A JAX matrix of the posterior probabilities of a classifier, `P(Y|X)`. This matrix has to have the shape `(n_items, n_classes)`, as returned by some `classifier.predict_proba(X)`. Multiple bags, with shape `(n_bags, n_items_per_bag, n_classes)` are also supported.
       p_trn: A JAX array of prior probabilities of the classifier. This array has to have the shape `(n_classes,)`.
-      max_iter (optional): The maximum number of iterations. Defaults to `100`.
-      tol (optional): The convergence tolerance for the L2 norm between iterations or None to disable convergence checks. Defaults to `1e-8`.
+      max_iter (optional): The maximum number of iterations. Defaults to `100`, which is hardly ever reached with the default value of `tol`.
+      tol (optional): The convergence tolerance for the L2 norm between iterations or None to disable convergence checks. Defaults to `1e-6`, the `float32` resolution.
       omit_result_conversion (optional): Whether to omit the conversion into a `Result` type.
   """
   pYX_pY = pYX / p_trn # P(Y|X) / P_trn(Y)
