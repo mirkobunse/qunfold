@@ -1,71 +1,16 @@
 import inspect
 from collections import defaultdict
+from dataclasses import dataclass
 from quapy.method.base import BaseQuantifier
-from . import LinearMethod
+from . import AbstractMethod, LinearMethod
+from .base import BaseMixin
 
-#
-# _get_params and _set_params use inspection to provide a functionality
-# that is equivalent to the functionality of sklearns BaseEstimator,
-# without the need to subtype it.
-#
-# https://github.com/scikit-learn/scikit-learn/blob/364c77e047ca08a95862becf40a04fe9d4cd2c98/sklearn/base.py#L112
-#
-
-def _get_param_names(cls):
-  return sorted([ # collect the constructor parameters
-    p.name
-    for p in inspect.signature(cls.__init__).parameters.values()
-    if p.name != "self" and p.kind not in [p.VAR_KEYWORD, p.VAR_POSITIONAL]
-  ])
-
-def _get_params(x, deep=True, _class=None):
-  params = {}
-  if _class is None:
-    _class = x.__class__
-  for k in _get_param_names(_class):
-    v = getattr(x, k)
-    if deep and not isinstance(v, type):
-      if hasattr(v, "get_params"):
-        deep_params = v.get_params()
-      else:
-        deep_params = _get_params(v, deep=True)
-      params.update((k + "__" + k2, v2) for k2, v2 in deep_params.items())
-    params[k] = v
-  return params
-
-def _set_params(x, valid_params, **params):
-  if not params:
-    return x
-  if valid_params is None:
-    if hasattr(x, "get_params"):
-      valid_params = x.get_params(deep=True)
-    else:
-      valid_params = _get_params(x, deep=True)
-  nested_params = defaultdict(dict)
-  for key, value in params.items():
-    key, delim, sub_key = key.partition("__")
-    if key not in valid_params:
-      raise ValueError(f"Invalid parameter {key!r} for {x}.")
-    if delim:
-      nested_params[key][sub_key] = value
-    else:
-      setattr(x, key, value)
-      valid_params[key] = value
-  for key, sub_params in nested_params.items():
-    if hasattr(valid_params[key], "set_params"):
-      valid_params[key].set_params(**sub_params)
-    else:
-      _set_params(valid_params[key], None, **sub_params)
-  return x
-
-class QuaPyWrapper(BaseQuantifier):
+@dataclass
+class QuaPyWrapper(BaseQuantifier,BaseMixin):
   """A thin wrapper for using qunfold methods in QuaPy.
 
   Args:
-    generic_method: An instance of `qunfold.methods.AbstractMethod` to wrap.
-
-  Notes:
-    If the `generic_method` defines a `get_params` and / or `set_params` function, this wrapper will forward any calls that it receives for these functions to the `generic_method`. If, otherwise, the `generic_method` instance is a `LinearMethod`, this wrapper will infer the `get_params` and `set_params` from the generic `LinearMethod` constructor. Else, it will infer the functions from the constructor of the class of the `generic_method`.
+    _method: An instance of `qunfold.methods.AbstractMethod` to wrap.
 
   Examples:
     Here, we wrap an instance of ACC to perform a grid search with QuaPy.
@@ -79,21 +24,16 @@ class QuaPyWrapper(BaseQuantifier):
       >>>     # ...
       >>> )
   """
-  def __init__(self, generic_method):
-    self.generic_method = generic_method
-  def fit(self, data): # data : LabelledCollection
-    self.generic_method.fit(*data.Xy, data.n_classes)
+  _method: AbstractMethod
+  def fit(self, data): # data is a qp.LabelledCollection
+    self._method.fit(*data.Xy, data.n_classes)
     return self
   def quantify(self, X):
-    return self.generic_method.predict(X)
+    return self._method.predict(X)
   def set_params(self, **params):
-    if callable(getattr(self.generic_method, "set_params", None)):
-      return self.generic_method.set_params(**params) # use custom implementation
-    _set_params(self.generic_method, self.get_params(deep=True), **params)
+    self._method.set_params(**params)
     return self
   def get_params(self, deep=True):
-    if callable(getattr(self.generic_method, "get_params", None)):
-      return self.generic_method.get_params(deep) # use custom implementation
-    elif isinstance(self.generic_method, LinearMethod):
-      return _get_params(self.generic_method, deep, LinearMethod)  # use LinearMethod.__init__
-    return _get_params(self.generic_method, deep)
+    return self._method.get_params(deep)
+  def __str__(self):
+    return self._method.__str__()

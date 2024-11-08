@@ -4,7 +4,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import StratifiedKFold
 from sklearn.utils.multiclass import unique_labels
 
-class CVClassifier(BaseEstimator, ClassifierMixin):
+class CVClassifier(BaseEstimator,ClassifierMixin):
   """An ensemble of classifiers that are trained from cross-validation folds.
 
   All objects of this type have a fixed attribute `oob_score = True` and, when trained, a fitted attribute `self.oob_decision_function_`, just like scikit-learn bagging classifiers.

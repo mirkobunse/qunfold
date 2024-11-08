@@ -62,6 +62,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
             param_grid = param_grid,
             protocol = val_gen,
             error = "m" + error_metric, # ae -> mae, rae -> mrae
+            raise_errors = True,
             refit = False,
             # verbose = True,
         ).fit(trn_data)
@@ -131,11 +132,11 @@ def main(
         random_state = seed,
     )
     clf_grid = {
-        "representation__classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
+        "classifier__estimator__C": [1e-3, 1e-2, 1e-1, 1e0, 1e1],
     }
     qp_clf = clf.estimator
     qp_clf_grid = {
-        "classifier__C": clf_grid["representation__classifier__estimator__C"],
+        "classifier__C": clf_grid["classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
         ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
@@ -144,11 +145,7 @@ def main(
         ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=5), qp_clf_grid),
         ("HDy", "qunfold",
             QuaPyWrapper(HDy(clf, 2, seed=seed)),
-            {
-                "representation__preprocessor__classifier__estimator__C":
-                    clf_grid["representation__classifier__estimator__C"],
-                "representation__n_bins": [2, 4, 6],
-            }
+            clf_grid | { "n_bins": [2, 4, 6] },
         ),
         ("HDy", "QuaPy",
             qp.method.aggregative.DistributionMatchingY(
@@ -156,16 +153,13 @@ def main(
                 divergence = 'HD',
                 cdf = False
             ),
-            dict(qp_clf_grid, nbins = [2, 4, 6]) # extend the qp_clf_grid
+            qp_clf_grid | { "n_bins": [2, 4, 6] },
         ),
-        ("EDy", "qunfold",
-            QuaPyWrapper(EDy(clf, seed=seed)),
-            {
-                "representation__preprocessor__classifier__estimator__C":
-                    clf_grid["representation__classifier__estimator__C"],
-            }
+        ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), clf_grid),
+        ("RUN", "qunfold",
+            QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)),
+            { f"representation__{k}": v for k, v in clf_grid.items() }
         ),
-        ("RUN", "qunfold", QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)), clf_grid),
         ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
         ("KMMey", "qunfold", # KMM with the energy kernel after classification
             QuaPyWrapper(LinearMethod(
@@ -176,14 +170,11 @@ def main(
                 )),
                 seed = seed
             )),
-            {
-                "representation__preprocessor__classifier__estimator__C":
-                    clf_grid["representation__classifier__estimator__C"],
-            }
+            { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() },
         ),
         ("KMMr", "qunfold",
             QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-            { "representation__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] }
+            { "sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] },
         ),
         ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
             QuaPyWrapper(LinearMethod(
@@ -197,11 +188,7 @@ def main(
                 ),
                 seed = seed
             )),
-            {
-                "representation__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2],
-                "representation__preprocessor__classifier__estimator__C":
-                    clf_grid["representation__classifier__estimator__C"],
-            }
+            { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() } | { "representation__sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] },
         ),
     ]
 
@@ -211,11 +198,11 @@ def main(
     if is_test_run: # use a minimal testing configuration
         clf.set_params(n_estimators = 3, estimator__max_iter = 3)
         clf_grid = {
-            "representation__classifier__estimator__C": [1e1],
+            "classifier__estimator__C": [1e1],
         }
         qp_clf = clf.estimator
         qp_clf_grid = {
-            "classifier__C": clf_grid["representation__classifier__estimator__C"],
+            "classifier__C": clf_grid["classifier__estimator__C"],
         }
         methods = [ # (method_name, package, method, param_grid)
             ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
@@ -229,7 +216,7 @@ def main(
                     divergence = 'HD',
                     cdf = False
                 ),
-                None
+                None,
             ),
             ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
             ("RUN", "qunfold", QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)), None),
@@ -243,14 +230,11 @@ def main(
                     )),
                     seed = seed
                 )),
-                {
-                    "representation__preprocessor__classifier__estimator__C":
-                        clf_grid["representation__classifier__estimator__C"],
-                }
+                { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() },
             ),
             ("KMMr", "qunfold",
                 QuaPyWrapper(KMM(kernel="rff", seed=seed)),
-                { "representation__sigma": [ 1e-1 ] }
+                { "sigma": [ 1e-1 ] },
             ),
             ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
                 QuaPyWrapper(LinearMethod(
@@ -264,11 +248,7 @@ def main(
                     ),
                     seed = seed
                 )),
-                {
-                    "representation__sigma": [ 1e-1 ],
-                    "representation__preprocessor__classifier__estimator__C":
-                        clf_grid["representation__classifier__estimator__C"],
-                }
+                { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() } | { "representation__sigma": [ 1e-1 ] },
             ),
         ]
         trn_data = trn_data.split_stratified(3000, random_state=seed)[0] # subsample

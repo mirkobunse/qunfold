@@ -1,7 +1,11 @@
 import numpy as np
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 from . import (losses, representations)
 from .. import AbstractMethod, minimize
 
+@dataclass
 class LinearMethod(AbstractMethod):
   """A generic quantification / unfolding method that predicts class prevalences by solving a system of linear equations.
 
@@ -22,16 +26,14 @@ class LinearMethod(AbstractMethod):
           >>>     ClassRepresentation(RandomForestClassifier(oob_score=True))
           >>> )
   """
-  def __init__(self, loss, representation,
-      solver = "trust-ncg",
-      solver_options = {"gtol": 1e-8, "maxiter": 1000},
-      seed = None,
-      ):
-    self.loss = loss
-    self.representation = representation
-    self.solver = solver
-    self.solver_options = solver_options
-    self.seed = seed
+  loss: losses.AbstractLoss
+  representation: representations.AbstractRepresentation
+  solver: str = "trust-ncg"
+  solver_options: Dict[str,Any] = field(default_factory=lambda: {
+    "gtol": 1e-8,
+    "maxiter": 1000
+  })
+  seed: Optional[int] = None
   def fit(self, X, y, n_classes=None):
     self.M = self.representation.fit_transform(X, y, n_classes=n_classes)
     return self
@@ -59,10 +61,24 @@ class LinearMethod(AbstractMethod):
   @property
   def p_trn(self):
     return self.representation.p_trn
-  def __str__(self): # logging sugar: a concise string representation
-    return f"LinearMethod({self.loss}, {self.representation})"
 
-class ACC(LinearMethod):
+class _Preconfigured(LinearMethod,ABC):
+  """A `LinearMethod` with a pre-defined loss and representation."""
+  def __init__(self, *args): # args = (solver, solver_options, seed)
+    LinearMethod.__init__(self, self.create_loss(), self.create_representation(), *args)
+  def set_params(self, **params):
+    LinearMethod.set_params(self, **params)
+    self.loss = self.create_loss()
+    self.representation = self.create_representation()
+    return self
+  @abstractmethod
+  def create_loss(self):
+    pass
+  @abstractmethod
+  def create_representation(self):
+    pass
+
+class ACC(_Preconfigured):
   """Adjusted Classify & Count by Forman (2008).
 
   This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassRepresentation`.
@@ -72,18 +88,27 @@ class ACC(LinearMethod):
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, classifier, fit_classifier=True, **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.LeastSquaresLoss(),
-      representations.ClassRepresentation(
-        classifier,
-        fit_classifier = fit_classifier
-      ),
-      **kwargs
+      classifier,
+      fit_classifier = True,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.classifier = classifier
+    self.fit_classifier = fit_classifier
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.LeastSquaresLoss()
+  def create_representation(self):
+    return representations.ClassRepresentation(
+      self.classifier,
+      is_probabilistic = False,
+      fit_classifier = self.fit_classifier,
     )
 
-class PACC(LinearMethod):
+class PACC(_Preconfigured):
   """Probabilistic Adjusted Classify & Count by Bella et al. (2010).
 
   This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and a `ClassRepresentation`.
@@ -93,19 +118,27 @@ class PACC(LinearMethod):
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, classifier, fit_classifier=True, **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.LeastSquaresLoss(),
-      representations.ClassRepresentation(
-        classifier,
-        fit_classifier = fit_classifier,
-        is_probabilistic = True
-      ),
-      **kwargs
+      classifier,
+      fit_classifier = True,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.classifier = classifier
+    self.fit_classifier = fit_classifier
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.LeastSquaresLoss()
+  def create_representation(self):
+    return representations.ClassRepresentation(
+      self.classifier,
+      is_probabilistic = True,
+      fit_classifier = self.fit_classifier
     )
 
-class RUN(LinearMethod):
+class RUN(_Preconfigured):
   """Regularized Unfolding by Blobel (1985).
 
   This subclass of `LinearMethod` is instantiated with a `TikhonovRegularized(BlobelLoss)`.
@@ -115,15 +148,24 @@ class RUN(LinearMethod):
       tau (optional): The regularization strength. Defaults to 0.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, representation, *, tau=0., **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.TikhonovRegularized(losses.BlobelLoss(), tau),
       representation,
-      **kwargs
-    )
+      *,
+      tau = 0.,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.tau = tau
+    self.representation = representation
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.TikhonovRegularized(losses.BlobelLoss(), self.tau)
+  def create_representation(self):
+    return self.representation
 
-class EDx(LinearMethod):
+class EDx(_Preconfigured):
   """The energy distance-based EDx method by Kawakubo et al. (2016).
 
   This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceRepresentation`.
@@ -132,15 +174,21 @@ class EDx(LinearMethod):
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, metric="euclidean", **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.EnergyLoss(),
-      representations.DistanceRepresentation(metric),
-      **kwargs
-    )
+      metric = "euclidean",
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.metric = metric
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.EnergyLoss()
+  def create_representation(self):
+    return representations.DistanceRepresentation(self.metric)
 
-class EDy(LinearMethod):
+class EDy(_Preconfigured):
   """The energy distance-based EDy method by Castaño et al. (2022).
 
   This subclass of `LinearMethod` is instantiated with an `EnergyLoss` and a `DistanceRepresentation`, the latter of which uses a `ClassRepresentation` as a preprocessor.
@@ -151,22 +199,32 @@ class EDy(LinearMethod):
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, classifier, metric="euclidean", fit_classifier=True, **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.EnergyLoss(),
-      representations.DistanceRepresentation(
-        metric,
-        preprocessor = representations.ClassRepresentation(
-          classifier,
-          fit_classifier = fit_classifier,
-          is_probabilistic = True,
-        )
-      ),
-      **kwargs
+      classifier,
+      metric = "euclidean",
+      fit_classifier = True,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.classifier = classifier
+    self.metric = metric
+    self.fit_classifier = fit_classifier
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.EnergyLoss()
+  def create_representation(self):
+    return representations.DistanceRepresentation(
+      self.metric,
+      preprocessor = representations.ClassRepresentation(
+        self.classifier,
+        fit_classifier = self.fit_classifier,
+        is_probabilistic = True,
+      )
     )
 
-class HDx(LinearMethod):
+class HDx(_Preconfigured):
   """The Hellinger distance-based HDx method by González-Castro et al. (2013).
 
   This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramRepresentation`.
@@ -175,15 +233,21 @@ class HDx(LinearMethod):
       n_bins: The number of bins in each feature.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, n_bins, **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.HellingerSurrogateLoss(),
-      representations.HistogramRepresentation(n_bins, unit_scale=False),
-      **kwargs
-    )
+      n_bins,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.n_bins = n_bins
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.HellingerSurrogateLoss()
+  def create_representation(self):
+    return representations.HistogramRepresentation(self.n_bins, unit_scale=False)
 
-class HDy(LinearMethod):
+class HDy(_Preconfigured):
   """The Hellinger distance-based HDy method by González-Castro et al. (2013).
 
   This subclass of `LinearMethod` is instantiated with a `HellingerSurrogateLoss` and a `HistogramRepresentation`, the latter of which uses a `ClassRepresentation` as a preprocessor.
@@ -194,23 +258,34 @@ class HDy(LinearMethod):
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       **kwargs: Keyword arguments accepted by `LinearMethod`.
   """
-  def __init__(self, classifier, n_bins, *, fit_classifier=True, **kwargs):
-    LinearMethod.__init__(
+  def __init__(
       self,
-      losses.HellingerSurrogateLoss(),
-      representations.HistogramRepresentation(
-        n_bins,
-        preprocessor = representations.ClassRepresentation(
-          classifier,
-          fit_classifier = fit_classifier,
-          is_probabilistic = True,
-        ),
-        unit_scale = False,
+      classifier,
+      n_bins,
+      *,
+      fit_classifier=True,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.classifier = classifier
+    self.n_bins = n_bins
+    self.fit_classifier = fit_classifier
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.HellingerSurrogateLoss()
+  def create_representation(self):
+    return representations.HistogramRepresentation(
+      self.n_bins,
+      preprocessor = representations.ClassRepresentation(
+        self.classifier,
+        fit_classifier = self.fit_classifier,
+        is_probabilistic = True,
       ),
-      **kwargs
+      unit_scale = False,
     )
 
-class KMM(LinearMethod):
+class KMM(_Preconfigured):
   """The kernel-based KMM method with random Fourier features by Dussap et al. (2023).
 
   This subclass of `LinearMethod` is instantiated with a `LeastSquaresLoss` and an instance of a `KernelRepresentation` sub-class that corresponds to the `kernel` argument.
@@ -221,19 +296,34 @@ class KMM(LinearMethod):
       n_rff (optional): The number of random Fourier features if `kernel == "rff"`. Defaults to `1000`.
       **kwargs: Keyword arguments accepted by `LinearMethod`. The `seed` argument also controls the randomness of the random Fourier features if `kernel == "rff"`.
   """
-  def __init__(self, kernel="energy", sigma=1, n_rff=1000, seed=None, **kwargs):
-    if kernel == "energy":
-      representation = representations.EnergyKernelRepresentation()
-    elif kernel == "gaussian":
-      representation = representations.GaussianKernelRepresentation(sigma=sigma)
-    elif kernel == "laplacian":
-      representation = representations.LaplacianKernelRepresentation(sigma=sigma)
-    elif kernel == "rff":
-      representation = representations.GaussianRFFKernelRepresentation(
-        sigma = sigma,
-        n_rff = n_rff,
-        seed = seed,
+  def __init__(
+      self,
+      kernel = "energy",
+      sigma = 1,
+      n_rff = 1000,
+      solver = "trust-ncg",
+      solver_options = {"gtol": 1e-8, "maxiter": 1000},
+      seed = None,
+      ):
+    self.kernel = kernel
+    self.sigma = sigma
+    self.n_rff = n_rff
+    self.seed = seed
+    _Preconfigured.__init__(self, solver, solver_options, seed)
+  def create_loss(self):
+    return losses.LeastSquaresLoss()
+  def create_representation(self):
+    if self.kernel == "energy":
+      return representations.EnergyKernelRepresentation()
+    elif self.kernel == "gaussian":
+      return representations.GaussianKernelRepresentation(self.sigma)
+    elif self.kernel == "laplacian":
+      return representations.LaplacianKernelRepresentation(self.sigma)
+    elif self.kernel == "rff":
+      return representations.GaussianRFFKernelRepresentation(
+        sigma = self.sigma,
+        n_rff = self.n_rff,
+        seed = self.seed,
       )
     else:
-      representation = representations.KernelRepresentation(kernel)
-    LinearMethod.__init__(self, losses.LeastSquaresLoss(), representation, seed=seed, **kwargs)
+      return representations.KernelRepresentation(self.kernel)

@@ -1,6 +1,9 @@
 import jax.numpy as jnp
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 from . import AbstractMethod, check_y, class_prevalences, minimize, Result
 
+@dataclass
 class LikelihoodMaximizer(AbstractMethod):
   """The maximum likelihood method, as studied by Alexandari et al. (2020).
 
@@ -15,23 +18,16 @@ class LikelihoodMaximizer(AbstractMethod):
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
       seed (optional): A random number generator seed from which a numpy RandomState is created. Defaults to `None`.
   """
-  def __init__(
-      self,
-      classifier,
-      solver = "trust-ncg",
-      solver_options = {"gtol": 1e-8, "maxiter": 1000}, # , "disp": True
-      tau_0 = 0,
-      tau_1 = 0,
-      fit_classifier = True,
-      seed = None,
-      ):
-    self.classifier = classifier
-    self.solver = solver
-    self.solver_options = solver_options
-    self.tau_0 = tau_0
-    self.tau_1 = tau_1
-    self.fit_classifier = fit_classifier
-    self.seed = seed
+  classifier: Any
+  solver: str = "trust-ncg"
+  solver_options: Dict[str,Any] = field(default_factory=lambda: {
+    "gtol": 1e-8,
+    "maxiter": 1000
+  })
+  tau_0: float = 0.
+  tau_1: float = 0.
+  fit_classifier: bool = True
+  seed: Optional[int] = None
   def fit(self, X, y, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
@@ -53,6 +49,7 @@ class LikelihoodMaximizer(AbstractMethod):
       self.seed,
     )
 
+@dataclass
 class ExpectationMaximizer(AbstractMethod):
   """The expectation maximization-based method by Saerens et al. (2002).
 
@@ -64,17 +61,10 @@ class ExpectationMaximizer(AbstractMethod):
       tol (optional): The convergence tolerance for the L2 norm between iterations. Defaults to `1e-6`, the `float32` resolution.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
   """
-  def __init__(
-      self,
-      classifier,
-      max_iter = 100,
-      tol = 1e-6,
-      fit_classifier = True,
-      ):
-    self.classifier = classifier
-    self.max_iter = max_iter
-    self.tol = tol
-    self.fit_classifier = fit_classifier
+  classifier: Any
+  max_iter: int = 100
+  tol: float = 1e-6
+  fit_classifier: bool = True
   def fit(self, X, y, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)

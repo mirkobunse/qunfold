@@ -1,12 +1,15 @@
 import numpy as np
 import warnings
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
+from typing import Any, Callable, Optional
 from .. import class_prevalences, check_y
+from ...base import BaseMixin
 
-class AbstractRepresentation(ABC):
+class AbstractRepresentation(ABC,BaseMixin):
   """Abstract base class for representations."""
   @abstractmethod
   def fit_transform(self, X, y, average=True, n_classes=None):
@@ -42,6 +45,7 @@ class AbstractRepresentation(ABC):
 def _onehot_encoding(y, n_classes):
   return np.eye(n_classes)[y] # https://stackoverflow.com/a/42874726/20580159
 
+@dataclass
 class ClassRepresentation(AbstractRepresentation):
   """A classification-based data representation.
 
@@ -52,10 +56,9 @@ class ClassRepresentation(AbstractRepresentation):
       is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to represent the data. Defaults to `False`.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
   """
-  def __init__(self, classifier, is_probabilistic=False, fit_classifier=True):
-    self.classifier = classifier
-    self.is_probabilistic = is_probabilistic
-    self.fit_classifier = fit_classifier
+  classifier: Any
+  is_probabilistic: bool = False
+  fit_classifier: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
       raise ValueError(
@@ -91,6 +94,7 @@ class ClassRepresentation(AbstractRepresentation):
       return fX.mean(axis=0) # = q
     return fX
 
+@dataclass
 class DistanceRepresentation(AbstractRepresentation):
   """A distance-based data representation, as it is used in `EDx` and `EDy`.
 
@@ -98,9 +102,8 @@ class DistanceRepresentation(AbstractRepresentation):
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, metric="euclidean", preprocessor=None):
-    self.metric = metric
-    self.preprocessor = preprocessor
+  metric: str = "euclidean"
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
@@ -133,6 +136,7 @@ class DistanceRepresentation(AbstractRepresentation):
       return fX.mean(axis=0) # = q
     return fX
 
+@dataclass
 class HistogramRepresentation(AbstractRepresentation):
   """A histogram-based data representation, as it is used in `HDx` and `HDy`.
 
@@ -141,10 +145,9 @@ class HistogramRepresentation(AbstractRepresentation):
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
       unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
-  def __init__(self, n_bins, preprocessor=None, unit_scale=True):
-    self.n_bins = n_bins
-    self.preprocessor = preprocessor
-    self.unit_scale = unit_scale
+  n_bins: int
+  preprocessor: Optional[AbstractRepresentation] = None
+  unit_scale: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
@@ -196,6 +199,7 @@ class HistogramRepresentation(AbstractRepresentation):
         histograms.append(hist / X.shape[0])
       return np.concatenate(histograms) # = q
 
+@dataclass
 class EnergyKernelRepresentation(AbstractRepresentation):
   """A kernel-based data representation, as it is used in `KMM`, that uses the `energy` kernel:
 
@@ -207,8 +211,7 @@ class EnergyKernelRepresentation(AbstractRepresentation):
   Args:
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, preprocessor=None):
-    self.preprocessor = preprocessor
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("EnergyKernelRepresentation does not support average=False")
@@ -245,6 +248,7 @@ class EnergyKernelRepresentation(AbstractRepresentation):
         dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
+@dataclass
 class GaussianKernelRepresentation(AbstractRepresentation):
   """A kernel-based data representation, as it is used in `KMM`, that uses the `gaussian` kernel:
 
@@ -254,9 +258,8 @@ class GaussianKernelRepresentation(AbstractRepresentation):
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, sigma=1, preprocessor=None):
-    self.sigma = sigma
-    self.preprocessor = preprocessor
+  sigma: float = 1.
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianKernelRepresentation does not support average=False")
@@ -297,8 +300,7 @@ class KernelRepresentation(AbstractRepresentation):
   Args:
       kernel: A callable that will be used as the kernel. Must follow the signature `(X[y==i], X[y==j]) -> scalar`.
   """
-  def __init__(self, kernel):
-    self.kernel = kernel
+  kernel: Callable
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("KernelRepresentation does not support average=False")
@@ -341,12 +343,13 @@ class LaplacianKernelRepresentation(KernelRepresentation):
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
-  def __init__(self, sigma=1):
-    self.sigma = sigma
-  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
-  def kernel(self):
-    return partial(_laplacianKernel, sigma=self.sigma)
+  def __init__(self, sigma=1.):
+    KernelRepresentation.__init__(self, LaplacianKernelRepresentation.create_kernel(sigma))
+  @staticmethod
+  def create_kernel(sigma):
+    return partial(_laplacianKernel, sigma=sigma)
 
+@dataclass
 class GaussianRFFKernelRepresentation(AbstractRepresentation):
   """An efficient approximation of the `GaussianKernelRepresentation`, as it is used in `KMM`, using random Fourier features.
 
@@ -356,11 +359,10 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
       seed (optional): Controls the randomness of the random Fourier features. Defaults to `None`.
   """
-  def __init__(self, sigma=1, n_rff=1000, preprocessor=None, seed=None):
-    self.sigma = sigma
-    self.n_rff = n_rff
-    self.preprocessor = preprocessor
-    self.seed = seed
+  sigma: float = 1.
+  n_rff: int = 1000
+  preprocessor: Optional[AbstractRepresentation] = None
+  seed: Optional[int] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")

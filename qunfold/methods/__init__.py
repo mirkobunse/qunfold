@@ -4,8 +4,9 @@ import numpy as np
 import traceback
 from abc import ABC, abstractmethod
 from scipy import optimize
+from ..base import BaseMixin
 
-class AbstractMethod(ABC):
+class AbstractMethod(ABC,BaseMixin):
   """Abstract base class for quantification methods."""
   @abstractmethod
   def fit(self, X, y, n_classes=None):

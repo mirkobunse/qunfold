@@ -2,6 +2,9 @@ import jax
 import jax.numpy as jnp
 import functools
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Callable
+from ...base import BaseMixin
 
 # helper function for least squares
 def _lsq(p, q, M, N=None):
@@ -27,7 +30,7 @@ def _hellinger_surrogate(p, q, M, N=None):
 def _nonzero_features(M):
   return jnp.any(M != 0, axis=1)
 
-class AbstractLoss(ABC):
+class AbstractLoss(ABC,BaseMixin):
   """Abstract base class for loss functions and for regularization terms."""
   @abstractmethod
   def instantiate(self, q, M, N):
@@ -60,9 +63,8 @@ class AbstractLoss(ABC):
             >>> jnp.dot(q - jnp.dot(M, p), q - jnp.dot(M, p))
     """
     pass
-  def __str__(self):
-    return f"{self.__class__.__name__}()" # print the name of the concrete sub-class
 
+@dataclass
 class FunctionLoss(AbstractLoss):
   """Create a loss object from a JAX function `(p, q, M, N) -> loss_value`.
 
@@ -88,8 +90,7 @@ class FunctionLoss(AbstractLoss):
 
           >>> least_squares_loss = FunctionLoss(least_squares)
   """
-  def __init__(self, loss_function):
-    self.loss_function = loss_function
+  loss_function: Callable
   def instantiate(self, q, M, N=None):
     nonzero = _nonzero_features(M)
     M = jnp.array(M)[nonzero,:]

@@ -172,40 +172,51 @@ class TestQuaPyWrapper(TestCase):
       wrapped_acc = QuaPyWrapper(qunfold.ACC(lr))
       wrapped_sld = QuaPyWrapper(qunfold.ExpectationMaximizer(lr.estimator))
       self.assertEqual( # check that get_params returns the correct settings
-        wrapped_acc.get_params(deep=True)["representation__classifier__estimator__C"],
+        wrapped_acc.get_params(deep=True)["classifier__estimator__C"],
         1e-2
       )
       self.assertEqual(
         wrapped_sld.get_params(deep=True)["classifier__C"],
         1e-2
       )
+      wrapped_acc.set_params(classifier__estimator__C = 1e-3)
+      self.assertEqual(wrapped_acc._method.classifier.estimator.C, 1e-3)
+      lr = CVClassifier(
+        LogisticRegression(C = 1e-2), # some value outside of the param_grid
+        n_estimators = 10,
+        random_state = RNG.randint(np.iinfo("uint16").max),
+      )
+      wrapped_acc.set_params(classifier = lr)
+      self.assertEqual(wrapped_acc._method.classifier.estimator.C, 1e-2)
       cv_acc = qp.model_selection.GridSearchQ(
         model = wrapped_acc,
         param_grid = {
-          "representation__classifier__estimator__C": [1e-1, 1e0, 1e1, 1e2],
+          "classifier__estimator__C": [1e-1, 1e-1, 1e0, 1e1, 1e2],
         },
         protocol = SingleSampleProtocol(X_tst, p_tst),
         error = "mae",
         refit = False,
+        raise_errors = True,
         verbose = True,
       ).fit(qp.data.LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
-        cv_acc.best_params_["representation__classifier__estimator__C"],
-        cv_acc.best_model_.generic_method.representation.classifier.estimator.C
+        cv_acc.best_params_["classifier__estimator__C"],
+        cv_acc.best_model_._method.representation.classifier.estimator.C
       )
       cv_sld = qp.model_selection.GridSearchQ(
         model = wrapped_sld,
         param_grid = {
-          "classifier__C": [1e-1, 1e0, 1e1, 1e2],
+          "classifier__C": [1e-1, 1e-1, 1e0, 1e1, 1e2],
         },
         protocol = SingleSampleProtocol(X_tst, p_tst),
         error = "mae",
         refit = False,
+        raise_errors = True,
         verbose = True,
       ).fit(qp.data.LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
         cv_sld.best_params_["classifier__C"],
-        cv_sld.best_model_.generic_method.classifier.C
+        cv_sld.best_model_._method.classifier.C
       )
 
 class TestDistanceRepresentation(TestCase):
