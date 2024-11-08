@@ -39,10 +39,6 @@ class BaseMixin():
         valid_params[k] = v
     for k, nested in nested_params.items():
         valid_params[k].set_params(**nested)
-    try:
-      del self.__str_cache__ # invalidate cache
-    except AttributeError:
-      pass
     return self
 
   def clone(self, **params):
@@ -57,14 +53,10 @@ class BaseMixin():
     return self.__class__(**clone_params)
 
   def __str__(self): # logging sugar: a concise string representation
-    try: # use a cache to avoid inspection during frequent logging
-      return self.__str_cache__
-    except AttributeError:
-      params = []
-      for param in inspect.signature(self.__class__).parameters.values():
-        if getattr(self, param.name) != param.default:
-          params.append(f"{param.name}={getattr(self, param.name)}")
-      self.__str_cache__ = f"{self.__class__.__name__}({', '.join(params)})"
-    return self.__str_cache__
+    params = []
+    for param in inspect.signature(self.__class__).parameters.values():
+      if getattr(self, param.name) != param.default:
+        params.append(f"{param.name}={getattr(self, param.name)}")
+    return f"{self.__class__.__name__}({', '.join(params)})"
 
   # TODO add the @dataclass annotation to all sub-classes of BaseMixin
