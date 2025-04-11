@@ -15,6 +15,7 @@ The Python package [qunfold](https://github.com/mirkobunse/qunfold) implements o
 ## Installation
 
 ```
+pip install --upgrade pip setuptools wheel
 pip install 'qunfold @ git+https://github.com/mirkobunse/qunfold'
 ```
 
@@ -30,14 +31,6 @@ To upgrade an existing installation of `qunfold`, run
 
 ```
 pip install --force-reinstall --no-deps 'qunfold @ git+https://github.com/mirkobunse/qunfold@main'
-```
-
-### Troubleshooting
-
-Starting from `pip 23.1.2`, you have to install `setuptools` and `wheel` explicitly. If you receive a "NameError: name 'setuptools' is not defined", you need to execute the following command before installing `qunfold`.
-
-```
-pip install --upgrade pip setuptools wheel
 ```
 
 
@@ -56,15 +49,19 @@ acc.fit(X_trn, y_trn) # fit to training data
 p_hat = acc.predict(X_tst) # estimate a prevalence vector
 ```
 
-You can easily compose new quantification methods from existing loss functions and feature transformations. In the following example, we compose the ordinal variant of ACC and prepare it for being used in [QuaPy](https://github.com/HLT-ISTI/QuaPy).
+You can easily compose new quantification methods from existing loss functions and data representations. In the following example, we compose the ordinal variant of ACC and prepare it for being used in [QuaPy](https://github.com/HLT-ISTI/QuaPy).
 
 ```python
 # the ACC loss, regularized with strength 0.01 for ordinal quantification
 loss = TikhonovRegularized(LeastSquaresLoss(), 0.01)
 
 # the original data representation of ACC with 10-fold cross-validation
-transformer = ClassTransformer(CVClassifier(LogisticRegression(), 10))
+representation = ClassRepresentation(CVClassifier(LogisticRegression(), 10))
 
 # the ordinal variant of ACC, ready for being used in QuaPy
+<<<<<<< HEAD
 ordinal_acc = QuaPyWrapper(LinearMethod(loss, transformer))
+=======
+ordinal_acc = QuaPyWrapper(LinearMethod(loss, representation))
+>>>>>>> upstream/main
 ```

@@ -1,9 +1,11 @@
 import numpy as np
 import warnings
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
+<<<<<<< HEAD:qunfold/transformers.py
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics.pairwise import rbf_kernel
 
@@ -32,16 +34,24 @@ def check_y(y, n_classes=None):
 
 class AbstractTransformer(ABC):
   """Abstract base class for transformers."""
+=======
+from typing import Any, Callable, Optional
+from .. import class_prevalences, check_y
+from ...base import BaseMixin
+
+class AbstractRepresentation(ABC,BaseMixin):
+  """Abstract base class for representations."""
+>>>>>>> upstream/main:qunfold/methods/linear/representations.py
   @abstractmethod
   def fit_transform(self, X, y, average=True, n_classes=None):
-    """This abstract method has to fit the transformer and to return the transformation of the input data.
+    """This abstract method has to fit the representation and to return the transformed input data.
 
     Note:
         Implementations of this abstract method should check the sanity of labels by calling `check_y(y, n_classes)` and they must set the property `self.p_trn = class_prevalences(y, n_classes)`.
 
     Args:
-        X: The feature matrix to which this transformer will be fitted.
-        y: The labels to which this transformer will be fitted.
+        X: The feature matrix to which this representation will be fitted.
+        y: The labels to which this representation will be fitted.
         average (optional): Whether to return a transfer matrix `M` or a transformation `(f(X), y)`. Defaults to `True`.
         n_classes (optional): The number of expected classes. Defaults to `None`.
 
@@ -62,28 +72,28 @@ class AbstractTransformer(ABC):
     """
     pass
 
-# helper function for ClassTransformer(..., is_probabilistic=False)
+# helper function for ClassRepresentation(..., is_probabilistic=False)
 def _onehot_encoding(y, n_classes):
   return np.eye(n_classes)[y] # https://stackoverflow.com/a/42874726/20580159
 
-class ClassTransformer(AbstractTransformer):
-  """A classification-based feature transformation.
+@dataclass
+class ClassRepresentation(AbstractRepresentation):
+  """A classification-based data representation.
 
-  This transformation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.
+  This representation can either be probabilistic (using the posterior predictions of a classifier) or crisp (using the class predictions of a classifier). It is used in ACC, PACC, CC, PCC, and SLD.
 
   Args:
       classifier: A classifier that implements the API of scikit-learn.
-      is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to transform the data. Defaults to `False`.
+      is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to represent the data. Defaults to `False`.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
   """
-  def __init__(self, classifier, is_probabilistic=False, fit_classifier=True):
-    self.classifier = classifier
-    self.is_probabilistic = is_probabilistic
-    self.fit_classifier = fit_classifier
+  classifier: Any
+  is_probabilistic: bool = False
+  fit_classifier: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
       raise ValueError(
-        "The ClassTransformer either requires a bagging classifier with oob_score=True",
+        "The ClassRepresentation either requires a bagging classifier with oob_score=True",
         "or an instance of qunfold.sklearn.CVClassifier"
       )
     check_y(y, n_classes)
@@ -91,7 +101,7 @@ class ClassTransformer(AbstractTransformer):
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
       self.classifier.fit(X, y)
-    fX = np.zeros((len(X), n_classes))
+    fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:] # drop instances that never became OOB
@@ -107,7 +117,7 @@ class ClassTransformer(AbstractTransformer):
     return fX, y
   def transform(self, X, average=True):
     n_classes = len(self.p_trn)
-    fX = np.zeros((len(X), n_classes))
+    fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.predict_proba(X)
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
@@ -115,16 +125,16 @@ class ClassTransformer(AbstractTransformer):
       return fX.mean(axis=0) # = q
     return fX
 
-class DistanceTransformer(AbstractTransformer):
-  """A distance-based feature transformation, as it is used in `EDx` and `EDy`.
+@dataclass
+class DistanceRepresentation(AbstractRepresentation):
+  """A distance-based data representation, as it is used in `EDx` and `EDy`.
 
   Args:
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
-      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, metric="euclidean", preprocessor=None):
-    self.metric = metric
-    self.preprocessor = preprocessor
+  metric: str = "euclidean"
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
@@ -157,18 +167,18 @@ class DistanceTransformer(AbstractTransformer):
       return fX.mean(axis=0) # = q
     return fX
 
-class HistogramTransformer(AbstractTransformer):
-  """A histogram-based feature transformation, as it is used in `HDx` and `HDy`.
+@dataclass
+class HistogramRepresentation(AbstractRepresentation):
+  """A histogram-based data representation, as it is used in `HDx` and `HDy`.
 
   Args:
       n_bins: The number of bins in each feature.
-      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
       unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
-  def __init__(self, n_bins, preprocessor=None, unit_scale=True):
-    self.n_bins = n_bins
-    self.preprocessor = preprocessor
-    self.unit_scale = unit_scale
+  n_bins: int
+  preprocessor: Optional[AbstractRepresentation] = None
+  unit_scale: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
@@ -220,22 +230,22 @@ class HistogramTransformer(AbstractTransformer):
         histograms.append(hist / X.shape[0])
       return np.concatenate(histograms) # = q
 
-class EnergyKernelTransformer(AbstractTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `energy` kernel:
+@dataclass
+class EnergyKernelRepresentation(AbstractRepresentation):
+  """A kernel-based data representation, as it is used in `KMM`, that uses the `energy` kernel:
 
       k(x_1, x_2) = ||x_1|| + ||x_2|| - ||x_1 - x_2||
 
   Note:
-      The methods of this transformer do not support setting `average=False`.
+      The methods of this representation do not support setting `average=False`.
 
   Args:
-      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, preprocessor=None):
-    self.preprocessor = preprocessor
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
-      raise ValueError("EnergyKernelTransformer does not support average=False")
+      raise ValueError("EnergyKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -256,7 +266,7 @@ class EnergyKernelTransformer(AbstractTransformer):
     return M
   def transform(self, X, average=True):
     if not average:
-      raise ValueError("EnergyKernelTransformer does not support average=False")
+      raise ValueError("EnergyKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
     norm = np.linalg.norm(X, axis=1).mean()
@@ -269,21 +279,21 @@ class EnergyKernelTransformer(AbstractTransformer):
         dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
-class GaussianKernelTransformer(AbstractTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `gaussian` kernel:
+@dataclass
+class GaussianKernelRepresentation(AbstractRepresentation):
+  """A kernel-based data representation, as it is used in `KMM`, that uses the `gaussian` kernel:
 
       k(x, y) = exp(-||x - y||^2 / (2σ^2))
 
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
-      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
   """
-  def __init__(self, sigma=1, preprocessor=None):
-    self.sigma = sigma
-    self.preprocessor = preprocessor
+  sigma: float = 1.
+  preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
-      raise ValueError("GaussianKernelTransformer does not support average=False")
+      raise ValueError("GaussianKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -299,7 +309,7 @@ class GaussianKernelTransformer(AbstractTransformer):
     return M
   def transform(self, X, average=True):
     if not average:
-      raise ValueError("GaussianKernelTransformer does not support average=False")
+      raise ValueError("GaussianKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X)
@@ -312,20 +322,23 @@ class GaussianKernelTransformer(AbstractTransformer):
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
     return res
 
-class KernelTransformer(AbstractTransformer):
-  """A general kernel-based feature transformation, as it is used in `KMM`. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.
+class KernelRepresentation(AbstractRepresentation):
+  """A general kernel-based data representation, as it is used in `KMM`. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.
 
   Note:
-      The methods of this transformer do not support setting `average=False`.
+      The methods of this representation do not support setting `average=False`.
 
   Args:
       kernel: A callable that will be used as the kernel. Must follow the signature `(X[y==i], X[y==j]) -> scalar`.
   """
-  def __init__(self, kernel):
-    self.kernel = kernel
+  kernel: Callable
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
+<<<<<<< HEAD:qunfold/transformers.py
       raise ValueError("KernelTransformer does not support average=False")
+=======
+      raise ValueError("KernelRepresentation does not support average=False")
+>>>>>>> upstream/main:qunfold/methods/linear/representations.py
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
@@ -341,7 +354,7 @@ class KernelTransformer(AbstractTransformer):
     return M
   def transform(self, X, average=True):
     if not average:
-      raise ValueError("KernelTransformer does not support average=False")
+      raise ValueError("KernelRepresentation does not support average=False")
     n_classes = len(self.p_trn)
     q = np.zeros(n_classes)
     for c in range(n_classes):
@@ -349,7 +362,7 @@ class KernelTransformer(AbstractTransformer):
         q[c] = self.kernel(self.X_trn[self.y_trn==c], X)
     return q
 
-# kernel function for the LaplacianKernelTransformer
+# kernel function for the LaplacianKernelRepresentation
 def _laplacianKernel(X, Y, sigma):
     nx = X.shape[0]
     ny = Y.shape[0]
@@ -359,35 +372,35 @@ def _laplacianKernel(X, Y, sigma):
     K_ij = np.exp((-sigma * D_lk)).sum(0).sum(0) / (nx * ny)
     return K_ij
 
-class LaplacianKernelTransformer(KernelTransformer):
-  """A kernel-based feature transformation, as it is used in `KMM`, that uses the `laplacian` kernel.
+class LaplacianKernelRepresentation(KernelRepresentation):
+  """A kernel-based data representation, as it is used in `KMM`, that uses the `laplacian` kernel.
 
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
-  def __init__(self, sigma=1):
-    self.sigma = sigma
-  @property # implement self.kernel as a property to allow for hyper-parameter tuning of sigma
-  def kernel(self):
-    return partial(_laplacianKernel, sigma=self.sigma)
+  def __init__(self, sigma=1.):
+    KernelRepresentation.__init__(self, LaplacianKernelRepresentation.create_kernel(sigma))
+  @staticmethod
+  def create_kernel(sigma):
+    return partial(_laplacianKernel, sigma=sigma)
 
-class GaussianRFFKernelTransformer(AbstractTransformer):
-  """An efficient approximation of the `GaussianKernelTransformer`, as it is used in `KMM`, using random Fourier features.
+@dataclass
+class GaussianRFFKernelRepresentation(AbstractRepresentation):
+  """An efficient approximation of the `GaussianKernelRepresentation`, as it is used in `KMM`, using random Fourier features.
 
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
       n_rff (optional): The number of random Fourier features. Defaults to `1000`.
-      preprocessor (optional): Another `AbstractTransformer` that is called before this transformer. Defaults to `None`.
+      preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
       seed (optional): Controls the randomness of the random Fourier features. Defaults to `None`.
   """
-  def __init__(self, sigma=1, n_rff=1000, preprocessor=None, seed=None):
-    self.sigma = sigma
-    self.n_rff = n_rff
-    self.preprocessor = preprocessor
-    self.seed = seed
+  sigma: float = 1.
+  n_rff: int = 1000
+  preprocessor: Optional[AbstractRepresentation] = None
+  seed: Optional[int] = None
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
-      raise ValueError("GaussianRFFKernelTransformer does not support average=False")
+      raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -410,7 +423,7 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
     return self.M
   def transform(self, X, average=True):
     if not average:
-      raise ValueError("GaussianRFFKernelTransformer does not support average=False")
+      raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
     return self._transform_after_preprocessor(X) @ self.mu
@@ -418,6 +431,7 @@ class GaussianRFFKernelTransformer(AbstractTransformer):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
+<<<<<<< HEAD:qunfold/transformers.py
   
 class KDEyHDTransformer(AbstractTransformer):
   """A kernel-based feature transformer as it is used in the approximation of Kernel Density Estimation using Monte Carlo Simulation.
@@ -529,3 +543,19 @@ class KDEyMLTransformerID(AbstractTransformer):
         q[c] += self.mixture_components[c][i].score_samples(fX[:,i].reshape(-1, 1))
       q[c] = np.exp(q[c])
     return q
+=======
+
+class OriginalRepresentation(AbstractRepresentation):
+  """A dummy representation that simply returns the data as it is."""
+  def fit_transform(self, X, y, average=True, n_classes=None):
+    check_y(y, n_classes)
+    self.p_trn = class_prevalences(y, n_classes)
+    if average:
+      return np.array([ X[y==c].mean(axis=0) for c in range(len(self.p_trn)) ]).T # = M
+    return X, y
+  def transform(self, X, average=True):
+    n_classes = len(self.p_trn)
+    if average:
+      return X.mean(axis=0) # = q
+    return X
+>>>>>>> upstream/main:qunfold/methods/linear/representations.py

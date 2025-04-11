@@ -5,7 +5,7 @@ import numpy as np
 import time
 from jax.experimental import sparse
 from functools import partial
-from qunfold import HistogramTransformer
+from qunfold import HistogramRepresentation
 from qunfold.tests import RNG, make_problem, generate_data
 from scipy.sparse import csr_matrix
 
@@ -18,16 +18,16 @@ def _jax_transform_Xj(Xj, e, n_samples, n_bins):
     shape = (n_samples, n_bins)
   ).todense()
 
-class NaivelyAveragedHistogramTransformer(HistogramTransformer):
-  """This variant of the HistogramTransformer implements average=True as fX.mean()."""
+class NaivelyAveragedHistogramRepresentation(HistogramRepresentation):
+  """This variant of the HistogramRepresentation implements average=True as fX.mean()."""
   def _transform_after_preprocessor(self, X, average=False):
     fX = super()._transform_after_preprocessor(X, average=False)
     if average:
       return fX.mean(axis=0)
     return fX
 
-class JaxHistogramTransformer(HistogramTransformer):
-  """This implementation of the HistogramTransformer is based on JAX's JIT capabilities."""
+class JaxHistogramRepresentation(HistogramRepresentation):
+  """This implementation of the HistogramRepresentation is based on JAX's JIT capabilities."""
   def _transform_after_preprocessor(self, X, average=False):
     fun = partial(_jax_transform_Xj, n_samples=X.shape[0], n_bins=self.n_bins)
     fX = jax.vmap(fun)(X.T, jnp.stack(self.edges)).swapaxes(0, 1).reshape((X.shape[0], -1))
@@ -37,8 +37,8 @@ class JaxHistogramTransformer(HistogramTransformer):
       return fX.mean(axis=0)
     return fX
 
-class SparseHistogramTransformer(HistogramTransformer):
-  """This implementation of the HistogramTransformer is based on SciPy's sparse API."""
+class SparseHistogramRepresentation(HistogramRepresentation):
+  """This implementation of the HistogramRepresentation is based on SciPy's sparse API."""
   def _transform_after_preprocessor(self, X, average=False):
     fX = []
     for j in range(X.shape[1]): # feature index
@@ -57,8 +57,8 @@ class SparseHistogramTransformer(HistogramTransformer):
       return fX.mean(axis=0)
     return fX
 
-class NaiveHistogramTransformer(HistogramTransformer):
-  """This implementation of the HistogramTransformer is based on for loops."""
+class NaiveHistogramRepresentation(HistogramRepresentation):
+  """This implementation of the HistogramRepresentation is based on for loops."""
   def fit_transform(self, X, y):
     if y.min() not in [0, 1]:
       raise ValueError("y.min() ∉ [0, 1]")
@@ -88,12 +88,12 @@ class NaiveHistogramTransformer(HistogramTransformer):
     return fX
 
 def main():
-  transformers = [
-    HistogramTransformer,
-    NaivelyAveragedHistogramTransformer,
-    # JaxHistogramTransformer,
-    # SparseHistogramTransformer,
-    # NaiveHistogramTransformer,
+  representations = [
+    HistogramRepresentation,
+    NaivelyAveragedHistogramRepresentation,
+    # JaxHistogramRepresentation,
+    # SparseHistogramRepresentation,
+    # NaiveHistogramRepresentation,
   ]
   results = {} # mapping from class names to prediction times
   n_unequal = 0
@@ -104,13 +104,13 @@ def main():
     X_tst, y_tst = generate_data(M, p_tst, n_samples=10000)
     for n_bins in [2, 4, 8]:
       fX_ref = None
-      for i, transformer in enumerate(transformers):
-        t = transformer(n_bins)
+      for i, representation in enumerate(representations):
+        t = representation(n_bins)
         t.fit_transform(X_trn, y_trn)
         start = time.time()
         for _ in range(10): # predict 10 times
           fX = t.transform(X_tst, average=True)
-        name = transformer.__name__
+        name = representation.__name__
         times = results.get(name, [])
         times.append(time.time() - start)
         results[name] = times

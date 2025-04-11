@@ -4,7 +4,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import StratifiedKFold
 from sklearn.utils.multiclass import unique_labels
 
-class CVClassifier(BaseEstimator, ClassifierMixin):
+class CVClassifier(BaseEstimator,ClassifierMixin):
   """An ensemble of classifiers that are trained from cross-validation folds.
 
   All objects of this type have a fixed attribute `oob_score = True` and, when trained, a fitted attribute `self.oob_decision_function_`, just like scikit-learn bagging classifiers.
@@ -46,7 +46,7 @@ class CVClassifier(BaseEstimator, ClassifierMixin):
   def predict_proba(self, X):
     if not hasattr(self, "classes_"):
       raise NotFittedError()
-    y_pred = np.zeros((len(self.estimators_), len(X), len(self.classes_)))
+    y_pred = np.zeros((len(self.estimators_), X.shape[0], len(self.classes_)))
     for i, (estimator, i_classes) in enumerate(zip(self.estimators_, self.i_classes_)):
       y_pred[i, :, i_classes] = estimator.predict_proba(X).T
     return np.mean(y_pred, axis=0) # shape (n_samples, n_classes)

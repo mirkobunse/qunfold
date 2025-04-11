@@ -1,13 +1,21 @@
 # API
 
+<<<<<<< HEAD
 The `AbstractMethod` defines the interface for all quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+=======
+The `AbstractMethod` defines the interface of all quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+>>>>>>> upstream/main
 
 ```{eval-rst}
 .. autoclass:: qunfold.AbstractMethod
    :members:
 ```
 
+<<<<<<< HEAD
 Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `LinearMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
+=======
+Instances of many [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification method as a `LinearMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#data-representations).
+>>>>>>> upstream/main
 
 ```{eval-rst}
 .. autoclass:: qunfold.LinearMethod
@@ -17,7 +25,7 @@ Instances of [](#popular-algorithms) for quantification and unfolding are create
 
 ## Popular algorithms
 
-We categorize existing, well-known quantification and unfolding algorithms into [](#classify-and-count) methods, [](#distribution-matching) methods, and [](#unfolding) methods. Each of these methods consists of a fixed combination of [](#losses), [](#regularizers), and [](#feature-transformations).
+We categorize existing, well-known quantification and unfolding algorithms into [](#classify-and-count) methods, [](#distribution-matching) methods, and [](#unfolding) methods. Each of these methods consists of a fixed combination of [](#losses), [](#regularizers), and [](#data-representations).
 
 
 ### Classify and count
@@ -51,6 +59,17 @@ We categorize existing, well-known quantification and unfolding algorithms into 
 ```
 
 
+### Methods beyond systems of linear equations
+
+Not all quantification algorithms make predictions by solving systems of linear equations. Instead, the following methods maximize the likelihood of the prediction directly.
+
+```{eval-rst}
+.. autoclass:: qunfold.LikelihoodMaximizer
+
+.. autoclass:: qunfold.ExpectationMaximizer
+```
+
+
 ## Losses
 
 ```{eval-rst}
@@ -79,22 +98,24 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 ```
 
 
-## Feature transformations
+## Data representations
 
 ```{eval-rst}
-.. autoclass:: qunfold.ClassTransformer
+.. autoclass:: qunfold.ClassRepresentation
 
-.. autoclass:: qunfold.DistanceTransformer
+.. autoclass:: qunfold.DistanceRepresentation
 
-.. autoclass:: qunfold.HistogramTransformer
+.. autoclass:: qunfold.HistogramRepresentation
 
-.. autoclass:: qunfold.EnergyKernelTransformer
+.. autoclass:: qunfold.EnergyKernelRepresentation
 
-.. autoclass:: qunfold.GaussianKernelTransformer
+.. autoclass:: qunfold.GaussianKernelRepresentation
 
-.. autoclass:: qunfold.LaplacianKernelTransformer
+.. autoclass:: qunfold.LaplacianKernelRepresentation
 
-.. autoclass:: qunfold.GaussianRFFKernelTransformer
+.. autoclass:: qunfold.GaussianRFFKernelRepresentation
+
+.. autoclass:: qunfold.OriginalRepresentation
 ```
 
 

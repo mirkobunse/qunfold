@@ -1,0 +1,48 @@
+[build-system]
+requires = [ "setuptools >= 61.0" ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qunfold"
+description = "Composable quantification and unfolding methods"
+dependencies = [
+    "jax",
+    "numpy",
+    "scipy",
+]
+requires-python = ">= 3.8"
+keywords = [
+    "machine learning",
+    "supervised learning",
+    "quantification",
+    "class prevalence estimation",
+    "unfolding",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+readme = "README.md"
+authors = [
+    { name = "Mirko Bunse", email = "mirko.bunse@cs.tu-dortmund.de"},
+]
+dynamic = [ "version" ]
+
+[project.optional-dependencies]
+tests = [ "jax[cpu]", "nose", "quapy==0.1.8", "scikit-learn" ]
+experiments = [ "jax[cpu]", "pandas", "quapy==0.1.8", "scikit-learn", "tqdm" ]
+docs = [ "jax[cpu]", "myst-parser", "quapy==0.1.8", "scikit-learn", "sphinx-rtd-theme" ]
+
+[tool.setuptools.dynamic]
+version = { attr = "qunfold.__version__" }
+
+[project.urls]
+Documentation = "https://mirkobunse.github.io/qunfold"
+Repository = "https://github.com/mirkobunse/qunfold"
+Issues = "https://github.com/mirkobunse/qunfold/issues"

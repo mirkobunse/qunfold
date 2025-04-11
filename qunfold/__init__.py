@@ -1,5 +1,6 @@
-from .losses import (
-    instantiate_loss,
+__version__ = "0.1.5-rc10"
+
+from .methods.linear.losses import (
     LeastSquaresLoss,
     BlobelLoss,
     EnergyLoss,
@@ -12,22 +13,19 @@ from .losses import (
     KDEyMLLoss,
 )
 
-from .transformers import (
-    ClassTransformer,
-    HistogramTransformer,
-    DistanceTransformer,
-    KernelTransformer,
-    EnergyKernelTransformer,
-    LaplacianKernelTransformer,
-    GaussianKernelTransformer,
-    GaussianRFFKernelTransformer,
-    KDEyHDTransformer,
-    KDEyCSTransformer,
-    KDEyMLTransformerID,
+from .methods.linear.representations import (
+    ClassRepresentation,
+    HistogramRepresentation,
+    DistanceRepresentation,
+    KernelRepresentation,
+    EnergyKernelRepresentation,
+    LaplacianKernelRepresentation,
+    GaussianKernelRepresentation,
+    GaussianRFFKernelRepresentation,
+    OriginalRepresentation,
 )
 
 from .methods.linear import (
-    AbstractMethod,
     LinearMethod,
     ACC,
     PACC,
@@ -46,3 +44,10 @@ from .methods.kernel_density import (
     KDEyML,
     KDEyMLQP,
 )
+
+from .methods.likelihood import (
+    LikelihoodMaximizer,
+    ExpectationMaximizer,
+)
+
+from .methods import AbstractMethod

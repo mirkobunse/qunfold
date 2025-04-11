@@ -1,10 +1,10 @@
 import numpy as np
 import time
 # from filprofiler.api import profile
-from qunfold import KernelTransformer, EnergyKernelTransformer
+from qunfold import KernelRepresentation, EnergyKernelRepresentation
 from qunfold.tests import RNG, make_problem, generate_data
 
-# kernel function for the OldEnergyKernelTransformer
+# kernel function for the OldEnergyKernelRepresentation
 def _energyKernel(X, Y):
     nx = X.shape[0]
     ny = Y.shape[0]
@@ -15,14 +15,14 @@ def _energyKernel(X, Y):
     Dlk = np.sqrt(((X - Y)**2).sum(-1))
     return np.squeeze(norm_x + norm_y) - Dlk.sum(0).sum(0) / (nx * ny)
 
-class OldEnergyKernelTransformer(KernelTransformer):
+class OldEnergyKernelRepresentation(KernelRepresentation):
   def __init__(self):
-    KernelTransformer.__init__(self, _energyKernel)
+    KernelRepresentation.__init__(self, _energyKernel)
 
 def main():
-  transformers = [
-    EnergyKernelTransformer(),
-    OldEnergyKernelTransformer(),
+  representations = [
+    EnergyKernelRepresentation(),
+    OldEnergyKernelRepresentation(),
   ]
   results = {} # mapping from class names to prediction times
   n_unequal = 0
@@ -34,7 +34,7 @@ def main():
     M_ref = None
     q_ref = None
     fX_ref = None
-    for i, t in enumerate(transformers):
+    for i, t in enumerate(representations):
       name = t.__class__.__name__
       M = t.fit_transform(X_trn, y_trn)
       q = t.transform(X_tst)
