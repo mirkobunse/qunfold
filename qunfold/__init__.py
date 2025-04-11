@@ -35,9 +35,6 @@ from .methods.linear import (
     EDx,
     EDy,
     KMM,
-    KDEyHD,
-    KDEyCS,
-    KDEyMLID,
 )
 
 from .methods.kernel_density import (
