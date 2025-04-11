@@ -5,43 +5,12 @@ from dataclasses import dataclass
 from functools import partial
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import cdist
-<<<<<<< HEAD:qunfold/transformers.py
-from sklearn.neighbors import KernelDensity
-from sklearn.metrics.pairwise import rbf_kernel
-
-def class_prevalences(y, n_classes=None):
-  """Determine the prevalence of each class.
-
-  Args:
-      y: An array of labels, shape (n_samples,).
-      n_classes (optional): The number of classes. Defaults to `None`, which corresponds to `np.max(y)+1`.
-
-  Returns:
-      An array of class prevalences that sums to one, shape (n_classes,).
-  """
-  if n_classes is None:
-    n_classes = np.max(y)+1
-  n_samples_per_class = np.zeros(n_classes, dtype=int)
-  i, n = np.unique(y, return_counts=True)
-  n_samples_per_class[i] = n # non-existing classes maintain a zero entry
-  return n_samples_per_class / n_samples_per_class.sum() # normalize to prevalences
-
-# helper function for ensuring sane labels
-def check_y(y, n_classes=None):
-  if n_classes is not None:
-    if n_classes != np.max(y)+1:
-      warnings.warn(f"Classes are missing: n_classes != np.max(y)+1 = {np.max(y)+1}")
-
-class AbstractTransformer(ABC):
-  """Abstract base class for transformers."""
-=======
 from typing import Any, Callable, Optional
 from .. import class_prevalences, check_y
 from ...base import BaseMixin
 
 class AbstractRepresentation(ABC,BaseMixin):
   """Abstract base class for representations."""
->>>>>>> upstream/main:qunfold/methods/linear/representations.py
   @abstractmethod
   def fit_transform(self, X, y, average=True, n_classes=None):
     """This abstract method has to fit the representation and to return the transformed input data.
@@ -334,11 +303,7 @@ class KernelRepresentation(AbstractRepresentation):
   kernel: Callable
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
-<<<<<<< HEAD:qunfold/transformers.py
-      raise ValueError("KernelTransformer does not support average=False")
-=======
       raise ValueError("KernelRepresentation does not support average=False")
->>>>>>> upstream/main:qunfold/methods/linear/representations.py
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
@@ -431,119 +396,6 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
-<<<<<<< HEAD:qunfold/transformers.py
-  
-class KDEyHDTransformer(AbstractTransformer):
-  """A kernel-based feature transformer as it is used in the approximation of Kernel Density Estimation using Monte Carlo Simulation.
-
-  Args:
-      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwidth: A smoothing parameter for the kernel-function. 
-      classifier: A classifier that implements the API of scikit-learn.
-      random_state (optional): Controls the randomness of the Monte Carlo sampling. Defaults to `0`.
-      n_trials (optional): The number of Monte Carlo samples. Defaults to `10_000`.
-  """
-  def __init__(self, kernel, bandwidth, classifier, random_state=0, n_trials=10_000):
-    self.kernel = kernel
-    self.bandwidth = bandwidth
-    self.classifier = classifier
-    self.n_trials = n_trials
-    self.random_state = random_state
-  def fit_transform(self, X, y, average=True, n_classes=None):
-    check_y(y, n_classes)
-    self.p_trn = class_prevalences(y, n_classes)
-    n_classes = len(self.p_trn)
-    self.X_trn = X
-    self.y_trn = y
-    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
-    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    mixture_components = [KernelDensity(bandwidth=self.bandwidth, kernel=self.kernel).fit(fX[y==c]) for c in range(n_classes)]
-    self.samples = np.vstack([mc.sample(self.n_trials // n_classes, random_state=self.random_state) for mc in mixture_components])
-    M = np.asarray([np.exp(mc.score_samples(self.samples)) for mc in mixture_components]).T
-    return M
-  def transform(self, X, average=True):
-    fX = self.preprocessor.transform(X, average=False)
-    return np.exp(KernelDensity(bandwidth=self.bandwidth).fit(fX).score_samples(self.samples))
-  
-class KDEyCSTransformer(AbstractTransformer):
-  """A kernel-based feature transformer as it is used in the closed-form solution of Kernel Density Estimation by González-Moreo et. al (2024).
-
-  Args:
-      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwidth: A smoothing parameter for the kernel-function. 
-      classifier: A classifier that implements the API of scikit-learn.
-  """
-  def __init__(self, kernel, bandwidth, classifier):
-    self.kernel = kernel
-    self.bandwidth = bandwidth
-    self.classifier = classifier
-  def gram_matrix_mix_sum(self, X, Y=None):
-    variance = 2 * self.bandwidth**2
-    gamma = 1 / (2 * variance)
-    norm = 1 / np.sqrt(((2 * np.pi)**X.shape[1]) * (variance**X.shape[1]))
-    gram = norm * rbf_kernel(X, Y, gamma=gamma)
-    return gram.sum()
-  def fit_transform(self, X, y, average=True, n_classes=None):
-    check_y(y, n_classes)
-    self.p_trn = class_prevalences(y, n_classes)
-    n_classes = len(self.p_trn)
-    self.X_trn = X
-    self.y_trn = y
-    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
-    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    self.fX_trn = fX
-    M = np.zeros((n_classes, n_classes))
-    self.counts_inv = []
-    for i in range(n_classes):
-      self.counts_inv.append(1 / y[y == i].shape[0])
-      for j in range(n_classes):
-        if i > j:
-          M[i, j] = M[j, i]
-        else:
-          M[i, j] = self.gram_matrix_mix_sum(fX[y==i], fX[y==j] if i!=j else None)
-    return M
-  def transform(self, X, average=True):
-    fX = self.preprocessor.transform(X, average=False)
-    n_classes = len(self.p_trn)
-    q = np.zeros(n_classes)
-    for i in range(n_classes):
-      q[i] = self.gram_matrix_mix_sum(self.fX_trn[self.y_trn==i], fX)
-    return q
-
-class KDEyMLTransformerID(AbstractTransformer):
-  """A kernel-based feature transformer as it is used in the maximum-likelihood solution of Kernel Density Estimation by González-Moreo et. al (2024).
-
-  Args:
-      kernel: currently only supports `gaussian`. (only needed if planning to support different kernels)
-      bandwidth: A smoothing parameter for the kernel-function. 
-      classifier: A classifier that implements the API of scikit-learn.
-  """
-  def __init__(self, kernel, bandwidth, classifier):
-    self.kernel = kernel
-    self.bandwidth = bandwidth
-    self.classifier = classifier
-  def fit_transform(self, X, y, average=True, n_classes=None):
-    check_y(y, n_classes)
-    self.p_trn = class_prevalences(y, n_classes)
-    n_classes = len(self.p_trn)
-    self.n_classes = n_classes
-    self.X_trn = X
-    self.y_trn = y
-    self.preprocessor = ClassTransformer(self.classifier, is_probabilistic=True, fit_classifier=True)
-    fX, _ = self.preprocessor.fit_transform(X, y, average=False)
-    self.mixture_components = []
-    for c in range(n_classes):
-      self.mixture_components.append([KernelDensity(bandwidth=self.bandwidth, kernel=self.kernel).fit(fX[y==c][:, i].reshape(-1, 1)) for i in range(n_classes)])
-    return np.ones((n_classes, n_classes))
-  def transform(self, X, average=True):
-    fX = self.preprocessor.transform(X, average=False)
-    q = np.zeros((self.n_classes, X.shape[0]))
-    for c in range(self.n_classes):
-      for i in range(self.n_classes):
-        q[c] += self.mixture_components[c][i].score_samples(fX[:,i].reshape(-1, 1))
-      q[c] = np.exp(q[c])
-    return q
-=======
 
 class OriginalRepresentation(AbstractRepresentation):
   """A dummy representation that simply returns the data as it is."""
@@ -558,4 +410,3 @@ class OriginalRepresentation(AbstractRepresentation):
     if average:
       return X.mean(axis=0) # = q
     return X
->>>>>>> upstream/main:qunfold/methods/linear/representations.py
