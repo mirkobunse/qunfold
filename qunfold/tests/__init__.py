@@ -9,12 +9,7 @@ from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
-<<<<<<< HEAD
-from qunfold.methods.linear import HDx
-from qunfold.losses import HellingerSurrogateLoss
-=======
 from qunfold import HDx, HellingerSurrogateLoss
->>>>>>> upstream/main
 
 RNG = np.random.RandomState(876) # make tests reproducible
 
@@ -61,19 +56,7 @@ class TestMethods(TestCase):
       p_run = qunfold.RUN(qunfold.ClassRepresentation(rf), tau=1e6).fit(X_trn, y_trn).predict(X_tst)
       p_hdy = qunfold.HDy(rf, 3).fit(X_trn, y_trn).predict(X_tst)
       p_edy = qunfold.EDy(rf).fit(X_trn, y_trn).predict(X_tst)
-<<<<<<< HEAD
-      p_kmme = qunfold.KMM('energy').fit(X_trn, y_trn).predict(X_tst)
-      p_kmmg = qunfold.KMM('gaussian').fit(X_trn, y_trn).predict(X_tst)
-      p_kmml = qunfold.KMM('laplacian').fit(X_trn, y_trn).predict(X_tst)
-      p_rff = qunfold.KMM('rff').fit(X_trn, y_trn).predict(X_tst)
-      p_kdemc = qunfold.KDEyHD(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
-      p_kdecs = qunfold.KDEyCS(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
-      p_kdeml = qunfold.KDEyMLQP(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
-      p_kdeml_id = qunfold.KDEyMLID(RandomForestClassifier(oob_score=True), bandwidth=0.1).fit(X_trn, y_trn).predict(X_tst)
-      p_custom = qunfold.LinearMethod( # a custom method
-=======
       p_orig = qunfold.LinearMethod( # a custom method
->>>>>>> upstream/main
         qunfold.LeastSquaresLoss(),
         qunfold.OriginalRepresentation()
       ).fit(X_trn, y_trn, n_classes).predict(X_tst)
@@ -217,10 +200,6 @@ class TestQuaPyWrapper(TestCase):
         verbose = True,
       ).fit(qp.data.LabelledCollection(X_trn, y_trn))
       self.assertEqual( # check that best parameters are actually used
-<<<<<<< HEAD
-        quapy_method.best_params_["transformer__classifier__estimator__C"],
-        quapy_method.best_model_.qunfold_method.transformer.classifier.estimator.C
-=======
         cv_acc.best_params_["classifier__estimator__C"],
         cv_acc.best_model_._method.representation.classifier.estimator.C
       )
@@ -238,7 +217,6 @@ class TestQuaPyWrapper(TestCase):
       self.assertEqual( # check that best parameters are actually used
         cv_sld.best_params_["classifier__C"],
         cv_sld.best_model_._method.classifier.C
->>>>>>> upstream/main
       )
 
 class TestDistanceRepresentation(TestCase):
@@ -249,11 +227,7 @@ class TestDistanceRepresentation(TestCase):
       X_trn, y_trn = generate_data(M, p_trn)
       # p_tst = RNG.permutation(p_trn)
       # X_tst, y_tst = generate_data(M, p_tst)
-<<<<<<< HEAD
-      m = qunfold.LinearMethod(None, qunfold.DistanceTransformer())
-=======
       m = qunfold.LinearMethod(None, qunfold.DistanceRepresentation())
->>>>>>> upstream/main
       m.fit(X_trn, y_trn, n_classes)
       M_est = m.M
       M_true = np.zeros_like(M_est)

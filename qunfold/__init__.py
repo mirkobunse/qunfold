@@ -37,10 +37,6 @@ from .methods.linear import (
     KMM,
 )
 
-from .methods.kernel_density import (
-    KDEyML,
-    KDEyMLQP,
-)
 
 from .methods.likelihood import (
     LikelihoodMaximizer,
