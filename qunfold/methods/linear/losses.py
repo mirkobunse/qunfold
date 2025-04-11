@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 import functools
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -25,6 +26,23 @@ def _energy(p, q, M, N=None):
 def _hellinger_surrogate(p, q, M, N=None):
   i = jnp.logical_and(q > 0, jnp.any(M > 0, axis=1)) # ignore constant zeros to avoid NaNs
   return -jnp.sqrt(q[i] * jnp.dot(M[i], p)).sum()
+
+# helper function for the loss used in the Monte Carlo approximation of Kernel Density Estimation 
+def _kde_hd_loss(p, q, M, N=None):
+  epsilon = 1e-10
+  r = M.T.mean(axis=0) + epsilon
+  q = q + epsilon
+  iw = q / r
+  fracs = (M.T + epsilon) / q
+  return jnp.mean((jnp.sqrt(jnp.dot(p, fracs))-1)**2 * iw)
+
+# helper function for the loss used in the Maximum-Likelihood solution of Kernel Density Estimation 
+# (negative log-likelihood function)
+# Parameter M is redundant
+def _kde_ml_loss(p, q, M, N=None):
+  q = q.astype(np.float32).T # shape (n_samples, n_classes)
+  i = jnp.logical_and(jnp.any(q > 0, axis=1), jnp.all(jnp.isfinite(q), axis=1))
+  return -jnp.sum(jnp.log(jnp.dot(q[i], p) + 1e-10))
 
 # helper function for Boolean masks M[_nonzero_features(M),:] and q[_nonzero_features(M)]
 def _nonzero_features(M):
@@ -196,3 +214,30 @@ def TikhonovRegularized(loss, tau=0.):
           >>> TikhonovRegularization(BlobelLoss(), tau)
   """
   return CombinedLoss(loss, TikhonovRegularization(), weights=[1, tau])
+
+class KDEyHDLoss(FunctionLoss):
+  """The loss function of KDEyMC (González-Moreo et al., 2024).
+  """
+  def __init__(self):
+    super().__init__(_kde_hd_loss)
+
+class KDEyCSLoss(FunctionLoss):
+  """The loss function of KDEyCS (González-Moreo et al., 2024).
+  """
+  def __init__(self):
+    self.counts_inv = None   # needs to be set by the method using the loss 
+    super().__init__(self._kde_cs_loss)
+
+  def _kde_cs_loss(self, p, q, M, N=None):
+    ratio = p * jnp.asarray(self.counts_inv)
+    result = -jnp.log(jnp.dot(ratio, q) / N)
+    result += 0.5 * jnp.log(jnp.dot(jnp.dot(ratio, M), ratio)) 
+    return result
+
+class KDEyMLLoss(FunctionLoss):
+  """The loss function of KDEyMC (González-Moreo et al., 2024).
+
+  The negative Log-Likelihood function for a give class prevalence vector p and a set of mixture-likelihoods q.
+  """
+  def __init__(self):
+    super().__init__(_kde_ml_loss)

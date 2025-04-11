@@ -14,35 +14,9 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from time import time
 from tqdm.auto import tqdm
-
-# for debugging; this variant raises exceptions instead of hiding them
-import signal
-from copy import deepcopy
-class MyGridSearchQ(qp.model_selection.GridSearchQ):
-    def _delayed_eval(self, args):
-        params, training = args
-        protocol = self.protocol
-        error = self.error
-        if self.timeout > 0:
-            def handler(signum, frame):
-                raise TimeoutError()
-            signal.signal(signal.SIGALRM, handler)
-        tinit = time()
-        if self.timeout > 0:
-            signal.alarm(self.timeout)
-        try:
-            model = deepcopy(self.model)
-            model.set_params(**params)
-            model.fit(training)
-            score = qp.evaluation.evaluate(model, protocol=protocol, error_metric=error)
-            ttime = time()-tinit
-            self._sout(f'hyperparams={params}\t got {error.__name__} score {score:.5f} [took {ttime:.4f}s]')
-            if self.timeout > 0:
-                signal.alarm(0)
-        except TimeoutError:
-            self._sout(f'timeout ({self.timeout}s) reached for config {params}')
-            score = None
-        return params, score, model
+from quapy.method._kdey import KDEyML as KDEyML_QuaPy
+import warnings
+warnings.filterwarnings("ignore")
 
 def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     """A single trial of lequa.main()"""
@@ -56,15 +30,15 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
 
     # configure and train the method; select the best hyper-parameters
     if param_grid is not None:
-        # quapy_method = qp.model_selection.GridSearchQ(
-        quapy_method = MyGridSearchQ(
+        quapy_method = qp.model_selection.GridSearchQ(
             model = method,
             param_grid = param_grid,
             protocol = val_gen,
             error = "m" + error_metric, # ae -> mae, rae -> mrae
             raise_errors = True,
             refit = False,
-            # verbose = True,
+            raise_errors = True,
+            verbose = True,
         ).fit(trn_data)
         parameters = quapy_method.best_params_
         val_error = quapy_method.best_score_
@@ -123,7 +97,6 @@ def main(
     np.random.seed(seed)
     qp.environ["_R_SEED"] = seed
     qp.environ["SAMPLE_SIZE"] = 1000
-    qp.environ["N_JOBS"] = 1
 
     # configure the quantification methods
     clf = CVClassifier(

@@ -8,6 +8,9 @@ from .methods.linear.losses import (
     CombinedLoss,
     TikhonovRegularization,
     TikhonovRegularized,
+    KDEyHDLoss,
+    KDEyCSLoss,
+    KDEyMLLoss,
 )
 
 from .methods.linear.representations import (
@@ -33,6 +36,7 @@ from .methods.linear import (
     EDy,
     KMM,
 )
+
 
 from .methods.likelihood import (
     LikelihoodMaximizer,

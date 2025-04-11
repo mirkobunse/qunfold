@@ -59,5 +59,9 @@ loss = TikhonovRegularized(LeastSquaresLoss(), 0.01)
 representation = ClassRepresentation(CVClassifier(LogisticRegression(), 10))
 
 # the ordinal variant of ACC, ready for being used in QuaPy
+<<<<<<< HEAD
+ordinal_acc = QuaPyWrapper(LinearMethod(loss, transformer))
+=======
 ordinal_acc = QuaPyWrapper(LinearMethod(loss, representation))
+>>>>>>> upstream/main
 ```
