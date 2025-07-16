@@ -7,8 +7,8 @@ import quapy as qp
 from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
+from quapy.method.composable import QUnfoldWrapper
 from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassRepresentation, GaussianRFFKernelRepresentation, LeastSquaresLoss, EnergyKernelRepresentation, LinearMethod
-from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
@@ -139,12 +139,12 @@ def main(
         "classifier__C": clf_grid["classifier__estimator__C"],
     }
     methods = [ # (method_name, package, method, param_grid)
-        ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+        ("ACC", "qunfold", QUnfoldWrapper(ACC(clf, seed=seed)), clf_grid),
         ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=5), qp_clf_grid),
-        ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+        ("PACC", "qunfold", QUnfoldWrapper(PACC(clf, seed=seed)), clf_grid),
         ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=5), qp_clf_grid),
         ("HDy", "qunfold",
-            QuaPyWrapper(HDy(clf, 2, seed=seed)),
+            QUnfoldWrapper(HDy(clf, 2, seed=seed)),
             clf_grid | { "n_bins": [2, 4, 6] },
         ),
         ("HDy", "QuaPy",
@@ -155,14 +155,14 @@ def main(
             ),
             qp_clf_grid | { "n_bins": [2, 4, 6] },
         ),
-        ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), clf_grid),
+        ("EDy", "qunfold", QUnfoldWrapper(EDy(clf, seed=seed)), clf_grid),
         ("RUN", "qunfold",
-            QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)),
+            QUnfoldWrapper(RUN(ClassRepresentation(clf), seed=seed)),
             { f"representation__{k}": v for k, v in clf_grid.items() }
         ),
-        ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
+        ("KMMe", "qunfold", QUnfoldWrapper(KMM(kernel="energy", seed=seed)), None),
         ("KMMey", "qunfold", # KMM with the energy kernel after classification
-            QuaPyWrapper(LinearMethod(
+            QUnfoldWrapper(LinearMethod(
                 LeastSquaresLoss(),
                 EnergyKernelRepresentation(preprocessor=ClassRepresentation(
                     clf,
@@ -173,11 +173,11 @@ def main(
             { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() },
         ),
         ("KMMr", "qunfold",
-            QuaPyWrapper(KMM(kernel="rff", seed=seed)),
+            QUnfoldWrapper(KMM(kernel="rff", seed=seed)),
             { "sigma": [1e-2, 1e-1, 1e0, 1e1, 1e2] },
         ),
         ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-            QuaPyWrapper(LinearMethod(
+            QUnfoldWrapper(LinearMethod(
                 LeastSquaresLoss(),
                 GaussianRFFKernelRepresentation(
                     seed = seed,
@@ -205,11 +205,11 @@ def main(
             "classifier__C": clf_grid["classifier__estimator__C"],
         }
         methods = [ # (method_name, package, method, param_grid)
-            ("ACC", "qunfold", QuaPyWrapper(ACC(clf, seed=seed)), clf_grid),
+            ("ACC", "qunfold", QUnfoldWrapper(ACC(clf, seed=seed)), clf_grid),
             ("ACC", "QuaPy", qp.method.aggregative.ACC(qp_clf, val_split=3), qp_clf_grid),
-            ("PACC", "qunfold", QuaPyWrapper(PACC(clf, seed=seed)), clf_grid),
+            ("PACC", "qunfold", QUnfoldWrapper(PACC(clf, seed=seed)), clf_grid),
             ("PACC", "QuaPy", qp.method.aggregative.PACC(qp_clf, val_split=3), qp_clf_grid),
-            ("HDy", "qunfold", QuaPyWrapper(HDy(clf, 2, seed=seed)), None),
+            ("HDy", "qunfold", QUnfoldWrapper(HDy(clf, 2, seed=seed)), None),
             ("HDy", "QuaPy",
                 qp.method.aggregative.DistributionMatchingY(
                     classifier = qp_clf,
@@ -218,11 +218,11 @@ def main(
                 ),
                 None,
             ),
-            ("EDy", "qunfold", QuaPyWrapper(EDy(clf, seed=seed)), None),
-            ("RUN", "qunfold", QuaPyWrapper(RUN(ClassRepresentation(clf), seed=seed)), None),
-            ("KMMe", "qunfold", QuaPyWrapper(KMM(kernel="energy", seed=seed)), None),
+            ("EDy", "qunfold", QUnfoldWrapper(EDy(clf, seed=seed)), None),
+            ("RUN", "qunfold", QUnfoldWrapper(RUN(ClassRepresentation(clf), seed=seed)), None),
+            ("KMMe", "qunfold", QUnfoldWrapper(KMM(kernel="energy", seed=seed)), None),
             ("KMMey", "qunfold", # KMM with the energy kernel after classification
-                QuaPyWrapper(LinearMethod(
+                QUnfoldWrapper(LinearMethod(
                     LeastSquaresLoss(),
                     EnergyKernelRepresentation(preprocessor=ClassRepresentation(
                         clf,
@@ -233,11 +233,11 @@ def main(
                 { f"representation__preprocessor__{k}": v for k, v in clf_grid.items() },
             ),
             ("KMMr", "qunfold",
-                QuaPyWrapper(KMM(kernel="rff", seed=seed)),
+                QUnfoldWrapper(KMM(kernel="rff", seed=seed)),
                 { "sigma": [ 1e-1 ] },
             ),
             ("KMMry", "qunfold", # KMM with the Gaussian RFF kernel after classification
-                QuaPyWrapper(LinearMethod(
+                QUnfoldWrapper(LinearMethod(
                     LeastSquaresLoss(),
                     GaussianRFFKernelRepresentation(
                         seed = seed,

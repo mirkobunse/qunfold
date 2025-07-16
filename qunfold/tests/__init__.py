@@ -3,7 +3,7 @@ import numpy as np
 import quapy as qp
 import qunfold
 import time
-from qunfold.quapy import QuaPyWrapper
+from quapy.method.composable import QUnfoldWrapper
 from qunfold.sklearn import CVClassifier
 from scipy.spatial.distance import cdist
 from sklearn.ensemble import RandomForestClassifier
@@ -157,7 +157,7 @@ class TestExpectationMaximizer(TestCase):
       )
       np.testing.assert_array_equal(p_est_jnt, p_est_sep)
 
-class TestQuaPyWrapper(TestCase):
+class TestQUnfoldWrapperFromQuaPy(TestCase):
   def test_methods(self):
     for _ in range(5):
       q, M, p_trn = make_problem()
@@ -169,8 +169,8 @@ class TestQuaPyWrapper(TestCase):
         n_estimators = 10,
         random_state = RNG.randint(np.iinfo("uint16").max),
       )
-      wrapped_acc = QuaPyWrapper(qunfold.ACC(lr))
-      wrapped_sld = QuaPyWrapper(qunfold.ExpectationMaximizer(lr.estimator))
+      wrapped_acc = QUnfoldWrapper(qunfold.ACC(lr))
+      wrapped_sld = QUnfoldWrapper(qunfold.ExpectationMaximizer(lr.estimator))
       self.assertEqual( # check that get_params returns the correct settings
         wrapped_acc.get_params(deep=True)["classifier__estimator__C"],
         1e-2
