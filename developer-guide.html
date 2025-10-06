@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Developer guide &mdash; qunfold 0.0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -127,10 +127,10 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 <p>The most convenient way of implementing a custom loss is to create a <a class="reference external" href="https://jax.readthedocs.io/">JAX</a>-powered function <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">q,</span> <span class="pre">M,</span> <span class="pre">N)</span> <span class="pre">-&gt;</span> <span class="pre">loss_value</span></code>. From this function, you can create a <em>FunctionLoss</em> object to be used in any instance of <code class="docutils literal notranslate"><span class="pre">LinearMethod</span></code>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.linear.losses.FunctionLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.FunctionLoss" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.FunctionLoss" title="Link to this definition"></a></dt>
 <dd><p>Create a loss object from a JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
 <p>Using this class is likely more convenient than subtyping <em>AbstractLoss</em>. In both cases, the <cite>loss_value</cite> has to be the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 </pre></div>
 </div>
 <p>and use <cite>jnp</cite> just as if you would use numpy.</p>
@@ -145,7 +145,7 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 </dl>
 <p class="rubric">Examples</p>
 <p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">least_squares</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">least_squares</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -158,18 +158,18 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 <p>If you require more freedom in implementing a custom loss, you can also create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.linear.losses.AbstractLoss">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.losses.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss" title="Link to this definition"></a></dt>
 <dd><p>Abstract base class for loss functions and for regularization terms.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.methods.linear.losses.AbstractLoss.instantiate">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss.instantiate" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.losses.AbstractLoss.instantiate" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to create a lambda expression <cite>p -&gt; loss</cite> with JAX.</p>
 <p>In particular, your implementation of this abstract method should return a lambda expression</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">loss_value</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>where <cite>loss_value</cite> has to return the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 </pre></div>
 </div>
 <p>and use <cite>jnp</cite> just as if you would use numpy.</p>
@@ -204,11 +204,11 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 <p>To implement a custom data representation, you have to create a sub-class of <code class="docutils literal notranslate"><span class="pre">AbstractRepresentation</span></code>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.representations.</span></span><span class="sig-name descname"><span class="pre">AbstractRepresentation</span></span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.methods.linear.representations.</span></span><span class="sig-name descname"><span class="pre">AbstractRepresentation</span></span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation" title="Link to this definition"></a></dt>
 <dd><p>Abstract base class for representations.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation.fit_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.fit_transform" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.fit_transform" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to fit the representation and to return the transformed input data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -231,7 +231,7 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.methods.linear.representations.AbstractRepresentation.transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.methods.linear.representations.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -251,7 +251,7 @@ venv/bin/sphinx-build<span class="w"> </span>-M<span class="w"> </span>html<span
 <p>For those representations that use a kernel embedding, you can provide a <code class="docutils literal notranslate"><span class="pre">KernelRepresentation</span></code> with your kernel function.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.KernelRepresentation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KernelRepresentation</span></span><a class="headerlink" href="#qunfold.KernelRepresentation" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">KernelRepresentation</span></span><a class="headerlink" href="#qunfold.KernelRepresentation" title="Link to this definition"></a></dt>
 <dd><p>A general kernel-based data representation, as it is used in <cite>KMM</cite>. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
