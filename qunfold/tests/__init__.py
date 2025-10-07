@@ -198,7 +198,7 @@ class TestQUnfoldWrapperFromQuaPy(TestCase):
         refit = False,
         raise_errors = True,
         verbose = True,
-      ).fit(qp.data.LabelledCollection(X_trn, y_trn))
+      ).fit(X_trn, y_trn)
       self.assertEqual( # check that best parameters are actually used
         cv_acc.best_params_["classifier__estimator__C"],
         cv_acc.best_model_._method.representation.classifier.estimator.C
@@ -213,7 +213,7 @@ class TestQUnfoldWrapperFromQuaPy(TestCase):
         refit = False,
         raise_errors = True,
         verbose = True,
-      ).fit(qp.data.LabelledCollection(X_trn, y_trn))
+      ).fit(X_trn, y_trn)
       self.assertEqual( # check that best parameters are actually used
         cv_sld.best_params_["classifier__C"],
         cv_sld.best_model_._method.classifier.C

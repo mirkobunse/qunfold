@@ -15,35 +15,6 @@ from sklearn.linear_model import LogisticRegression
 from time import time
 from tqdm.auto import tqdm
 
-# for debugging; this variant raises exceptions instead of hiding them
-import signal
-from copy import deepcopy
-class MyGridSearchQ(qp.model_selection.GridSearchQ):
-    def _delayed_eval(self, args):
-        params, training = args
-        protocol = self.protocol
-        error = self.error
-        if self.timeout > 0:
-            def handler(signum, frame):
-                raise TimeoutError()
-            signal.signal(signal.SIGALRM, handler)
-        tinit = time()
-        if self.timeout > 0:
-            signal.alarm(self.timeout)
-        try:
-            model = deepcopy(self.model)
-            model.set_params(**params)
-            model.fit(training)
-            score = qp.evaluation.evaluate(model, protocol=protocol, error_metric=error)
-            ttime = time()-tinit
-            self._sout(f'hyperparams={params}\t got {error.__name__} score {score:.5f} [took {ttime:.4f}s]')
-            if self.timeout > 0:
-                signal.alarm(0)
-        except TimeoutError:
-            self._sout(f'timeout ({self.timeout}s) reached for config {params}')
-            score = None
-        return params, score, model
-
 def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     """A single trial of lequa.main()"""
     i_method, method_name, package, method, param_grid, error_metric = trial_config
@@ -56,8 +27,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
 
     # configure and train the method; select the best hyper-parameters
     if param_grid is not None:
-        # quapy_method = qp.model_selection.GridSearchQ(
-        quapy_method = MyGridSearchQ(
+        quapy_method = qp.model_selection.GridSearchQ(
             model = method,
             param_grid = param_grid,
             protocol = val_gen,
@@ -65,7 +35,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
             raise_errors = True,
             refit = False,
             # verbose = True,
-        ).fit(trn_data)
+        ).fit(*trn_data.Xy)
         parameters = quapy_method.best_params_
         val_error = quapy_method.best_score_
         quapy_method = quapy_method.best_model_
@@ -75,7 +45,7 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
             f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
         )
     else:
-        quapy_method = method.fit(trn_data)
+        quapy_method = method.fit(*trn_data.Xy)
         parameters = None
         val_error = -1
         print(
