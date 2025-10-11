@@ -82,6 +82,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#losses">Losses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.AbstractLoss"><code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.AbstractLoss.instantiate"><code class="docutils literal notranslate"><span class="pre">AbstractLoss.instantiate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.FunctionLoss"><code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.FunctionLoss.instantiate"><code class="docutils literal notranslate"><span class="pre">FunctionLoss.instantiate()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.LeastSquaresLoss"><code class="docutils literal notranslate"><span class="pre">LeastSquaresLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.EnergyLoss"><code class="docutils literal notranslate"><span class="pre">EnergyLoss</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.HellingerSurrogateLoss"><code class="docutils literal notranslate"><span class="pre">HellingerSurrogateLoss</span></code></a></li>
@@ -95,6 +103,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#data-representations">Data representations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#qunfold.AbstractRepresentation"><code class="docutils literal notranslate"><span class="pre">AbstractRepresentation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.AbstractRepresentation.fit_transform"><code class="docutils literal notranslate"><span class="pre">AbstractRepresentation.fit_transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qunfold.AbstractRepresentation.transform"><code class="docutils literal notranslate"><span class="pre">AbstractRepresentation.transform()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.ClassRepresentation"><code class="docutils literal notranslate"><span class="pre">ClassRepresentation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.DistanceRepresentation"><code class="docutils literal notranslate"><span class="pre">DistanceRepresentation</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qunfold.HistogramRepresentation"><code class="docutils literal notranslate"><span class="pre">HistogramRepresentation</span></code></a></li>
@@ -446,6 +459,116 @@
 </section>
 <section id="losses">
 <h2>Losses<a class="headerlink" href="#losses" title="Link to this heading"></a></h2>
+<p>Instances of <code class="docutils literal notranslate"><span class="pre">AbstractLoss</span></code> provide the loss functions for linear quantification methods. The <code class="docutils literal notranslate"><span class="pre">FunctionLoss</span></code>, also an abstract class, is a utility for creating such loss functions from JAX function objects.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.AbstractLoss">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">AbstractLoss</span></span><a class="headerlink" href="#qunfold.AbstractLoss" title="Link to this definition"></a></dt>
+<dd><p>Abstract base class for loss functions and for regularization terms.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.AbstractLoss.instantiate">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractLoss.instantiate" title="Link to this definition"></a></dt>
+<dd><p>This abstract method has to create a lambda expression <cite>p -&gt; loss</cite> with JAX.</p>
+<p>In particular, your implementation of this abstract method should return a lambda expression</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">loss_value</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <cite>loss_value</cite> has to return the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</pre></div>
+</div>
+<p>and use <cite>jnp</cite> just as if you would use numpy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – A numpy array.</p></li>
+<li><p><strong>M</strong> – A numpy matrix.</p></li>
+<li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A lambda expression <cite>p -&gt; loss</cite>, implemented in JAX.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.FunctionLoss">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">FunctionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.FunctionLoss" title="Link to this definition"></a></dt>
+<dd><p>Create a loss object from a JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
+<p>Using this class is likely more convenient than subtyping <em>AbstractLoss</em>. In both cases, the <cite>loss_value</cite> has to be the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</pre></div>
+</div>
+<p>and use <cite>jnp</cite> just as if you would use numpy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>loss_function</strong> – A JAX function <cite>(p, q, M, N) -&gt; loss_value</cite>.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">least_squares</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>and thereby ready to be used in a <em>FunctionLoss</em> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">least_squares_loss</span> <span class="o">=</span> <span class="n">FunctionLoss</span><span class="p">(</span><span class="n">least_squares</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.FunctionLoss.instantiate">
+<span class="sig-name descname"><span class="pre">instantiate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.FunctionLoss.instantiate" title="Link to this definition"></a></dt>
+<dd><p>This abstract method has to create a lambda expression <cite>p -&gt; loss</cite> with JAX.</p>
+<p>In particular, your implementation of this abstract method should return a lambda expression</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">return</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">loss_value</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <cite>loss_value</cite> has to return the result of a JAX expression. The JAX requirement ensures that the loss function can be auto-differentiated. Hence, no derivatives of the loss function have to be provided manually. JAX expressions are easy to implement. Just import the numpy wrapper</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+</pre></div>
+</div>
+<p>and use <cite>jnp</cite> just as if you would use numpy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>p</cite> is a vector of class-wise probabilities. This vector will already be the result of our soft-max trick, so that you don’t have to worry about constraints or latent parameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – A numpy array.</p></li>
+<li><p><strong>M</strong> – A numpy matrix.</p></li>
+<li><p><strong>N</strong> – The number of data items that <cite>q</cite> represents.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A lambda expression <cite>p -&gt; loss</cite>, implemented in JAX.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>The least squares loss, <cite>(q - M*p)’ * (q - M*p)</cite>, is simply</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">q</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<p>The following concrete sub-classes define the loss functions of existing methods.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.LeastSquaresLoss">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">LeastSquaresLoss</span></span><a class="headerlink" href="#qunfold.LeastSquaresLoss" title="Link to this definition"></a></dt>
@@ -531,6 +654,54 @@
 </section>
 <section id="data-representations">
 <h2>Data representations<a class="headerlink" href="#data-representations" title="Link to this heading"></a></h2>
+<p>Instances of <code class="docutils literal notranslate"><span class="pre">AbstractRepresentation</span></code> provide the data representations for linear quantification methods.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qunfold.AbstractRepresentation">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">AbstractRepresentation</span></span><a class="headerlink" href="#qunfold.AbstractRepresentation" title="Link to this definition"></a></dt>
+<dd><p>Abstract base class for representations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.AbstractRepresentation.fit_transform">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractRepresentation.fit_transform" title="Link to this definition"></a></dt>
+<dd><p>This abstract method has to fit the representation and to return the transformed input data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this abstract method should check the sanity of labels by calling <cite>check_y(y, n_classes)</cite> and they must set the property <cite>self.p_trn = class_prevalences(y, n_classes)</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix to which this representation will be fitted.</p></li>
+<li><p><strong>y</strong> – The labels to which this representation will be fitted.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
+<li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A transfer matrix <cite>M</cite> if <cite>average==True</cite> or a transformation <cite>(f(X), y)</cite> if <cite>average==False</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.AbstractRepresentation.transform">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
+<dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – The feature matrix that will be transformed.</p></li>
+<li><p><strong>average</strong> (<em>optional</em>) – Whether to return a vector <cite>q</cite> or a transformation <cite>f(X)</cite>. Defaults to <cite>True</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A vector <cite>q = f(X).mean(axis=0)</cite> if <cite>average==True</cite> or a transformation <cite>f(X)</cite> if <cite>average==False</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p>The following concrete sub-classes define the representations of existing methods.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.ClassRepresentation">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.</span></span><span class="sig-name descname"><span class="pre">ClassRepresentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_probabilistic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.ClassRepresentation" title="Link to this definition"></a></dt>
@@ -654,7 +825,8 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qunfold.sklearn.</span></span><span class="sig-name descname"><span class="pre">CVClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_estimators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier" title="Link to this definition"></a></dt>
-<dd><p>An ensemble of classifiers that are trained from cross-validation folds.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ClassifierMixin</span></code></p>
+<p>An ensemble of classifiers that are trained from cross-validation folds.</p>
 <p>All objects of this type have a fixed attribute <cite>oob_score = True</cite> and, when trained, a fitted attribute <cite>self.oob_decision_function_</cite>, just like scikit-learn bagging classifiers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -670,6 +842,21 @@
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ACC</span><span class="p">(</span><span class="n">CVClassifier</span><span class="p">(</span><span class="n">LogisticRegression</span><span class="p">(),</span> <span class="mi">10</span><span class="p">))</span>
 </pre></div>
 </div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier.fit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier.predict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qunfold.sklearn.CVClassifier.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.sklearn.CVClassifier.predict_proba" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <div class="admonition hint">
