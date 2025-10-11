@@ -64,6 +64,18 @@ Not all quantification algorithms make predictions by solving systems of linear 
 
 ## Losses
 
+Instances of `AbstractLoss` provide the loss functions for linear quantification methods. The `FunctionLoss`, also an abstract class, is a utility for creating such loss functions from JAX function objects.
+
+```{eval-rst}
+.. autoclass:: qunfold.AbstractLoss
+   :members:
+
+.. autoclass:: qunfold.FunctionLoss
+   :members:
+```
+
+The following concrete sub-classes define the loss functions of existing methods.
+
 ```{eval-rst}
 .. autoclass:: qunfold.LeastSquaresLoss
 
@@ -91,6 +103,15 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 
 ## Data representations
+
+Instances of `AbstractRepresentation` provide the data representations for linear quantification methods.
+
+```{eval-rst}
+.. autoclass:: qunfold.AbstractRepresentation
+   :members:
+```
+
+The following concrete sub-classes define the representations of existing methods.
 
 ```{eval-rst}
 .. autoclass:: qunfold.ClassRepresentation
@@ -121,6 +142,10 @@ The `qunfold.sklearn` module allows you to train classification-based quantifica
 
 ```{eval-rst}
 .. autoclass:: qunfold.sklearn.CVClassifier
+   :members:
+   :undoc-members:
+   :exclude-members: set_score_request
+   :show-inheritance:
 ```
 
 ```{hint}

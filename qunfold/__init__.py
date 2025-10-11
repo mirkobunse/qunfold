@@ -1,6 +1,8 @@
-__version__ = "0.1.5"
+__version__ = "0.1.6-rc1"
 
 from .methods.linear.losses import (
+    AbstractLoss,
+    FunctionLoss,
     LeastSquaresLoss,
     BlobelLoss,
     EnergyLoss,
@@ -11,6 +13,7 @@ from .methods.linear.losses import (
 )
 
 from .methods.linear.representations import (
+    AbstractRepresentation,
     ClassRepresentation,
     HistogramRepresentation,
     DistanceRepresentation,
