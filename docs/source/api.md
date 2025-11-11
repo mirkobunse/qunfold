@@ -72,6 +72,18 @@ Not all quantification algorithms make predictions by solving systems of linear 
 
 ## Losses
 
+Instances of `AbstractLoss` provide the loss functions for linear quantification methods. The `FunctionLoss`, also an abstract class, is a utility for creating such loss functions from JAX function objects.
+
+```{eval-rst}
+.. autoclass:: qunfold.AbstractLoss
+   :members:
+
+.. autoclass:: qunfold.FunctionLoss
+   :members:
+```
+
+The following concrete sub-classes define the loss functions of existing methods.
+
 ```{eval-rst}
 .. autoclass:: qunfold.LeastSquaresLoss
 
@@ -100,6 +112,15 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 ## Data representations
 
+Instances of `AbstractRepresentation` provide the data representations for linear quantification methods.
+
+```{eval-rst}
+.. autoclass:: qunfold.AbstractRepresentation
+   :members:
+```
+
+The following concrete sub-classes define the representations of existing methods.
+
 ```{eval-rst}
 .. autoclass:: qunfold.ClassRepresentation
 
@@ -123,22 +144,22 @@ You can use the `CombinedLoss` to create arbitrary, weighted sums of losses and 
 
 The following classes provide functionalities that go beyond the composition of quantification methods.
 
-### QuaPy
-
-The `qunfold.quapy` module allows you to wrap any quantification method for being used in [QuaPy](https://github.com/HLT-ISTI/QuaPy).
-
-```{eval-rst}
-.. autoclass:: qunfold.quapy.QuaPyWrapper
-```
-
 ### Cross-validated training
 
 The `qunfold.sklearn` module allows you to train classification-based quantification methods through cross-validation. Importing this module requires [scikit-learn](https://scikit-learn.org/stable/) to be installed.
 
 ```{eval-rst}
 .. autoclass:: qunfold.sklearn.CVClassifier
+   :members:
+   :undoc-members:
+   :exclude-members: set_score_request
+   :show-inheritance:
 ```
 
 ```{hint}
 If you use a bagging classifier (like random forests) with `oob_score=True`, you do not need to use cross-validation. Instead, the quantification method is then trained on the out-of-bag predictions of the bagging classifier.
 ```
+
+### QuaPy
+
+**Deprecation notice:** The former `qunfold.quapy` module has been moved to [QuaPy](https://github.com/HLT-ISTI/QuaPy). Please consult the [documentation of `quapy.method.composable`](https://hlt-isti.github.io/QuaPy/manuals/methods.html#composable-methods) for integrating qunfold with QuaPy.

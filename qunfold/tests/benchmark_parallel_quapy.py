@@ -3,8 +3,8 @@ import numpy as np
 import quapy as qp
 import time
 from sklearn.linear_model import LogisticRegression
+from quapy.method.composable import QUnfoldWrapper
 from qunfold import PACC
-from qunfold.quapy import QuaPyWrapper
 from qunfold.sklearn import CVClassifier
 
 #
@@ -52,7 +52,7 @@ def main():
     tst_gen.true_prevs.df = tst_gen.true_prevs.df[:8]
 
     print("Fitting a qunfold method")
-    m = QuaPyWrapper(PACC(CVClassifier(LogisticRegression(), 5), seed=123))
+    m = QUnfoldWrapper(PACC(CVClassifier(LogisticRegression(), 5), seed=123))
     m.fit(trn_data)
 
     qp_times = []
