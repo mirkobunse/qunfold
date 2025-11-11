@@ -1,0 +1,10 @@
+{
+	"auths": {},
+	"credStore": "desktop",
+	"currentContext": "default",
+	"plugins": {
+		"-x-cli-hints": {
+			"enabled": "true"
+		}
+	}
+}

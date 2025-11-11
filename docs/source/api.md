@@ -1,13 +1,21 @@
 # API
 
+<<<<<<< HEAD
+The `AbstractMethod` defines the interface for all quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+=======
 The `AbstractMethod` defines the interface of all quantification and unfolding algorithms. Most importantly, this interface consists of their `fit` and `predict` methods.
+>>>>>>> upstream/main
 
 ```{eval-rst}
 .. autoclass:: qunfold.AbstractMethod
    :members:
 ```
 
+<<<<<<< HEAD
+Instances of [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification methods as a `LinearMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#feature-transformations).
+=======
 Instances of many [](#popular-algorithms) for quantification and unfolding are created through the corresponding constructors. However, you can also define your own quantification method as a `LinearMethod` that combines an arbitrary choice of [](#losses), [](#regularizers) and [](#data-representations).
+>>>>>>> upstream/main
 
 ```{eval-rst}
 .. autoclass:: qunfold.LinearMethod

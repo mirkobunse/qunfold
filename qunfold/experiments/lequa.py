@@ -14,6 +14,12 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from time import time
 from tqdm.auto import tqdm
+<<<<<<< HEAD
+from quapy.method._kdey import KDEyML as KDEyML_QuaPy
+import warnings
+warnings.filterwarnings("ignore")
+=======
+>>>>>>> upstream/main
 
 def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
     """A single trial of lequa.main()"""
@@ -34,8 +40,14 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
             error = "m" + error_metric, # ae -> mae, rae -> mrae
             raise_errors = True,
             refit = False,
+<<<<<<< HEAD
+            raise_errors = True,
+            verbose = True,
+        ).fit(trn_data)
+=======
             # verbose = True,
         ).fit(*trn_data.Xy)
+>>>>>>> upstream/main
         parameters = quapy_method.best_params_
         val_error = quapy_method.best_score_
         quapy_method = quapy_method.best_model_
@@ -93,7 +105,6 @@ def main(
     np.random.seed(seed)
     qp.environ["_R_SEED"] = seed
     qp.environ["SAMPLE_SIZE"] = 1000
-    qp.environ["N_JOBS"] = 1
 
     # configure the quantification methods
     clf = CVClassifier(

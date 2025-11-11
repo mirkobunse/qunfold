@@ -33,7 +33,11 @@ As soon as you push to the `main` branch, GitHub Actions will build the document
 
 ## Custom implementations
 
+<<<<<<< HEAD
+Custom [](#losses) and [](#feature-transformations) can be used in any instance of `LinearMethod`. Use the already existing implementations as examples.
+=======
 Custom [](#losses) and [](#data-representations) can be used in any instance of `LinearMethod`. Use the already existing implementations as examples.
+>>>>>>> upstream/main
 
 
 ### Losses
