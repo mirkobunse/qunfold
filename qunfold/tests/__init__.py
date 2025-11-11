@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
 from qunfold import HDx, HellingerSurrogateLoss
+import unittest
 
 RNG = np.random.RandomState(876) # make tests reproducible
 
@@ -302,3 +303,27 @@ class TestHellingerSurrogateLoss(TestCase):
       self.assertAlmostEqual(F_hl + new_loss(p_tst),
                              0.5 * old_loss(p_tst),
                              places=5)
+
+class TestRepresentationsUnitScale(TestCase):
+  """TODO: Implement tests for unit scaling"""
+  def test_unit_scale(self):
+    q, M, p_trn = make_problem()
+    n_classes = len(p_trn)
+    X_trn, y_trn = generate_data(M, p_trn)
+    p_tst = RNG.permutation(p_trn)
+    X_tst, y_tst = generate_data(M, p_tst)
+
+    forest = RandomForestClassifier(oob_score=True)
+    repr_class = qunfold.ClassRepresentation(
+      classifier=forest,
+      is_probabilistic=False,
+      fit_classifier=True,
+      unit_scale=True
+    )
+    
+    M_est = repr_class.fit_transform(X_trn, y_trn, n_classes)
+    q_tst = repr_class.transform(X_tst)
+
+
+if __name__ == '__main__':
+  unittest.main()     

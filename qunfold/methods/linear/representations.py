@@ -55,11 +55,13 @@ class ClassRepresentation(AbstractRepresentation):
       classifier: A classifier that implements the API of scikit-learn.
       is_probabilistic (optional): Whether probabilistic or crisp predictions of the `classifier` are used to represent the data. Defaults to `False`.
       fit_classifier (optional): Whether to fit the `classifier` when this quantifier is fitted. Defaults to `True`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   classifier: Any
   is_probabilistic: bool = False
   fit_classifier: bool = True
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  unit_scale: bool = True
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not hasattr(self.classifier, "oob_score") or not self.classifier.oob_score:
       raise ValueError(
         "The ClassRepresentation either requires a bagging classifier with oob_score=True",
@@ -84,7 +86,7 @@ class ClassRepresentation(AbstractRepresentation):
           M[:,c] = fX[y==c].mean(axis=0)
       return M
     return fX, y
-  def transform(self, X, average=True):
+  def transform(self, X, average=True): # TODO: unit_scale not needed here?
     n_classes = len(self.p_trn)
     fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.predict_proba(X)
@@ -101,10 +103,12 @@ class DistanceRepresentation(AbstractRepresentation):
   Args:
       metric (optional): The metric with which the distance between data items is measured. Can take any value that is accepted by `scipy.spatial.distance.cdist`. Defaults to `"euclidean"`.
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   metric: str = "euclidean"
   preprocessor: Optional[AbstractRepresentation] = None
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  unit_scale: bool = True
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -132,8 +136,11 @@ class DistanceRepresentation(AbstractRepresentation):
     for c in range(n_classes):
       if np.sum(self.y_trn==c) > 0:
         fX[:,c] = cdist(X, self.X_trn[self.y_trn==c], metric=self.metric).mean(axis=1)
-    if average:
-      return fX.mean(axis=0) # = q
+    if not average:
+      return fX # = q
+    fX = fX.mean(axis=0)
+    if self.unit_scale: # TODO: this will also affect the Matrix M in fit_transform. Is this correct?
+      return fX / fX.sum()
     return fX
 
 @dataclass
@@ -210,9 +217,11 @@ class EnergyKernelRepresentation(AbstractRepresentation):
 
   Args:
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   preprocessor: Optional[AbstractRepresentation] = None
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  unit_scale: bool = True
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("EnergyKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
@@ -246,7 +255,10 @@ class EnergyKernelRepresentation(AbstractRepresentation):
     for c in range(n_classes):
       if np.sum(self.y_trn==c) > 0:
         dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
-    return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
+    fX = norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
+    if self.unit_scale:
+      fX /= fX.sum()
+    return fX
 
 @dataclass
 class GaussianKernelRepresentation(AbstractRepresentation):
@@ -257,10 +269,12 @@ class GaussianKernelRepresentation(AbstractRepresentation):
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   sigma: float = 1.
   preprocessor: Optional[AbstractRepresentation] = None
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  unit_scale: bool = True
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
@@ -289,8 +303,11 @@ class GaussianKernelRepresentation(AbstractRepresentation):
       norm_fac = X.shape[0] * self.X_trn[self.y_trn==i].shape[0]
       sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac
+    if self.unit_scale:
+      res /= res.sum()
     return res
 
+@dataclass
 class KernelRepresentation(AbstractRepresentation):
   """A general kernel-based data representation, as it is used in `KMM`. If you intend to use a Gaussian kernel or energy kernel, prefer their dedicated and more efficient implementations over this class.
 
@@ -299,9 +316,11 @@ class KernelRepresentation(AbstractRepresentation):
 
   Args:
       kernel: A callable that will be used as the kernel. Must follow the signature `(X[y==i], X[y==j]) -> scalar`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   kernel: Callable
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  unit_scale: bool = True
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("KernelRepresentation does not support average=False")
     check_y(y, n_classes)
@@ -316,6 +335,8 @@ class KernelRepresentation(AbstractRepresentation):
           M[i, j] = self.kernel(X[y==i], X[y==j])
           if i != j:
             M[j, i] = M[i, j]
+    if self.unit_scale:
+      M /= M.sum(axis=0, keepdims=True)
     return M
   def transform(self, X, average=True):
     if not average:
@@ -325,6 +346,8 @@ class KernelRepresentation(AbstractRepresentation):
     for c in range(n_classes):
       if np.sum(self.y_trn==c) > 0:
         q[c] = self.kernel(self.X_trn[self.y_trn==c], X)
+    if self.unit_scale:
+      q /= q.sum()
     return q
 
 # kernel function for the LaplacianKernelRepresentation
@@ -342,9 +365,10 @@ class LaplacianKernelRepresentation(KernelRepresentation):
 
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
-  def __init__(self, sigma=1.):
-    KernelRepresentation.__init__(self, LaplacianKernelRepresentation.create_kernel(sigma))
+  def __init__(self, sigma=1., unit_scale=True):
+    KernelRepresentation.__init__(self, LaplacianKernelRepresentation.create_kernel(sigma), unit_scale)
   @staticmethod
   def create_kernel(sigma):
     return partial(_laplacianKernel, sigma=sigma)
@@ -358,11 +382,13 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       n_rff (optional): The number of random Fourier features. Defaults to `1000`.
       preprocessor (optional): Another `AbstractRepresentation` that is called before this representation. Defaults to `None`.
       seed (optional): Controls the randomness of the random Fourier features. Defaults to `None`.
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
   """
   sigma: float = 1.
   n_rff: int = 1000
   preprocessor: Optional[AbstractRepresentation] = None
   seed: Optional[int] = None
+  unit_scale: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
@@ -385,28 +411,47 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       axis = 1
     )
     self.M = self.mu.T @ self.mu
+    # TODO: fix this 
+    if self.unit_scale:
+      self.M /= self.M.sum(axis=0, keepdims=True)
     return self.M
   def transform(self, X, average=True):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    return self._transform_after_preprocessor(X) @ self.mu
+    fX = self._transform_after_preprocessor(X) @ self.mu
+    # TODO: fix this 
+    if self.unit_scale:
+      fX /= fX.sum()
+    return fX
   def _transform_after_preprocessor(self, X):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
 
+@dataclass
 class OriginalRepresentation(AbstractRepresentation):
-  """A dummy representation that simply returns the data as it is."""
+  """A dummy representation that simply returns the data as it is.
+  
+  Args:
+      unit_scale (optional): Whether or not to scale each output to a sum of one. A value of `False` indicates that the sum of each output is the number of features. Defaults to `True`.
+  """
+  unit_scale: bool = True
   def fit_transform(self, X, y, average=True, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
-    if average:
-      return np.array([ X[y==c].mean(axis=0) for c in range(len(self.p_trn)) ]).T # = M
-    return X, y
+    if not average:
+      return X, y
+    M = np.array([ X[y==c].mean(axis=0) for c in range(len(self.p_trn)) ]).T # = M
+    if self.unit_scale:
+      M /= M.sum(axis=0, keepdims=True) 
+    return M
   def transform(self, X, average=True):
     n_classes = len(self.p_trn)
-    if average:
-      return X.mean(axis=0) # = q
+    if not average:
+      return X
+    X = X.mean(axis=0) # = q
+    if self.unit_scale:
+      X /= X.sum()
     return X
