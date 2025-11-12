@@ -8,6 +8,7 @@ from scipy.spatial.distance import cdist
 from typing import Any, Callable, Optional
 from .. import class_prevalences, check_y
 from ...base import BaseMixin
+import inspect
 
 class AbstractRepresentation(ABC,BaseMixin):
   """Abstract base class for representations."""
@@ -69,7 +70,13 @@ class ClassRepresentation(AbstractRepresentation):
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
-      self.classifier.fit(X, y, class_weight=sample_weight)
+      # Workaround that CVClassifier doesnt implement sample_weight parameter
+      sig = inspect.signature(self.classifier.fit)
+      if "sample_weight" in sig.parameters.values():
+        self.classifier.fit(X, y, sample_weight=sample_weight)
+      else:
+        self.classifier.fit(X, y)
+
     fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
@@ -391,7 +398,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
   n_rff: int = 1000
   preprocessor: Optional[AbstractRepresentation] = None
   seed: Optional[int] = None
-  def fit_transform(self, X, y, sample_weight, average=True, n_classes=None):
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
     if sample_weight is not None:
@@ -411,7 +418,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       size = (self.n_rff // 2, X.shape[1]),
     ).astype(np.float32)
     self.mu = np.stack(
-      [ self._transform_after_preprocessor(X[y==c], sample_weight=sample_weight[y==c]) for c in range(n_classes) ],
+      [ self._transform_after_preprocessor(X[y==c]) for c in range(n_classes) ],
       axis = 1
     )
     self.M = self.mu.T @ self.mu
@@ -423,7 +430,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       raise ValueError("GaussianRFFKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    fX = self._transform_after_preprocessor(X, sample_weight=sample_weight) @ self.mu
+    fX = self._transform_after_preprocessor(X) @ self.mu
     return fX
   def _transform_after_preprocessor(self, X):
     Xw = X @ self.w.T
