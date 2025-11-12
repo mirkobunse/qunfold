@@ -410,7 +410,7 @@ class OriginalRepresentation(AbstractRepresentation):
     self.p_trn = class_prevalences(y, n_classes)
     if not average:
       return X, y
-    M = np.array([ X[y==c].average(axis=0, weights=sample_weight) for c in range(len(self.p_trn)) ]).T # = M
+    M = np.array([ X[y==c].average(axis=0, weights=sample_weight[y==c]) for c in range(len(self.p_trn)) ]).T # = M
     return M
   def transform(self, X, sample_weight=None, average=True):
     n_classes = len(self.p_trn)
