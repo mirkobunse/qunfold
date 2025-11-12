@@ -69,19 +69,24 @@ class ClassRepresentation(AbstractRepresentation):
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
-      self.classifier.fit(X, y)
+      self.classifier.fit(X, y, class_weight=sample_weight)
     fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
     fX = fX[is_finite,:] # drop instances that never became OOB
     y = y[is_finite]
+    if sample_weight is not None:
+      sample_weight = sample_weight[is_finite]
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
     if average:
       M = np.zeros((n_classes, n_classes))
       for c in range(n_classes):
         if np.sum(y==c) > 0:
-          M[:,c] = fX[y==c].average(axis=0, weights=sample_weight[y==c])
+          weights = None
+          if sample_weight is not None:
+            weights = sample_weight[y==c]
+          M[:,c] = np.average(fX[y==c], axis=0, weights=weights)
       return M
     return fX, y
   def transform(self, X, sample_weight=None, average=True): # TODO: unit_scale not needed here?
@@ -91,7 +96,7 @@ class ClassRepresentation(AbstractRepresentation):
     if not self.is_probabilistic:
       fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
     if average:
-      return fX.average(axis=0, weights=sample_weight) # = q
+      return np.average(fX, axis=0, weights=sample_weight) # = q
     return fX
 
 @dataclass
@@ -118,7 +123,10 @@ class DistanceRepresentation(AbstractRepresentation):
       M = np.zeros((n_classes, n_classes))
       for c in range(n_classes):
         if np.sum(y==c) > 0:
-          M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=sample_weight[y==c])
+          weights = None
+          if sample_weight is not None:
+            weights = sample_weight[y==c]
+          M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=weights)
       return M
     else:
       return self._transform_after_preprocessor(X, average=False), y
@@ -133,7 +141,7 @@ class DistanceRepresentation(AbstractRepresentation):
       if np.sum(self.y_trn==c) > 0:
         fX[:,c] = cdist(X, self.X_trn[self.y_trn==c], metric=self.metric).mean(axis=1)
     if average:
-      return fX.average(axis=0, weights=sample_weight) # = q
+      return np.average(fX, axis=0, weights=sample_weight) # = q
     return fX
 
 @dataclass
@@ -148,7 +156,7 @@ class HistogramRepresentation(AbstractRepresentation):
   n_bins: int
   preprocessor: Optional[AbstractRepresentation] = None
   unit_scale: bool = True
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -164,22 +172,28 @@ class HistogramRepresentation(AbstractRepresentation):
       M = np.zeros((X.shape[1] * self.n_bins, n_classes))
       for c in range(n_classes):
         if np.sum(y==c) > 0:
-          M[:,c] = self._transform_after_preprocessor(X[y==c])
+          weights = None
+          if sample_weight is not None:
+            weights = sample_weight[y==c]
+          M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=weights)
       return M
-    return self._transform_after_preprocessor(X, average=average), y
-  def transform(self, X, average=True):
+    return self._transform_after_preprocessor(X, average=average, sample_weight=sample_weight), y
+  def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    return self._transform_after_preprocessor(X, average=average)
-  def _transform_after_preprocessor(self, X, average=True):
+    return self._transform_after_preprocessor(X, sample_weight=sample_weight, average=average)
+  def _transform_after_preprocessor(self, X, sample_weight=None, average=True):
     if not average:
       fX = []
       for j in range(X.shape[1]): # feature index
         e = self.edges[j][1:]
         i_row = np.arange(X.shape[0])
         i_col = np.clip(np.ceil((X[:,j] - e[0]) / (e[1]-e[0])).astype(int), 0, self.n_bins-1)
+        vals = np.ones(X.shape[0], dtype=float)
+        if sample_weight is not None:
+          vals *= sample_weight
         fX_j = csr_matrix(
-          (np.ones(X.shape[0], dtype=int), (i_row, i_col)),
+          (vals, (i_row, i_col)),
           shape = (X.shape[0], self.n_bins),
         )
         fX.append(fX_j.toarray())
@@ -193,7 +207,7 @@ class HistogramRepresentation(AbstractRepresentation):
         e = np.copy(self.edges[j])
         e[0] = -np.inf # always use exactly self.n_bins and never omit any items
         e[-1] = np.inf
-        hist, _ = np.histogram(X[:, j], bins=e)
+        hist, _ = np.histogram(X[:, j], bins=e, weights=sample_weight)
         if self.unit_scale:
           hist = hist / X.shape[1]
         histograms.append(hist / X.shape[0])
@@ -215,6 +229,9 @@ class EnergyKernelRepresentation(AbstractRepresentation):
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("EnergyKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("EnergyKernelRepresentation does not support sample_weight != None")
+
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -227,27 +244,28 @@ class EnergyKernelRepresentation(AbstractRepresentation):
     self.norms = np.zeros(n_classes) # = ||x||
     for c in range(len(self.norms)):
       if np.sum(y==c) > 0:
-        self.norms[c] = np.linalg.norm(X[y==c], axis=1).average(weights=sample_weight[y==c]) # TODO: is this correct?
+        self.norms[c] = np.linalg.norm(X[y==c], axis=1).mean()
     M = np.zeros((n_classes, n_classes))
     for c in range(n_classes):
       if np.sum(y==c) > 0:
-        M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c], sample_weight=sample_weight)
+        M[:,c] = self._transform_after_preprocessor(X[y==c], self.norms[c])
     return M
   def transform(self, X, sample_weight=None, average=True):
     if not average:
       raise ValueError("EnergyKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("EnergyKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    norm = np.linalg.norm(X, axis=1).average(weights=sample_weight)
-    return self._transform_after_preprocessor(X, norm, sample_weight=sample_weight)
+    norm = np.linalg.norm(X, axis=1).mean()
+    return self._transform_after_preprocessor(X, norm)
   def _transform_after_preprocessor(self, X, norm, sample_weight=None):
     n_classes = len(self.p_trn)
     dists = np.zeros(n_classes) # = ||x_1 - x_2|| for all x_2 = X_trn[y_trn == i]
     for c in range(n_classes):
       if np.sum(self.y_trn==c) > 0:
-        dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").average(weigths=sample_weight) # TODO: is this correct?
-    fX = norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
-    return fX
+        dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
+    return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
 
 @dataclass
 class GaussianKernelRepresentation(AbstractRepresentation):
@@ -264,6 +282,8 @@ class GaussianKernelRepresentation(AbstractRepresentation):
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("GaussianKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -275,22 +295,23 @@ class GaussianKernelRepresentation(AbstractRepresentation):
     self.y_trn = y
     M = np.zeros((n_classes, n_classes))
     for c in range(n_classes):
-      M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=sample_weight[y==c])
+      M[:,c] = self._transform_after_preprocessor(X[y==c])
     return M
   def transform(self, X, sample_weight=None, average=True):
     if not average:
       raise ValueError("GaussianKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("GaussianKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    return self._transform_after_preprocessor(X, sample_weight=sample_weight)
-  def _transform_after_preprocessor(self, X, sample_weight=None):
+    return self._transform_after_preprocessor(X)
+  def _transform_after_preprocessor(self, X):
     n_classes = len(self.p_trn)
     res = np.zeros(n_classes)
     for i in range(n_classes):
       norm_fac = X.shape[0] * self.X_trn[self.y_trn==i].shape[0]
       sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
-      #res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac # <= old version
-      res[i] = np.exp(-sq_dists / 2*self.sigma**2).average(weights=sample_weight) # TODO is this correct?
+      res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac # <= old version
     return res
 
 @dataclass
@@ -307,6 +328,8 @@ class KernelRepresentation(AbstractRepresentation):
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if not average:
       raise ValueError("KernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("KernelRepresentation does not support sample_weight != None")
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
@@ -320,9 +343,11 @@ class KernelRepresentation(AbstractRepresentation):
           if i != j:
             M[j, i] = M[i, j]
     return M
-  def transform(self, X, average=True):
+  def transform(self, X, sample_weight=None, average=True):
     if not average:
       raise ValueError("KernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("KernelRepresentation does not support sample_weight != None")
     n_classes = len(self.p_trn)
     q = np.zeros(n_classes)
     for c in range(n_classes):
@@ -346,7 +371,7 @@ class LaplacianKernelRepresentation(KernelRepresentation):
   Args:
       sigma (optional): A smoothing parameter of the kernel function. Defaults to `1`.
   """
-  def __init__(self, sigma=1., unit_scale=True):
+  def __init__(self, sigma=1.):
     KernelRepresentation.__init__(self, LaplacianKernelRepresentation.create_kernel(sigma))
   @staticmethod
   def create_kernel(sigma):
@@ -366,9 +391,11 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
   n_rff: int = 1000
   preprocessor: Optional[AbstractRepresentation] = None
   seed: Optional[int] = None
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  def fit_transform(self, X, y, sample_weight, average=True, n_classes=None):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("GaussianRFFKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
@@ -384,17 +411,19 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
       size = (self.n_rff // 2, X.shape[1]),
     ).astype(np.float32)
     self.mu = np.stack(
-      [ self._transform_after_preprocessor(X[y==c]) for c in range(n_classes) ],
+      [ self._transform_after_preprocessor(X[y==c], sample_weight=sample_weight[y==c]) for c in range(n_classes) ],
       axis = 1
     )
     self.M = self.mu.T @ self.mu
     return self.M
-  def transform(self, X, average=True):
+  def transform(self, X, sample_weight=None, average=True):
     if not average:
       raise ValueError("GaussianRFFKernelRepresentation does not support average=False")
+    if sample_weight is not None:
+      raise ValueError("GaussianRFFKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    fX = self._transform_after_preprocessor(X) @ self.mu
+    fX = self._transform_after_preprocessor(X, sample_weight=sample_weight) @ self.mu
     return fX
   def _transform_after_preprocessor(self, X):
     Xw = X @ self.w.T
@@ -410,10 +439,13 @@ class OriginalRepresentation(AbstractRepresentation):
     self.p_trn = class_prevalences(y, n_classes)
     if not average:
       return X, y
-    M = np.array([ X[y==c].average(axis=0, weights=sample_weight[y==c]) for c in range(len(self.p_trn)) ]).T # = M
+    if sample_weight is not None:
+      M = np.array([ np.average(X[y==c], axis=0, weights=sample_weight[y==c]) for c in range(len(self.p_trn)) ]).T # = M
+    else:
+      M = np.array([ np.average(X[y==c], axis=0) for c in range(len(self.p_trn)) ]).T # = M
     return M
   def transform(self, X, sample_weight=None, average=True):
     n_classes = len(self.p_trn)
     if average:
-      return X.average(axis=0, weights=sample_weight) # = q
+      return np.average(X, axis=0, weights=sample_weight) # = q
     return X
