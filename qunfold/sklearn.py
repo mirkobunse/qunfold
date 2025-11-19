@@ -37,10 +37,11 @@ class CVClassifier(BaseEstimator,ClassifierMixin):
         shuffle = True
     )
     for i, (i_trn, i_tst) in enumerate(skf.split(X, y)):
-      try: # Catch that not all sklearn estimators have sample_weight parameter
-        estimator = clone(self.estimator).fit(X[i_trn], y[i_trn], sample_weight=sample_weight[i_trn])
+      estimator = clone(self.estimator)
+      try: # catch that not all sklearn estimators have sample_weight parameter
+        estimator.fit(X[i_trn], y[i_trn], sample_weight=sample_weight[i_trn])
       except TypeError:
-        estimator = clone(self.estimator).fit(X[i_trn], y[i_trn])
+        estimator.fit(X[i_trn], y[i_trn])
       i_classes = np.array([ class_mapping[_class] for _class in estimator.classes_ ])
       y_pred = estimator.predict_proba(X[i_tst])
       self.oob_decision_function_[i_tst[:, np.newaxis], i_classes[np.newaxis, :]] = y_pred

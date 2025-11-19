@@ -8,7 +8,6 @@ from scipy.spatial.distance import cdist
 from typing import Any, Callable, Optional
 from .. import class_prevalences, check_y
 from ...base import BaseMixin
-import inspect
 
 class AbstractRepresentation(ABC,BaseMixin):
   """Abstract base class for representations."""
@@ -22,6 +21,7 @@ class AbstractRepresentation(ABC,BaseMixin):
     Args:
         X: The feature matrix to which this representation will be fitted.
         y: The labels to which this representation will be fitted.
+        sample_weight (optional): Importance weights for each (X[i], y[i]) pair to use during fitting. Defaults to `None`.
         average (optional): Whether to return a transfer matrix `M` or a transformation `(f(X), y)`. Defaults to `True`.
         n_classes (optional): The number of expected classes. Defaults to `None`.
 
@@ -30,15 +30,16 @@ class AbstractRepresentation(ABC,BaseMixin):
     """
     pass
   @abstractmethod
-  def transform(self, X, average=True):
+  def transform(self, X, sample_weight=None, average=True):
     """This abstract method has to transform the data `X`.
 
     Args:
         X: The feature matrix that will be transformed.
+        sample_weight (optional): Importance weights for each X[i] to use during averaging if `average==True`. Defaults to `None`.
         average (optional): Whether to return a vector `q` or a transformation `f(X)`. Defaults to `True`.
 
     Returns:
-        A vector `q = f(X).mean(axis=0)` if `average==True` or a transformation `f(X)` if `average==False`.
+        A vector `q = f(X).average(axis=0, weights=sample_weight)` if `average==True` or a transformation `f(X)` if `average==False`.
     """
     pass
 
@@ -137,8 +138,9 @@ class DistanceRepresentation(AbstractRepresentation):
       return self._transform_after_preprocessor(X, average=False), y
   def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
-      X = self.preprocessor.transform(X, sample_weight=sample_weight, average=False)
-    return self._transform_after_preprocessor(X, average=average)
+      X = self.preprocessor.transform(X, average=False)
+    return self._transform_after_preprocessor(
+      X, sample_weight=sample_weight, average=average)
   def _transform_after_preprocessor(self, X, sample_weight=None, average=True):
     n_classes = len(self.p_trn)
     fX = np.zeros((X.shape[0], n_classes))
@@ -186,7 +188,8 @@ class HistogramRepresentation(AbstractRepresentation):
   def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
-    return self._transform_after_preprocessor(X, sample_weight=sample_weight, average=average)
+    return self._transform_after_preprocessor(
+      X, sample_weight=sample_weight, average=average)
   def _transform_after_preprocessor(self, X, sample_weight=None, average=True):
     if not average:
       fX = []
@@ -370,6 +373,7 @@ def _laplacianKernel(X, Y, sigma):
     K_ij = np.exp((-sigma * D_lk)).sum(0).sum(0) / (nx * ny)
     return K_ij
 
+@dataclass
 class LaplacianKernelRepresentation(KernelRepresentation):
   """A kernel-based data representation, as it is used in `KMM`, that uses the `laplacian` kernel.
 
