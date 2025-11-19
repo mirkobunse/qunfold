@@ -301,4 +301,4 @@ class TestHellingerSurrogateLoss(TestCase):
       # check for 6 decimal place accuracy
       self.assertAlmostEqual(F_hl + new_loss(p_tst),
                              0.5 * old_loss(p_tst),
-                             places=5)
+                             places=5)    
