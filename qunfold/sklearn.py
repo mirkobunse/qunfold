@@ -24,9 +24,10 @@ class CVClassifier(BaseEstimator,ClassifierMixin):
     self.n_estimators = n_estimators
     self.random_state = random_state
     self.oob_score = True # the whole point of this class is to have an oob_score
-  def fit(self, X, y):
+  def fit(self, X, y, sample_weight=None):
     self.estimators_ = []
     self.i_classes_ = [] # the indices of each estimator's subset of classes
+    self.estimator_weights_ = np.ones(self.n_estimators)
     self.classes_ = unique_labels(y)
     self.oob_decision_function_ = np.zeros((len(y), len(self.classes_)))
     class_mapping = dict(zip(self.classes_, np.arange(len(self.classes_))))
@@ -35,13 +36,18 @@ class CVClassifier(BaseEstimator,ClassifierMixin):
         random_state = self.random_state,
         shuffle = True
     )
-    for i_trn, i_tst in skf.split(X, y):
-      estimator = clone(self.estimator).fit(X[i_trn], y[i_trn])
+    for i, (i_trn, i_tst) in enumerate(skf.split(X, y)):
+      try: # Catch that not all sklearn estimators have sample_weight parameter
+        estimator = clone(self.estimator).fit(X[i_trn], y[i_trn], sample_weight=sample_weight[i_trn])
+      except TypeError:
+        estimator = clone(self.estimator).fit(X[i_trn], y[i_trn])
       i_classes = np.array([ class_mapping[_class] for _class in estimator.classes_ ])
       y_pred = estimator.predict_proba(X[i_tst])
       self.oob_decision_function_[i_tst[:, np.newaxis], i_classes[np.newaxis, :]] = y_pred
       self.estimators_.append(estimator)
       self.i_classes_.append(i_classes)
+      if sample_weight is not None:
+        self.estimator_weights_[i] = sample_weight[i_trn].sum()
     return self
   def predict_proba(self, X):
     if not hasattr(self, "classes_"):
@@ -49,7 +55,7 @@ class CVClassifier(BaseEstimator,ClassifierMixin):
     y_pred = np.zeros((len(self.estimators_), X.shape[0], len(self.classes_)))
     for i, (estimator, i_classes) in enumerate(zip(self.estimators_, self.i_classes_)):
       y_pred[i, :, i_classes] = estimator.predict_proba(X).T
-    return np.mean(y_pred, axis=0) # shape (n_samples, n_classes)
+    return np.average(y_pred, axis=0, weights=self.estimator_weights_) # shape (n_samples, n_classes)
   def predict(self, X):
     y_pred = self.predict_proba(X).argmax(axis=1) # class indices
     return self.classes_[y_pred]
