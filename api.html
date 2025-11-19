@@ -672,6 +672,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix to which this representation will be fitted.</p></li>
 <li><p><strong>y</strong> – The labels to which this representation will be fitted.</p></li>
+<li><p><strong>sample_weight</strong> (<em>optional</em>) – Importance weights for each (X[i], y[i]) pair to use during fitting. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a transfer matrix <cite>M</cite> or a transformation <cite>(f(X), y)</cite>. Defaults to <cite>True</cite>.</p></li>
 <li><p><strong>n_classes</strong> (<em>optional</em>) – The number of expected classes. Defaults to <cite>None</cite>.</p></li>
 </ul>
@@ -684,17 +685,18 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qunfold.AbstractRepresentation.transform">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qunfold.AbstractRepresentation.transform" title="Link to this definition"></a></dt>
 <dd><p>This abstract method has to transform the data <cite>X</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X</strong> – The feature matrix that will be transformed.</p></li>
+<li><p><strong>sample_weight</strong> (<em>optional</em>) – Importance weights for each X[i] to use during averaging if <cite>average==True</cite>. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>average</strong> (<em>optional</em>) – Whether to return a vector <cite>q</cite> or a transformation <cite>f(X)</cite>. Defaults to <cite>True</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A vector <cite>q = f(X).mean(axis=0)</cite> if <cite>average==True</cite> or a transformation <cite>f(X)</cite> if <cite>average==False</cite>.</p>
+<dd class="field-even"><p>A vector <cite>q = f(X).average(axis=0, weights=sample_weight)</cite> if <cite>average==True</cite> or a transformation <cite>f(X)</cite> if <cite>average==False</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
