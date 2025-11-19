@@ -13,7 +13,7 @@ import inspect
 class AbstractRepresentation(ABC,BaseMixin):
   """Abstract base class for representations."""
   @abstractmethod
-  def fit_transform(self, X, y, average=True, n_classes=None):
+  def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     """This abstract method has to fit the representation and to return the transformed input data.
 
     Note:
@@ -70,11 +70,9 @@ class ClassRepresentation(AbstractRepresentation):
     self.p_trn = class_prevalences(y, n_classes)
     n_classes = len(self.p_trn) # not None anymore
     if self.fit_classifier:
-      # Workaround that CVClassifier doesnt implement sample_weight parameter
-      sig = inspect.signature(self.classifier.fit)
-      if "sample_weight" in sig.parameters.values():
+      try:
         self.classifier.fit(X, y, sample_weight=sample_weight)
-      else:
+      except TypeError:
         self.classifier.fit(X, y)
 
     fX = np.zeros((X.shape[0], n_classes))
@@ -118,7 +116,7 @@ class DistanceRepresentation(AbstractRepresentation):
   preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -165,7 +163,7 @@ class HistogramRepresentation(AbstractRepresentation):
   unit_scale: bool = True
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -240,7 +238,7 @@ class EnergyKernelRepresentation(AbstractRepresentation):
       raise ValueError("EnergyKernelRepresentation does not support sample_weight != None")
 
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -292,7 +290,7 @@ class GaussianKernelRepresentation(AbstractRepresentation):
     if sample_weight is not None:
       raise ValueError("GaussianKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -404,7 +402,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
     if sample_weight is not None:
       raise ValueError("GaussianRFFKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -440,7 +438,6 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
 @dataclass
 class OriginalRepresentation(AbstractRepresentation):
   """A dummy representation that simply returns the data as it is."""
-  unit_scale: bool = True
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     check_y(y, n_classes)
     self.p_trn = class_prevalences(y, n_classes)
