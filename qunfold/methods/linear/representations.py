@@ -184,7 +184,12 @@ class HistogramRepresentation(AbstractRepresentation):
             weights = sample_weight[y==c]
           M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=weights)
       return M
-    return self._transform_after_preprocessor(X, average=average, sample_weight=sample_weight), y
+    fX = self._transform_after_preprocessor(
+      X,
+      average = average,
+      sample_weight = sample_weight,
+    )
+    return fX, y
   def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
@@ -207,7 +212,7 @@ class HistogramRepresentation(AbstractRepresentation):
         fX.append(fX_j.toarray())
       fX = np.stack(fX).swapaxes(0, 1).reshape((X.shape[0], -1))
       if self.unit_scale:
-        fX = fX / fX.sum(axis=1, keepdims=True)
+        fX = fX / X.shape[1]
       return fX
     else: # a concatenation of numpy histograms is faster to compute
       histograms = []
@@ -218,7 +223,11 @@ class HistogramRepresentation(AbstractRepresentation):
         hist, _ = np.histogram(X[:, j], bins=e, weights=sample_weight)
         if self.unit_scale:
           hist = hist / X.shape[1]
-        histograms.append(hist / X.shape[0])
+        if sample_weight is not None:
+          hist = hist / sample_weight.sum()
+        else:
+          hist = hist / X.shape[0]
+        histograms.append(hist)
       return np.concatenate(histograms) # = q
 
 @dataclass

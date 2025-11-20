@@ -6,6 +6,7 @@ import time
 from quapy.method.composable import QUnfoldWrapper
 from qunfold.sklearn import CVClassifier
 from scipy.spatial.distance import cdist
+from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from unittest import TestCase
@@ -217,6 +218,48 @@ class TestQUnfoldWrapperFromQuaPy(TestCase):
       self.assertEqual( # check that best parameters are actually used
         cv_sld.best_params_["classifier__C"],
         cv_sld.best_model_._method.classifier.C
+      )
+
+class TestRepresentations(TestCase):
+  def test_representations(self):
+    X, y = make_classification( # generate data
+      n_samples = 1_000,
+      n_classes = 2,
+      random_state = RNG.randint(np.iinfo("uint16").max),
+    )
+    representations = [
+      qunfold.ClassRepresentation(
+        RandomForestClassifier(max_depth=2, oob_score=True),
+        is_probabilistic = True,
+      ),
+      qunfold.DistanceRepresentation(),
+      qunfold.HistogramRepresentation(n_bins=2, unit_scale=False),
+      qunfold.HistogramRepresentation(n_bins=2),
+    ]
+    for r in representations:
+      r.fit_transform(X, y)
+      np.testing.assert_allclose(
+        r.transform(X, average=False).mean(axis=0),
+        r.transform(X),
+      )
+      np.testing.assert_allclose(
+        r.transform(X[y==0], average=False).mean(axis=0),
+        r.transform(X[y==0]),
+      )
+      w_y1 = np.zeros(len(y))
+      w_y1[y==1] = 1
+      np.testing.assert_allclose(
+        r.transform(X, sample_weight=w_y1),
+        r.transform(X[y==1]),
+      )
+      np.testing.assert_allclose(
+        r.transform(X, average=False)[y==1].mean(axis=0),
+        r.transform(X, sample_weight=w_y1),
+      )
+      w_rand = RNG.uniform(size=len(y))
+      np.testing.assert_allclose(
+        np.average(r.transform(X, average=False), axis=0, weights=w_rand),
+        r.transform(X, sample_weight=w_rand),
       )
 
 class TestDistanceRepresentation(TestCase):
