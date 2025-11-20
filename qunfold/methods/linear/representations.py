@@ -95,7 +95,7 @@ class ClassRepresentation(AbstractRepresentation):
           M[:,c] = np.average(fX[y==c], axis=0, weights=weights)
       return M
     return fX, y
-  def transform(self, X, sample_weight=None, average=True): # TODO: unit_scale not needed here?
+  def transform(self, X, sample_weight=None, average=True):
     n_classes = len(self.p_trn)
     fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.predict_proba(X)
