@@ -22,11 +22,11 @@ class AbstractRepresentation(ABC,BaseMixin):
         X: The feature matrix to which this representation will be fitted.
         y: The labels to which this representation will be fitted.
         sample_weight (optional): Importance weights for each (X[i], y[i]) pair to use during fitting. Defaults to `None`.
-        average (optional): Whether to return a transfer matrix `M` or a transformation `(f(X), y)`. Defaults to `True`.
+        average (optional): Whether to return a transfer matrix `M` or a transformation `f(X)`. Defaults to `True`.
         n_classes (optional): The number of expected classes. Defaults to `None`.
 
     Returns:
-        A transfer matrix `M` if `average==True` or a transformation `(f(X), y)` if `average==False`.
+        A transfer matrix `M` if `average==True` or a transformation `f(X)` if `average==False`. `f(X)` might contain `NaN` entries if the fitting permits the estimation, e.g., in bootstrapped fitting procedures.
     """
     pass
   @abstractmethod
@@ -79,22 +79,22 @@ class ClassRepresentation(AbstractRepresentation):
     fX = np.zeros((X.shape[0], n_classes))
     fX[:, self.classifier.classes_] = self.classifier.oob_decision_function_
     is_finite = np.all(np.isfinite(fX), axis=1)
+    if not self.is_probabilistic:
+      fX[is_finite] = _onehot_encoding(np.argmax(fX[is_finite], axis=1), n_classes)
+    if not average:
+      return fX
     fX = fX[is_finite,:] # drop instances that never became OOB
     y = y[is_finite]
     if sample_weight is not None:
       sample_weight = sample_weight[is_finite]
-    if not self.is_probabilistic:
-      fX = _onehot_encoding(np.argmax(fX, axis=1), n_classes)
-    if average:
-      M = np.zeros((n_classes, n_classes))
-      for c in range(n_classes):
-        if np.sum(y==c) > 0:
-          weights = None
-          if sample_weight is not None:
-            weights = sample_weight[y==c]
-          M[:,c] = np.average(fX[y==c], axis=0, weights=weights)
-      return M
-    return fX, y
+    M = np.zeros((n_classes, n_classes))
+    for c in range(n_classes):
+      if np.sum(y==c) > 0:
+        weights = None
+        if sample_weight is not None:
+          weights = sample_weight[y==c]
+        M[:,c] = np.average(fX[y==c], axis=0, weights=weights)
+    return M
   def transform(self, X, sample_weight=None, average=True):
     n_classes = len(self.p_trn)
     fX = np.zeros((X.shape[0], n_classes))
@@ -117,7 +117,13 @@ class DistanceRepresentation(AbstractRepresentation):
   preprocessor: Optional[AbstractRepresentation] = None
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      X = self.preprocessor.fit_transform(
+        X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      is_finite = np.all(np.isfinite(X), axis=1)
+      X = X[is_finite,:]
+      y = y[is_finite]
+      if sample_weight is not None:
+        sample_weight = sample_weight[is_finite]
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -135,7 +141,7 @@ class DistanceRepresentation(AbstractRepresentation):
           M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=weights)
       return M
     else:
-      return self._transform_after_preprocessor(X, average=False), y
+      return self._transform_after_preprocessor(X, average=False)
   def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
@@ -165,7 +171,13 @@ class HistogramRepresentation(AbstractRepresentation):
   unit_scale: bool = True
   def fit_transform(self, X, y, sample_weight=None, average=True, n_classes=None):
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      X = self.preprocessor.fit_transform(
+        X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      is_finite = np.all(np.isfinite(X), axis=1)
+      X = X[is_finite,:]
+      y = y[is_finite]
+      if sample_weight is not None:
+        sample_weight = sample_weight[is_finite]
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -184,12 +196,11 @@ class HistogramRepresentation(AbstractRepresentation):
             weights = sample_weight[y==c]
           M[:,c] = self._transform_after_preprocessor(X[y==c], sample_weight=weights)
       return M
-    fX = self._transform_after_preprocessor(
+    return self._transform_after_preprocessor(
       X,
       average = average,
       sample_weight = sample_weight,
     )
-    return fX, y
   def transform(self, X, sample_weight=None, average=True):
     if self.preprocessor is not None:
       X = self.preprocessor.transform(X, average=False)
@@ -250,7 +261,10 @@ class EnergyKernelRepresentation(AbstractRepresentation):
       raise ValueError("EnergyKernelRepresentation does not support sample_weight != None")
 
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      X = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      is_finite = np.all(np.isfinite(X), axis=1)
+      X = X[is_finite,:]
+      y = y[is_finite]
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -302,7 +316,10 @@ class GaussianKernelRepresentation(AbstractRepresentation):
     if sample_weight is not None:
       raise ValueError("GaussianKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      X = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      is_finite = np.all(np.isfinite(X), axis=1)
+      X = X[is_finite,:]
+      y = y[is_finite]
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)
@@ -415,7 +432,10 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
     if sample_weight is not None:
       raise ValueError("GaussianRFFKernelRepresentation does not support sample_weight != None")
     if self.preprocessor is not None:
-      X, y = self.preprocessor.fit_transform(X, y, sample_weight=sample_weight, average=False, n_classes=n_classes)
+      X = self.preprocessor.fit_transform(X, y, average=False, n_classes=n_classes)
+      is_finite = np.all(np.isfinite(X), axis=1)
+      X = X[is_finite,:]
+      y = y[is_finite]
       self.p_trn = self.preprocessor.p_trn # copy from preprocessor
     else:
       check_y(y, n_classes)

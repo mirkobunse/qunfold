@@ -285,14 +285,14 @@ class TestHistogramRepresentation(TestCase):
     y = RNG.choice(5, size=X.shape[0]) # the HistogramRepresentation ignores labels
     fX = np.load("qunfold/tests/HDx_fX.npy") # ground-truth by QUnfold.jl
     f = qunfold.HistogramRepresentation(10, unit_scale=False)
-    self.assertTrue(np.all(f.fit_transform(X, y, average=False)[0] == fX))
+    self.assertTrue(np.all(f.fit_transform(X, y, average=False) == fX))
     self.assertTrue(np.all(f.transform(X, average=False) == fX))
     self.assertTrue(np.all(f.transform(X, average=True) == fX.mean(axis=0)))
 
     # test unit_scale=True, the new default
     self.assertTrue(np.all(f.transform(X, average=False).sum(axis=1) == X.shape[1]))
     f2 = qunfold.HistogramRepresentation(10)
-    self.assertTrue(np.allclose(f2.fit_transform(X, y, average=False)[0].sum(axis=1), 1))
+    self.assertTrue(np.allclose(f2.fit_transform(X, y, average=False).sum(axis=1), 1))
 
 class TestHellingerSurrogateLoss(TestCase):
   #old implementation of hellinger surrogate loss for comparison
