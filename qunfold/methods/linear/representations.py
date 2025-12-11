@@ -109,6 +109,7 @@ class ClassRepresentation(AbstractRepresentation):
     if average:
       return np.average(fX, axis=0, weights=sample_weight) # = q
     return fX
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -163,6 +164,7 @@ class DistanceRepresentation(AbstractRepresentation):
     if average:
       return np.average(fX, axis=0, weights=sample_weight) # = q
     return fX
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -250,6 +252,7 @@ class HistogramRepresentation(AbstractRepresentation):
           hist = hist / X.shape[0]
         histograms.append(hist)
       return np.concatenate(histograms) # = q
+  @property
   def n_output_features(self):
     return self.n_output_features_
 
@@ -309,6 +312,7 @@ class EnergyKernelRepresentation(AbstractRepresentation):
       if np.sum(self.y_trn==c) > 0:
         dists[c] = cdist(X, self.X_trn[self.y_trn==c], metric="euclidean").mean()
     return norm + self.norms - dists # = ||x_1|| + ||x_2|| - ||x_1 - x_2|| for all x_2
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -361,6 +365,7 @@ class GaussianKernelRepresentation(AbstractRepresentation):
       sq_dists = cdist(X, self.X_trn[self.y_trn == i], metric="euclidean")**2
       res[i] = np.exp(-sq_dists / 2*self.sigma**2).sum() / norm_fac # <= old version
     return res
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -404,6 +409,7 @@ class KernelRepresentation(AbstractRepresentation):
       if np.sum(self.y_trn==c) > 0:
         q[c] = self.kernel(self.X_trn[self.y_trn==c], X)
     return q
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -485,6 +491,7 @@ class GaussianRFFKernelRepresentation(AbstractRepresentation):
     Xw = X @ self.w.T
     C = np.concatenate((np.cos(Xw), np.sin(Xw)), axis=1)
     return np.sqrt(2 / self.n_rff) * np.mean(C, axis=0)
+  @property
   def n_output_features(self):
     return len(self.p_trn)
 
@@ -507,5 +514,6 @@ class OriginalRepresentation(AbstractRepresentation):
     if average:
       return np.average(X, axis=0, weights=sample_weight) # = q
     return X
+  @property
   def n_output_features(self):
     return self.n_output_features_
