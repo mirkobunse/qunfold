@@ -134,7 +134,6 @@ class TestExpectationMaximizer(TestCase):
   def test_maximize_expectation(self):
     for _ in range(5):
       q, M, p_trn = make_problem()
-      n_classes = len(p_trn)
       X_trn, y_trn = generate_data(M, p_trn)
       p_tst_a = RNG.permutation(p_trn)
       X_tst_a, y_tst_a = generate_data(M, p_tst_a)
@@ -157,6 +156,16 @@ class TestExpectationMaximizer(TestCase):
         **params
       )
       np.testing.assert_array_equal(p_est_jnt, p_est_sep)
+      np.testing.assert_array_equal(
+        qunfold.methods.likelihood.maximize_expectation(
+          pYX_a, p_trn, return_posteriors=True, **params).shape,
+        pYX_a.shape
+      )
+      np.testing.assert_array_equal(
+        qunfold.methods.likelihood.maximize_expectation(
+          pYX_b, p_trn, return_posteriors=True).shape,
+        pYX_b.shape
+      )
 
 class TestQUnfoldWrapperFromQuaPy(TestCase):
   def test_methods(self):
