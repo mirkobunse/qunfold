@@ -6,7 +6,7 @@ import pandas as pd
 import quapy as qp
 from datetime import datetime
 from functools import partial
-from multiprocessing import Pool
+from joblib import Parallel, delayed
 from quapy.method.composable import QUnfoldWrapper
 from qunfold import ACC, PACC, HDy, EDy, RUN, KMM, ClassRepresentation, GaussianRFFKernelRepresentation, LeastSquaresLoss, EnergyKernelRepresentation, LinearMethod
 from qunfold.sklearn import CVClassifier
@@ -232,14 +232,14 @@ def main(
 
     # parallelize over all methods
     error_metrics = ['ae', 'rae']
-    configured_trial = partial(
+    configured_trial = delayed(partial(
         trial,
         trn_data = trn_data,
         val_gen = val_gen,
         tst_gen = tst_gen,
         seed = seed,
         n_trials = len(methods) * len(error_metrics),
-    )
+    ))
     trials = [ # (i_method, method_name, package, method, param_grid, error_metric)
         (x[0], x[1][0][0], x[1][0][1], x[1][0][2], x[1][0][3], x[1][1])
         for x in enumerate(itertools.product(methods, error_metrics))
@@ -249,9 +249,8 @@ def main(
         f"with {len(val_gen.true_prevs.df)} validation",
         f"and {len(tst_gen.true_prevs.df)} testing samples"
     )
-    results = []
-    with Pool(n_jobs if n_jobs > 0 else None) as pool:
-        results.extend(pool.imap(configured_trial, trials))
+    parallel = Parallel(n_jobs=n_jobs, prefer="processes")
+    results = parallel(configured_trial(trial) for trial in trials)
     df = pd.DataFrame(results)
     df.to_csv(output_path) # store the results
     print(f"{df.shape[0]} results succesfully stored at {output_path}")
