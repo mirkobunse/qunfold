@@ -24,9 +24,13 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
         datetime.now().strftime('%H:%M:%S'),
         f"{package} {method_name} / {error_metric} starting"
     )
+    qp.environ["_R_SEED"] = seed
+    qp.environ["SAMPLE_SIZE"] = 1000
+    qp.environ["N_JOBS"] = 1
 
     # configure and train the method; select the best hyper-parameters
     if param_grid is not None:
+        t_0 = time()
         quapy_method = qp.model_selection.GridSearchQ(
             model = method,
             param_grid = param_grid,
@@ -42,7 +46,8 @@ def trial(trial_config, trn_data, val_gen, tst_gen, seed, n_trials):
         print(
             f"VAL [{i_method+1:02d}/{n_trials:02d}]:",
             datetime.now().strftime('%H:%M:%S'),
-            f"{package} {method_name} validated {error_metric}={val_error:.4f} {parameters}"
+            f"{package} {method_name} validated {error_metric}={val_error:.4f}",
+            f"in {round(time()-t_0)} sec - {parameters}",
         )
     else:
         quapy_method = method.fit(*trn_data.Xy)
@@ -91,9 +96,6 @@ def main(
     if len(os.path.dirname(output_path)) > 0: # ensure that the directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
     np.random.seed(seed)
-    qp.environ["_R_SEED"] = seed
-    qp.environ["SAMPLE_SIZE"] = 1000
-    qp.environ["N_JOBS"] = 1
 
     # configure the quantification methods
     clf = CVClassifier(
