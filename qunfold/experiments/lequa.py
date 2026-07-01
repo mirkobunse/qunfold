@@ -125,7 +125,7 @@ def main(
                 divergence = 'HD',
                 cdf = False
             ),
-            qp_clf_grid | { "n_bins": [2, 4, 6] },
+            qp_clf_grid | { "nbins": [2, 4, 6] },
         ),
         ("EDy", "qunfold", QUnfoldWrapper(EDy(clf, seed=seed)), clf_grid),
         ("RUN", "qunfold",
