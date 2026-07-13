@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import traceback
+import warnings
 from abc import ABC, abstractmethod
 from scipy import optimize
 from ..base import BaseMixin
